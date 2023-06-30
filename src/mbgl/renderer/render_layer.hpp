@@ -38,6 +38,7 @@ using UniqueChangeRequestVec = std::vector<UniqueChangeRequest>;
 
 namespace gfx {
 class Context;
+class RendererBackend;
 class ShaderGroup;
 class ShaderRegistry;
 using ShaderGroupPtr = std::shared_ptr<ShaderGroup>;
@@ -158,7 +159,7 @@ public:
 #if MLN_DRAWABLE_RENDERER
     /// Generate any changes needed by the layer
     virtual void update(
-        gfx::ShaderRegistry&, gfx::Context&, const TransformState&, const RenderTree&, UniqueChangeRequestVec&) {}
+        gfx::ShaderRegistry&, gfx::RendererBackend&, const TransformState&, const RenderTree&, UniqueChangeRequestVec&) {}
 
     /// Called when the style layer is replaced (same ID and type), and the render layer is reused.
     virtual void layerChanged(const TransitionParameters&,

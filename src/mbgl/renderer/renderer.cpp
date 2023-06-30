@@ -38,9 +38,8 @@ void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters)
         const auto& state = renderTreeParameters.transformParams.state;
 
         if (impl->staticData && impl->staticData->shaders) {
-            auto& context = impl->backend.getContext();
             auto& shaders = *impl->staticData->shaders;
-            impl->orchestrator.updateLayers(shaders, context, state, updateParameters, *renderTree);
+            impl->orchestrator.updateLayers(shaders, impl->backend, state, updateParameters, *renderTree);
         }
 #endif
 

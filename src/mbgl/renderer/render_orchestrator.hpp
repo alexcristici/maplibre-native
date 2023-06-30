@@ -106,7 +106,7 @@ public:
     void observeLayerGroups(std::function<void(const LayerGroupBase&)>) const;
 
     void updateLayers(gfx::ShaderRegistry&,
-                      gfx::Context&,
+                      gfx::RendererBackend&,
                       const TransformState&,
                       const std::shared_ptr<UpdateParameters>&,
                       const RenderTree&);

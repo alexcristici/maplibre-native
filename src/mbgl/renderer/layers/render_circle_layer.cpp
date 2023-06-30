@@ -14,10 +14,11 @@
 #include <mbgl/util/intersection_tests.hpp>
 
 #if MLN_DRAWABLE_RENDERER
-#include <mbgl/renderer/layers/circle_layer_tweaker.hpp>
-#include <mbgl/renderer/layer_group.hpp>
-#include <mbgl/shaders/shader_program_base.hpp>
 #include <mbgl/gfx/drawable_builder.hpp>
+#include <mbgl/gfx/renderer_backend.hpp>
+#include <mbgl/renderer/layer_group.hpp>
+#include <mbgl/renderer/layers/circle_layer_tweaker.hpp>
+#include <mbgl/shaders/shader_program_base.hpp>
 #endif
 
 namespace mbgl {
@@ -272,10 +273,11 @@ static const std::string CircleShaderGroupName = "CircleShader";
 static constexpr std::string_view CircleInterpolateUBOName = "CircleInterpolateUBO";
 
 void RenderCircleLayer::update(gfx::ShaderRegistry& shaders,
-                               gfx::Context& context,
+                               gfx::RendererBackend& backend,
                                const TransformState& state,
                                [[maybe_unused]] const RenderTree& renderTree,
                                UniqueChangeRequestVec& changes) {
+    auto& context = backend.getContext();
     std::unique_lock<std::mutex> guard(mutex);
 
     if (!renderTiles || renderTiles->empty()) {

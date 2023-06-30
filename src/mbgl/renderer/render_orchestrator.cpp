@@ -861,7 +861,7 @@ void RenderOrchestrator::observeLayerGroups(std::function<void(const LayerGroupB
 }
 
 void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
-                                      gfx::Context& context,
+                                      gfx::RendererBackend& backend,
                                       const TransformState& state,
                                       const std::shared_ptr<UpdateParameters>& updateParameters,
                                       const RenderTree& renderTree) {
@@ -878,7 +878,7 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
     std::vector<std::unique_ptr<ChangeRequest>> changes;
     for (const auto& item : renderTree.getLayerRenderItems()) {
         auto& renderLayer = static_cast<const LayerRenderItem&>(item.get()).layer.get();
-        renderLayer.update(shaders, context, state, renderTree, changes);
+        renderLayer.update(shaders, backend, state, renderTree, changes);
     }
     addChanges(changes);
 }

@@ -21,7 +21,7 @@ public:
 
     /// Generate any changes needed by the layer
     void update(gfx::ShaderRegistry&,
-                gfx::Context&,
+                gfx::RendererBackend&,
                 const TransformState&,
                 const RenderTree&,
                 UniqueChangeRequestVec&) override;

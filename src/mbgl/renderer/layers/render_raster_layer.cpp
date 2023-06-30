@@ -13,10 +13,11 @@
 #include <mbgl/style/layers/raster_layer_impl.hpp>
 
 #if MLN_DRAWABLE_RENDERER
-#include <mbgl/renderer/layers/raster_layer_tweaker.hpp>
 #include <mbgl/gfx/image_drawable_data.hpp>
 #include <mbgl/gfx/drawable_builder.hpp>
+#include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/renderer/layer_group.hpp>
+#include <mbgl/renderer/layers/raster_layer_tweaker.hpp>
 #include <mbgl/shaders/shader_program_base.hpp>
 #endif
 
@@ -224,10 +225,11 @@ void RenderRasterLayer::markLayerRenderable(bool willRender, UniqueChangeRequest
 }
 
 void RenderRasterLayer::update(gfx::ShaderRegistry& shaders,
-                               gfx::Context& context,
+                               gfx::RendererBackend& backend,
                                const TransformState& /*state*/,
                                [[maybe_unused]] const RenderTree& renderTree,
                                [[maybe_unused]] UniqueChangeRequestVec& changes) {
+    auto& context = backend.getContext();
     std::unique_lock<std::mutex> guard(mutex);
 
     if ((!renderTiles || renderTiles->empty()) && !imageData) {

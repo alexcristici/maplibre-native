@@ -14,14 +14,15 @@
 #include <mbgl/util/intersection_tests.hpp>
 
 #if MLN_DRAWABLE_RENDERER
+#include <mbgl/gfx/drawable_builder.hpp>
+#include <mbgl/gfx/renderer_backend.hpp>
+#include <mbgl/gfx/shader_group.hpp>
+#include <mbgl/gfx/shader_registry.hpp>
 #include <mbgl/renderer/layers/heatmap_layer_tweaker.hpp>
 #include <mbgl/renderer/layers/heatmap_texture_layer_tweaker.hpp>
 #include <mbgl/renderer/layer_group.hpp>
 #include <mbgl/renderer/render_target.hpp>
 #include <mbgl/shaders/shader_program_base.hpp>
-#include <mbgl/gfx/drawable_builder.hpp>
-#include <mbgl/gfx/shader_group.hpp>
-#include <mbgl/gfx/shader_registry.hpp>
 #endif
 
 namespace mbgl {
@@ -272,10 +273,11 @@ static const std::string HeatmapTextureShaderGroupName = "HeatmapTextureShader";
 static constexpr std::string_view HeatmapInterpolateUBOName = "HeatmapInterpolateUBO";
 
 void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
-                                gfx::Context& context,
+                                gfx::RendererBackend& backend,
                                 const TransformState& state,
                                 [[maybe_unused]] const RenderTree& renderTree,
                                 [[maybe_unused]] UniqueChangeRequestVec& changes) {
+    auto& context = backend.getContext();
     std::unique_lock<std::mutex> guard(mutex);
 
     if (!renderTiles || renderTiles->empty()) {
@@ -285,8 +287,8 @@ void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
 
     // Set up a render target
     if (!renderTarget) {
-        // const auto& viewportSize = parameters.staticData.backendSize;
-        const auto size = Size(500, 500); // Size{viewportSize.width / 4, viewportSize.height / 4};
+        const auto backendSize = backend.getDefaultRenderable().getSize();
+        const auto size = Size{backendSize.width / 4, backendSize.height / 4};
         renderTarget = context.createRenderTarget(size, gfx::TextureChannelDataType::HalfFloat);
         if (!renderTarget) {
             return;

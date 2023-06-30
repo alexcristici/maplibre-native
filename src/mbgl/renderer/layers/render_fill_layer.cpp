@@ -285,10 +285,11 @@ bool RenderFillLayer::queryIntersectsFeature(const GeometryCoordinates& queryGeo
 
 #if MLN_DRAWABLE_RENDERER
 void RenderFillLayer::update(gfx::ShaderRegistry& shaders,
-                             gfx::Context& context,
+                             gfx::RendererBackend& backend,
                              const TransformState& state,
                              [[maybe_unused]] const RenderTree& renderTree,
                              [[maybe_unused]] UniqueChangeRequestVec& changes) {
+    auto& context = backend.getContext();
     std::unique_lock<std::mutex> guard(mutex);
 
     if (!renderTiles || renderTiles->empty()) {

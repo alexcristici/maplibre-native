@@ -24,6 +24,7 @@
 
 #if MLN_DRAWABLE_RENDERER
 #include <mbgl/gfx/drawable_builder.hpp>
+#include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/gfx/symbol_drawable_data.hpp>
 #include <mbgl/renderer/layer_group.hpp>
 #include <mbgl/renderer/layers/symbol_layer_tweaker.hpp>
@@ -804,10 +805,11 @@ void updateTileDrawable(gfx::Drawable& drawable,
 } // namespace
 
 void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
-                               gfx::Context& context,
+                               gfx::RendererBackend& backend,
                                const TransformState& state,
                                const RenderTree& /*renderTree*/,
                                UniqueChangeRequestVec& changes) {
+    auto& context = backend.getContext();
     if (!renderTiles || renderTiles->empty() || passes == RenderPass::None) {
         removeAllDrawables();
         return;

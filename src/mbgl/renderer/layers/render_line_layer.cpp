@@ -21,9 +21,10 @@
 
 #if MLN_DRAWABLE_RENDERER
 #include <mbgl/gfx/drawable_builder.hpp>
+#include <mbgl/gfx/line_drawable_data.hpp>
+#include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/renderer/layer_group.hpp>
 #include <mbgl/renderer/layers/line_layer_tweaker.hpp>
-#include <mbgl/gfx/line_drawable_data.hpp>
 #include <mbgl/shaders/shader_program_base.hpp>
 #endif
 
@@ -408,10 +409,11 @@ static_assert(sizeof(LinePatternTilePropertiesUBO) % 16 == 0);
 static constexpr std::string_view LinePatternTilePropertiesUBOName = "LinePatternTilePropertiesUBO";
 
 void RenderLineLayer::update(gfx::ShaderRegistry& shaders,
-                             gfx::Context& context,
+                             gfx::RendererBackend& backend,
                              const TransformState& state,
                              [[maybe_unused]] const RenderTree& renderTree,
                              [[maybe_unused]] UniqueChangeRequestVec& changes) {
+    auto& context = backend.getContext();
     std::unique_lock<std::mutex> guard(mutex);
 
     if (!renderTiles || renderTiles->empty()) {
