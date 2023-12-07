@@ -249,20 +249,20 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
         if (translation == FillTranslate::defaultValue() && anchor == FillTranslateAnchor::defaultValue()) {
             gfx::UniformBufferPtr matrixBuffer;
-            const auto it = matrixCache.find(tileID);
-            if (it == matrixCache.end()) {
+            const auto result = matrixCache.insert(std::make_pair(tileID, gfx::UniformBufferPtr{}));
+            if (result.second) {
                 const mat4 matrix = getTileMatrix(
                     tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits);
                 const MatrixUBO matrixUBO = {/*.matrix=*/util::cast<float>(matrix)};
                 matrixBuffer = parameters.context.createUniformBuffer(&matrixUBO, sizeof(matrixUBO));
-                matrixCache[tileID] = matrixBuffer;
+                result.first->second = matrixBuffer;
             } else {
-                matrixBuffer = it->second;
+                matrixBuffer = result.first->second;
 #if !defined(NDEBUG)
                 matrixCacheHits++;
 #endif
             }
-            uniforms.addOrReplace(idFillMatrixUBOName, matrixBuffer);
+            uniforms.addOrReplace(idFillMatrixUBOName, std::move(matrixBuffer));
         } else {
             const mat4 matrix = getTileMatrix(
                 tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits);

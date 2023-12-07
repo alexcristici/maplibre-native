@@ -150,26 +150,26 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 
         mat4 matrix;
         if (translate == TextTranslate::defaultValue() && anchor == TextTranslateAnchor::defaultValue()) {
-            const auto it = matrixCache.find(tileID);
-            if (it == matrixCache.end()) {
+            const auto result = matrixCache.insert(std::make_pair(tileID, mat4{}));
+            if (result.second) {
                 matrix = getTileMatrix(tileID, parameters, translate, anchor, nearClipped, inViewportPixelUnits);
-                matrixCache[tileID] = matrix;
+                result.first->second = matrix;
             } else {
-                matrix = it->second;
+                matrix = result.first->second;
 #if !defined(NDEBUG)
                 matrixCacheHits++;
 #endif
             }
             gfx::UniformBufferPtr matrixBuffer;
-            const auto itUBO = matrixUBOCache.find(tileID);
-            if (itUBO == matrixUBOCache.end()) {
+            const auto resultUBO = matrixUBOCache.insert(std::make_pair(tileID, gfx::UniformBufferPtr{}));
+            if (resultUBO.second) {
                 const MatrixUBO matrixUBO = {/*.matrix=*/util::cast<float>(matrix)};
                 matrixBuffer = parameters.context.createUniformBuffer(&matrixUBO, sizeof(matrixUBO));
-                matrixUBOCache[tileID] = matrixBuffer;
+                resultUBO.first->second = matrixBuffer;
             } else {
-                matrixBuffer = itUBO->second;
+                matrixBuffer = resultUBO.first->second;
             }
-            uniforms.addOrReplace(idSymbolMatrixUBOName, matrixBuffer);
+            uniforms.addOrReplace(idSymbolMatrixUBOName, std::move(matrixBuffer));
         } else {
             matrix = getTileMatrix(tileID, parameters, translate, anchor, nearClipped, inViewportPixelUnits);
             const MatrixUBO matrixUBO = {/*.matrix=*/util::cast<float>(matrix)};
