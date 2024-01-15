@@ -60,6 +60,9 @@ Context::~Context() noexcept {
     }
 }
 
+void Context::beginFrame() {}
+void Context::endFrame() {}
+
 std::unique_ptr<gfx::CommandEncoder> Context::createCommandEncoder() {
     return std::make_unique<CommandEncoder>(*this);
 }
@@ -208,6 +211,13 @@ bool Context::emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr& buffer,
         buffer = createUniformBuffer(data, size, persistent);
         return true;
     }
+}
+
+const BufferResource& Context::getEmptyBuffer() {
+    if (!emptyBuffer) {
+        emptyBuffer.emplace(const_cast<Context&>(*this), nullptr, 0, MTL::ResourceStorageModeShared, false, false);
+    }
+    return *emptyBuffer;
 }
 
 const BufferResource& Context::getTileVertexBuffer() {

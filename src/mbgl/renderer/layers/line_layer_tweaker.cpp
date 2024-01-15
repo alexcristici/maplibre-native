@@ -33,10 +33,8 @@ static const StringIdentity idLinePatternUBOName = stringIndexer().get("LinePatt
 static const StringIdentity idLinePatternPropertiesUBOName = stringIndexer().get("LinePatternPropertiesUBO");
 static const StringIdentity idLineSDFUBOName = stringIndexer().get("LineSDFUBO");
 static const StringIdentity idLineSDFPropertiesUBOName = stringIndexer().get("LineSDFPropertiesUBO");
+static const StringIdentity idLineDynamicUBOName = stringIndexer().get("LineDynamicUBO");
 static const StringIdentity idTexImageName = stringIndexer().get("u_image");
-
-static const StringIdentity idExpressionInputsUBOName = stringIndexer().get("ExpressionInputsUBO");
-static const StringIdentity idLinePermutationUBOName = stringIndexer().get("LinePermutationUBO");
 
 void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) {
     auto& context = parameters.context;
@@ -110,12 +108,14 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         return lineSDFPropertiesBuffer;
     };
 
-#if MLN_RENDER_BACKEND_METAL
-    if (!expressionUniformBuffer) {
-        const auto expressionUBO = buildExpressionUBO(zoom, parameters.frameCount);
-        expressionUniformBuffer = context.createUniformBuffer(&expressionUBO, sizeof(expressionUBO));
+    const LineDynamicUBO dynamicUBO = {
+        /*units_to_pixels = */ {1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]}, 0, 0};
+
+    if (!dynamicBuffer) {
+        dynamicBuffer = parameters.context.createUniformBuffer(&dynamicUBO, sizeof(dynamicUBO));
+    } else {
+        dynamicBuffer->update(&dynamicUBO, sizeof(dynamicUBO));
     }
-#endif
 
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
         const auto shader = drawable.getShader();
@@ -132,82 +132,33 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
         const auto matrix = getTileMatrix(tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits);
 
-        const LineType type = static_cast<LineType>(drawable.getType());
+        uniforms.addOrReplace(idLineDynamicUBOName, dynamicBuffer);
 
+        const LineType type = static_cast<LineType>(drawable.getType());
         switch (type) {
             case LineType::Simple: {
-                const LineUBO lineUBO{
-                    /*matrix = */ util::cast<float>(matrix),
-                    /*units_to_pixels = */ {1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]},
-                    /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
-                    /*device_pixel_ratio = */ parameters.pixelRatio};
+                const LineUBO lineUBO{/*matrix = */ util::cast<float>(matrix),
+                                      /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
+                                      0,
+                                      0,
+                                      0};
                 uniforms.createOrUpdate(idLineUBOName, &lineUBO, context);
 
                 // properties UBO
                 uniforms.addOrReplace(idLinePropertiesUBOName, getLinePropsBuffer());
-
-#if MLN_RENDER_BACKEND_METAL
-                if (permutationUpdated) {
-                    const LinePermutationUBO permutationUBO = {
-                        /* .color = */ {/*.source=*/getAttributeSource<BuiltIn::LineShader>(2), /*.expression=*/{}},
-                        /* .blur = */ {/*.source=*/getAttributeSource<BuiltIn::LineShader>(3), /*.expression=*/{}},
-                        /* .opacity = */ {/*.source=*/getAttributeSource<BuiltIn::LineShader>(4), /*.expression=*/{}},
-                        /* .gapwidth = */ {/*.source=*/getAttributeSource<BuiltIn::LineShader>(5), /*.expression=*/{}},
-                        /* .offset = */ {/*.source=*/getAttributeSource<BuiltIn::LineShader>(6), /*.expression=*/{}},
-                        /* .width = */ {/*.source=*/getAttributeSource<BuiltIn::LineShader>(7), /*.expression=*/{}},
-                        /* .floorwidth = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .pattern_from = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .pattern_to = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .overdrawInspector = */ overdrawInspector,
-                        /* .pad = */ 0,
-                        0,
-                        0,
-                        0};
-
-                    context.emplaceOrUpdateUniformBuffer(permutationUniformBuffer, &permutationUBO);
-                    permutationUpdated = false;
-                }
-#endif
             } break;
 
             case LineType::Gradient: {
                 const LineGradientUBO lineGradientUBO{
                     /*matrix = */ util::cast<float>(matrix),
-                    /*units_to_pixels = */ {1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]},
                     /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
-                    /*device_pixel_ratio = */ parameters.pixelRatio};
+                    0,
+                    0,
+                    0};
                 uniforms.createOrUpdate(idLineGradientUBOName, &lineGradientUBO, context);
 
                 // properties UBO
                 uniforms.addOrReplace(idLineGradientPropertiesUBOName, getLineGradientPropsBuffer());
-
-#if MLN_RENDER_BACKEND_METAL
-                if (permutationUpdated) {
-                    const LinePermutationUBO permutationUBO = {
-                        /* .color = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .blur = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineGradientShader>(2), /*.expression=*/{}},
-                        /* .opacity = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineGradientShader>(3), /*.expression=*/{}},
-                        /* .gapwidth = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineGradientShader>(4), /*.expression=*/{}},
-                        /* .offset = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineGradientShader>(5), /*.expression=*/{}},
-                        /* .width = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineGradientShader>(6), /*.expression=*/{}},
-                        /* .floorwidth = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .pattern_from = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .pattern_to = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .overdrawInspector = */ overdrawInspector,
-                        /* .pad = */ 0,
-                        0,
-                        0,
-                        0};
-
-                    context.emplaceOrUpdateUniformBuffer(permutationUniformBuffer, &permutationUBO);
-                    permutationUpdated = false;
-                }
-#endif
             } break;
 
             case LineType::Pattern: {
@@ -219,50 +170,19 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 }
                 const LinePatternUBO linePatternUBO{
                     /*matrix =*/util::cast<float>(matrix),
+                    /*scale =*/
                     {parameters.pixelRatio,
                      1 / tileID.pixelsToTileUnits(1, parameters.state.getIntegerZoom()),
                      crossfade.fromScale,
                      crossfade.toScale},
                     /*texsize =*/{static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
-                    /*units_to_pixels =*/{1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]},
                     /*ratio =*/1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
-                    /*device_pixel_ratio =*/parameters.pixelRatio,
-                    /*fade =*/crossfade.t,
-                    0};
+                    /*fade =*/crossfade.t};
                 uniforms.createOrUpdate(idLinePatternUBOName, &linePatternUBO, context);
 
                 // properties UBO
                 uniforms.addOrReplace(idLinePatternPropertiesUBOName, getLinePatternPropsBuffer());
 
-#if MLN_RENDER_BACKEND_METAL
-                if (permutationUpdated) {
-                    const LinePermutationUBO permutationUBO = {
-                        /* .color = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .blur = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(2), /*.expression=*/{}},
-                        /* .opacity = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(3), /*.expression=*/{}},
-                        /* .gapwidth = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(4), /*.expression=*/{}},
-                        /* .offset = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(5), /*.expression=*/{}},
-                        /* .width = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(6), /*.expression=*/{}},
-                        /* .floorwidth = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .pattern_from = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(7), /*.expression=*/{}},
-                        /* .pattern_to = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LinePatternShader>(8), /*.expression=*/{}},
-                        /* .overdrawInspector = */ overdrawInspector,
-                        /* .pad = */ 0,
-                        0,
-                        0,
-                        0};
-
-                    context.emplaceOrUpdateUniformBuffer(permutationUniformBuffer, &permutationUBO);
-                    permutationUpdated = false;
-                }
-#endif
             } break;
 
             case LineType::SDF: {
@@ -290,51 +210,26 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     const float widthB = posB.width * crossfade.toScale;
                     const LineSDFUBO lineSDFUBO{
                         /* matrix = */ util::cast<float>(matrix),
-                        {1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]},
+                        /* patternscale_a = */
                         {1.0f / tileID.pixelsToTileUnits(widthA, parameters.state.getIntegerZoom()),
                          -posA.height / 2.0f},
                         /* patternscale_b = */
                         {1.0f / tileID.pixelsToTileUnits(widthB, parameters.state.getIntegerZoom()),
                          -posB.height / 2.0f},
-                        /* ratio = */ 1.0f /
-                            tileID.pixelsToTileUnits(1.0f, static_cast<float>(parameters.state.getZoom())),
-                        /* device_pixel_ratio = */ parameters.pixelRatio,
+                        /* ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
                         /* tex_y_a = */ posA.y,
                         /* tex_y_b = */ posB.y,
                         /* sdfgamma = */ static_cast<float>(dashPatternTexture.getSize().width) /
                             (std::min(widthA, widthB) * 256.0f * parameters.pixelRatio) / 2.0f,
-                        /* mix = */ crossfade.t};
+                        /* mix = */ crossfade.t,
+                        0,
+                        0,
+                        0};
                     uniforms.createOrUpdate(idLineSDFUBOName, &lineSDFUBO, context);
 
                     // properties UBO
                     uniforms.addOrReplace(idLineSDFPropertiesUBOName, getLineSDFPropsBuffer());
                 }
-
-#if MLN_RENDER_BACKEND_METAL
-                if (permutationUpdated) {
-                    const LinePermutationUBO permutationUBO = {
-                        /* .color = */ {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(2), /*.expression=*/{}},
-                        /* .blur = */ {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(3), /*.expression=*/{}},
-                        /* .opacity = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(4), /*.expression=*/{}},
-                        /* .gapwidth = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(5), /*.expression=*/{}},
-                        /* .offset = */ {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(6), /*.expression=*/{}},
-                        /* .width = */ {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(7), /*.expression=*/{}},
-                        /* .floorwidth = */
-                        {/*.source=*/getAttributeSource<BuiltIn::LineSDFShader>(8), /*.expression=*/{}},
-                        /* .pattern_from = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .pattern_to = */ {/*.source=*/AttributeSource::Constant, /*.expression=*/{}},
-                        /* .overdrawInspector = */ overdrawInspector,
-                        /* .pad = */ 0,
-                        0,
-                        0,
-                        0};
-
-                    context.emplaceOrUpdateUniformBuffer(permutationUniformBuffer, &permutationUBO);
-                    permutationUpdated = false;
-                }
-#endif
             } break;
 
             default: {
@@ -343,11 +238,6 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                            "LineLayerTweaker: unknown line type: "s + std::to_string(mbgl::underlying_type(type)));
             } break;
         }
-
-#if MLN_RENDER_BACKEND_METAL
-        uniforms.addOrReplace(idExpressionInputsUBOName, expressionUniformBuffer);
-        uniforms.addOrReplace(idLinePermutationUBOName, permutationUniformBuffer);
-#endif // MLN_RENDER_BACKEND_METAL
     });
 }
 

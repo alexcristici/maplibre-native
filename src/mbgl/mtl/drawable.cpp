@@ -344,8 +344,10 @@ void Drawable::bindAttributes(RenderPass& renderPass) const noexcept {
         if (buffer && buffer->get()) {
             assert(binding->vertexStride * impl->vertexCount <= getBufferSize(binding->vertexBufferResource));
             renderPass.bindVertex(buffer->get(), /*offset=*/0, attributeIndex);
-        } else if (impl->noBindingBuffer) {
-            renderPass.bindVertex(impl->noBindingBuffer->get(), /*offset=*/0, attributeIndex);
+        } else {
+            const auto* shaderMTL = static_cast<const ShaderProgram*>(shader.get());
+            auto& context = renderPass.getCommandEncoder().getContext();
+            renderPass.bindVertex(context.getEmptyBuffer(), /*offset=*/0, attributeIndex);
         }
         attributeIndex += 1;
     }
@@ -536,6 +538,7 @@ void Drawable::upload(gfx::UploadPass& uploadPass_) {
             for (auto& binding : impl->attributeBindings) {
                 if (!binding) {
                     assert("Missing attribute binding");
+                    index += 1;
                     continue;
                 }
 

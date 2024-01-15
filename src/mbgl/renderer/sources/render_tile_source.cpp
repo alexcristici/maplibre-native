@@ -124,7 +124,8 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
     };
 
     // build a set of tiles to cover
-    std::unordered_set<OverscaledTileID> newTiles;
+    mbgl::unordered_set<OverscaledTileID> newTiles;
+    newTiles.reserve(renderTiles->size());
     for (auto& tile : *renderTiles) {
         newTiles.insert(tile.getOverscaledTileID());
     }
@@ -209,12 +210,18 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                 const auto matrix = LayerTweaker::getTileMatrix(
                     tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, false);
 
-                static const StringIdentity idLineUBOName = stringIndexer().get("LineUBO");
-                const shaders::LineUBO lineUBO{
-                    /*matrix = */ util::cast<float>(matrix),
+                static const StringIdentity idLineDynamicUBOName = stringIndexer().get("LineDynamicUBO");
+                const shaders::LineDynamicUBO dynamicUBO = {
                     /*units_to_pixels = */ {1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]},
-                    /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
-                    /*device_pixel_ratio = */ parameters.pixelRatio};
+                    0,
+                    0};
+
+                static const StringIdentity idLineUBOName = stringIndexer().get("LineUBO");
+                const shaders::LineUBO lineUBO{/*matrix = */ util::cast<float>(matrix),
+                                               /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
+                                               0,
+                                               0,
+                                               0};
 
                 static const StringIdentity idLinePropertiesUBOName = stringIndexer().get("LinePropertiesUBO");
 
@@ -228,31 +235,10 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                                                                          0,
                                                                          0};
                 auto& uniforms = drawable.mutableUniformBuffers();
+                uniforms.createOrUpdate(idLineDynamicUBOName, &dynamicUBO, parameters.context);
                 uniforms.createOrUpdate(idLineUBOName, &lineUBO, parameters.context);
                 uniforms.createOrUpdate(idLinePropertiesUBOName, &linePropertiesUBO, parameters.context);
                 uniforms.createOrUpdate(idLineInterpolationUBOName, &lineInterpolationUBO, parameters.context);
-
-                static const StringIdentity idExpressionInputsUBOName = stringIndexer().get("ExpressionInputsUBO");
-                const auto expressionUBO = LayerTweaker::buildExpressionUBO(zoom, parameters.frameCount);
-                uniforms.createOrUpdate(idExpressionInputsUBOName, &expressionUBO, parameters.context);
-
-                static const StringIdentity idLinePermutationUBOName = stringIndexer().get("LinePermutationUBO");
-                const shaders::LinePermutationUBO permutationUBO = {
-                    /* .color = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .blur = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .opacity = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .gapwidth = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .offset = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .width = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .floorwidth = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .pattern_from = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .pattern_to = */ {/*.source=*/shaders::AttributeSource::Constant, /*.expression=*/{}},
-                    /* .overdrawInspector = */ false,
-                    /* .pad = */ 0,
-                    0,
-                    0,
-                    0};
-                uniforms.createOrUpdate(idLinePermutationUBOName, &permutationUBO, parameters.context);
             };
 
         private:

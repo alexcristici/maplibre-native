@@ -50,10 +50,10 @@ FragmentStage vertex vertexMain(VertexStage in [[stage_in]],
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
                             device const BackgroundLayerUBO& layerUBO [[buffer(2)]]) {
-    if (layerUBO.overdrawInspector) {
-        return half4(0.0);
-    }
-    
+#if defined(OVERDRAW_INSPECTOR)
+    return half4(1.0);
+#endif
+
     return half4(layerUBO.color * layerUBO.opacity);
 }
 )";
