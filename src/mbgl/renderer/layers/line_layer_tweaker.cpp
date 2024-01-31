@@ -25,26 +25,23 @@ namespace mbgl {
 using namespace style;
 using namespace shaders;
 
-static const StringIdentity idLineUBOName = stringIndexer().get("LineUBO");
-static const StringIdentity idLinePropertiesUBOName = stringIndexer().get("LinePropertiesUBO");
-static const StringIdentity idLineGradientUBOName = stringIndexer().get("LineGradientUBO");
-static const StringIdentity idLineGradientPropertiesUBOName = stringIndexer().get("LineGradientPropertiesUBO");
-static const StringIdentity idLinePatternUBOName = stringIndexer().get("LinePatternUBO");
-static const StringIdentity idLinePatternPropertiesUBOName = stringIndexer().get("LinePatternPropertiesUBO");
-static const StringIdentity idLineSDFUBOName = stringIndexer().get("LineSDFUBO");
-static const StringIdentity idLineSDFPropertiesUBOName = stringIndexer().get("LineSDFPropertiesUBO");
-static const StringIdentity idLineDynamicUBOName = stringIndexer().get("LineDynamicUBO");
 static const StringIdentity idTexImageName = stringIndexer().get("u_image");
 
 void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) {
     auto& context = parameters.context;
+    const auto zoom = parameters.state.getZoom();
     const auto& evaluated = static_cast<const LineLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const LineLayerProperties&>(*evaluatedProperties).crossfade;
 
-    const auto zoom = parameters.state.getZoom();
+    // Each property UBO is updated at most once if new evaluated properties were set
+    bool simplePropertiesUpdated = propertiesUpdated;
+    bool gradientPropertiesUpdated = propertiesUpdated;
+    bool patternPropertiesUpdated = propertiesUpdated;
+    bool sdfPropertiesUpdated = propertiesUpdated;
+    propertiesUpdated = false;
 
     const auto getLinePropsBuffer = [&]() {
-        if (!linePropertiesBuffer) {
+        if (!linePropertiesBuffer || simplePropertiesUpdated) {
             const LinePropertiesUBO linePropertiesUBO{
                 /*color =*/evaluated.get<LineColor>().constantOr(LineColor::defaultValue()),
                 /*blur =*/evaluated.get<LineBlur>().constantOr(LineBlur::defaultValue()),
@@ -55,12 +52,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 0,
                 0,
                 0};
-            linePropertiesBuffer = context.createUniformBuffer(&linePropertiesUBO, sizeof(linePropertiesUBO));
+            context.emplaceOrUpdateUniformBuffer(linePropertiesBuffer, &linePropertiesUBO);
+            simplePropertiesUpdated = false;
         }
         return linePropertiesBuffer;
     };
     const auto getLineGradientPropsBuffer = [&]() {
-        if (!lineGradientPropertiesBuffer) {
+        if (!lineGradientPropertiesBuffer || gradientPropertiesUpdated) {
             const LineGradientPropertiesUBO lineGradientPropertiesUBO{
                 /*blur =*/evaluated.get<LineBlur>().constantOr(LineBlur::defaultValue()),
                 /*opacity =*/evaluated.get<LineOpacity>().constantOr(LineOpacity::defaultValue()),
@@ -70,13 +68,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 0,
                 0,
                 0};
-            lineGradientPropertiesBuffer = context.createUniformBuffer(&lineGradientPropertiesUBO,
-                                                                       sizeof(lineGradientPropertiesUBO));
+            context.emplaceOrUpdateUniformBuffer(lineGradientPropertiesBuffer, &lineGradientPropertiesUBO);
+            gradientPropertiesUpdated = false;
         }
         return lineGradientPropertiesBuffer;
     };
     const auto getLinePatternPropsBuffer = [&]() {
-        if (!linePatternPropertiesBuffer) {
+        if (!linePatternPropertiesBuffer || patternPropertiesUpdated) {
             const LinePatternPropertiesUBO linePatternPropertiesUBO{
                 /*blur =*/evaluated.get<LineBlur>().constantOr(LineBlur::defaultValue()),
                 /*opacity =*/evaluated.get<LineOpacity>().constantOr(LineOpacity::defaultValue()),
@@ -86,13 +84,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 0,
                 0,
                 0};
-            linePatternPropertiesBuffer = context.createUniformBuffer(&linePatternPropertiesUBO,
-                                                                      sizeof(linePatternPropertiesUBO));
+            context.emplaceOrUpdateUniformBuffer(linePatternPropertiesBuffer, &linePatternPropertiesUBO);
+            patternPropertiesUpdated = false;
         }
         return linePatternPropertiesBuffer;
     };
     const auto getLineSDFPropsBuffer = [&]() {
-        if (!lineSDFPropertiesBuffer) {
+        if (!lineSDFPropertiesBuffer || sdfPropertiesUpdated) {
             const LineSDFPropertiesUBO lineSDFPropertiesUBO{
                 /*color =*/evaluated.get<LineColor>().constantOr(LineColor::defaultValue()),
                 /*blur =*/evaluated.get<LineBlur>().constantOr(LineBlur::defaultValue()),
@@ -103,19 +101,15 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 /*floorwidth =*/evaluated.get<LineFloorWidth>().constantOr(LineFloorWidth::defaultValue()),
                 0,
                 0};
-            lineSDFPropertiesBuffer = context.createUniformBuffer(&lineSDFPropertiesUBO, sizeof(lineSDFPropertiesUBO));
+            context.emplaceOrUpdateUniformBuffer(lineSDFPropertiesBuffer, &lineSDFPropertiesUBO);
+            sdfPropertiesUpdated = false;
         }
         return lineSDFPropertiesBuffer;
     };
 
     const LineDynamicUBO dynamicUBO = {
         /*units_to_pixels = */ {1.0f / parameters.pixelsToGLUnits[0], 1.0f / parameters.pixelsToGLUnits[1]}, 0, 0};
-
-    if (!dynamicBuffer) {
-        dynamicBuffer = parameters.context.createUniformBuffer(&dynamicUBO, sizeof(dynamicUBO));
-    } else {
-        dynamicBuffer->update(&dynamicUBO, sizeof(dynamicUBO));
-    }
+    context.emplaceOrUpdateUniformBuffer(dynamicBuffer, &dynamicUBO);
 
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
         const auto shader = drawable.getShader();
@@ -130,9 +124,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         constexpr bool inViewportPixelUnits = false; // from RenderTile::translatedMatrix
         auto& uniforms = drawable.mutableUniformBuffers();
 
-        const auto matrix = getTileMatrix(tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits);
-
-        uniforms.addOrReplace(idLineDynamicUBOName, dynamicBuffer);
+        const auto matrix = getTileMatrix(
+            tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits, drawable);
 
         const LineType type = static_cast<LineType>(drawable.getType());
         switch (type) {
@@ -142,10 +135,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                                       0,
                                       0,
                                       0};
-                uniforms.createOrUpdate(idLineUBOName, &lineUBO, context);
+                uniforms.createOrUpdate(idLineUBO, &lineUBO, context);
 
                 // properties UBO
-                uniforms.addOrReplace(idLinePropertiesUBOName, getLinePropsBuffer());
+                uniforms.set(idLinePropertiesUBO, getLinePropsBuffer());
+
+                // dynamic UBO
+                uniforms.set(idLineDynamicUBO, dynamicBuffer);
             } break;
 
             case LineType::Gradient: {
@@ -155,10 +151,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     0,
                     0,
                     0};
-                uniforms.createOrUpdate(idLineGradientUBOName, &lineGradientUBO, context);
+                uniforms.createOrUpdate(idLineGradientUBO, &lineGradientUBO, context);
 
                 // properties UBO
-                uniforms.addOrReplace(idLineGradientPropertiesUBOName, getLineGradientPropsBuffer());
+                uniforms.set(idLineGradientPropertiesUBO, getLineGradientPropsBuffer());
+
+                // dynamic UBO
+                uniforms.set(idLineGradientDynamicUBO, dynamicBuffer);
             } break;
 
             case LineType::Pattern: {
@@ -178,10 +177,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /*texsize =*/{static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
                     /*ratio =*/1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
                     /*fade =*/crossfade.t};
-                uniforms.createOrUpdate(idLinePatternUBOName, &linePatternUBO, context);
+                uniforms.createOrUpdate(idLinePatternUBO, &linePatternUBO, context);
 
                 // properties UBO
-                uniforms.addOrReplace(idLinePatternPropertiesUBOName, getLinePatternPropsBuffer());
+                uniforms.set(idLinePatternPropertiesUBO, getLinePatternPropsBuffer());
+
+                // dynamic UBO
+                uniforms.set(idLinePatternDynamicUBO, dynamicBuffer);
 
             } break;
 
@@ -225,10 +227,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                         0,
                         0,
                         0};
-                    uniforms.createOrUpdate(idLineSDFUBOName, &lineSDFUBO, context);
+                    uniforms.createOrUpdate(idLineSDFUBO, &lineSDFUBO, context);
 
                     // properties UBO
-                    uniforms.addOrReplace(idLineSDFPropertiesUBOName, getLineSDFPropsBuffer());
+                    uniforms.set(idLineSDFPropertiesUBO, getLineSDFPropsBuffer());
+
+                    // dynamic UBO
+                    uniforms.set(idLineSDFDynamicUBO, dynamicBuffer);
                 }
             } break;
 

@@ -36,7 +36,7 @@ jobs:
       - name: Get all iOS files that have changed
         if: github.event_name != 'workflow_dispatch'
         id: changed-files-yaml
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v42
         with:
           files_yaml_from_source_file: .github/changed-files.yml
 
@@ -69,7 +69,7 @@ jobs:
           fetch-depth: 0
 
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-node-modules
         with:
@@ -81,7 +81,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cache Bazel
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', '.bazelrc', 'WORKSPACE', 'WORKSPACE.bazel', 'MODULE.bazel') }}
           restore-keys: |
@@ -167,7 +167,7 @@ jobs:
 
       - name: Build dynamic library for size test (Bloaty)
         run: |
-          bazel build //platform/ios:MapLibre.dynamic --//:renderer=metal --//:maplibre_platform=ios --compilation_mode="opt" --copt -g --copt="-Oz" --strip never --output_groups=+dsyms --apple_generate_dsym
+          bazel build //platform/ios:MapLibre.dynamic --//:renderer=metal --compilation_mode="opt" --copt -g --copt="-Oz" --strip never --output_groups=+dsyms --apple_generate_dsym
           bazel_bin="$(bazel info --compilation_mode="opt" bazel-bin)"
           unzip "$bazel_bin"/platform/ios/MapLibre.dynamic.xcframework.zip
           cp "$bazel_bin"/platform/ios/MapLibre.dynamic_dsyms/MapLibre_ios_device.framework.dSYM/Contents/Resources/DWARF/MapLibre_ios_device MapLibre_DWARF
@@ -208,8 +208,8 @@ jobs:
 
       - name: Build XCFramework
         run: |
-          bazel build --compilation_mode=opt --//:renderer=metal --//:maplibre_platform=ios //platform/ios:MapLibre.dynamic
-          echo xcframework="$(bazel info execution_root)"/"$(bazel cquery --output=files --compilation_mode=opt --//:renderer=metal --//:maplibre_platform=ios //platform/ios:MapLibre.dynamic)" >> "$GITHUB_ENV"
+          bazel build --compilation_mode=opt --//:renderer=metal //platform/ios:MapLibre.dynamic --embed_label=maplibre_ios_"$(cat VERSION)"
+          echo xcframework="$(bazel info execution_root)"/"$(bazel cquery --output=files --compilation_mode=opt --//:renderer=metal //platform/ios:MapLibre.dynamic)" >> "$GITHUB_ENV"
 
       - name: Get version (release)
         if: github.event.inputs.release == 'full'
