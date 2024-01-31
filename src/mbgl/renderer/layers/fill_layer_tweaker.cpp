@@ -25,6 +25,11 @@ namespace mbgl {
 
 using namespace style;
 
+mbgl::unordered_map<UnwrappedTileID, mat4> FillLayerTweaker::matrixCache;
+#if !defined(NDEBUG)
+int FillLayerTweaker::matrixCacheHits;
+#endif
+
 static const StringIdentity idTexImageName = stringIndexer().get("u_image");
 using namespace shaders;
 
@@ -128,8 +133,21 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         constexpr bool inViewportPixelUnits = false; // from RenderTile::translatedMatrix
         constexpr bool nearClipped = false;
 
-        const auto matrix = getTileMatrix(
-            tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits, drawable);
+        mat4 matrix;
+        if (translation == FillTranslate::defaultValue() && anchor == FillTranslateAnchor::defaultValue()) {
+            const auto it = matrixCache.find(tileID);
+            if (it == matrixCache.end()) {
+                matrix = getTileMatrix(tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits, drawable);
+                matrixCache[tileID] = matrix;
+            } else {
+                matrix = it->second;
+#if !defined(NDEBUG)
+                matrixCacheHits++;
+#endif
+            }
+        } else {
+            matrix = getTileMatrix(tileID, parameters, translation, anchor, nearClipped, inViewportPixelUnits, drawable);
+        }
 
         // from FillPatternProgram::layoutUniformValues
         const auto tileRatio = 1.0f / tileID.pixelsToTileUnits(1.0f, intZoom);

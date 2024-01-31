@@ -2,8 +2,10 @@
 
 #include <mbgl/renderer/layer_tweaker.hpp>
 #include <mbgl/util/string_indexer.hpp>
+#include <mbgl/util/mat4.hpp>
 
 #include <string>
+#include <unordered_map>
 
 namespace mbgl {
 
@@ -20,6 +22,11 @@ public:
 
     void execute(LayerGroupBase&, const PaintParameters&) override;
 
+    static mbgl::unordered_map<UnwrappedTileID, mat4> matrixCache;
+#if !defined(NDEBUG)
+    static int matrixCacheHits;
+#endif
+    
 private:
     gfx::UniformBufferPtr textPaintBuffer;
     gfx::UniformBufferPtr iconPaintBuffer;
