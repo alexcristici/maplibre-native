@@ -32,6 +32,12 @@ private:
     gfx::UniformBufferPtr fillOutlinePropsUniformBuffer;
     gfx::UniformBufferPtr fillPatternPropsUniformBuffer;
     gfx::UniformBufferPtr fillOutlinePatternPropsUniformBuffer;
+
+    // Only run each update function once per property update
+    bool fillUniformBufferUpdated = true;
+    bool fillOutlineUniformBufferUpdated = true;
+    bool fillPatternUniformBufferUpdated = true;
+    bool fillOutlinePatternUniformBufferUpdated = true;
 };
 
 } // namespace mbgl
