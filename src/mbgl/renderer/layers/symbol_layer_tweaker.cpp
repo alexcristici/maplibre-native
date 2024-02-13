@@ -27,6 +27,11 @@ namespace mbgl {
 using namespace style;
 using namespace shaders;
 
+mbgl::unordered_map<UnwrappedTileID, mat4> SymbolLayerTweaker::matrixCache;
+#if !defined(NDEBUG)
+int SymbolLayerTweaker::matrixCacheHits;
+#endif
+
 namespace {
 
 Size getTexSize(const gfx::Drawable& drawable, const StringIdentity nameId) {
@@ -120,8 +125,22 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
                                    : evaluated.get<style::IconTranslateAnchor>();
         constexpr bool nearClipped = false;
         constexpr bool inViewportPixelUnits = false;
-        const auto matrix = getTileMatrix(
-            tileID, parameters, translate, anchor, nearClipped, inViewportPixelUnits, drawable);
+        
+        mat4 matrix;
+        if (translate == TextTranslate::defaultValue() && anchor == TextTranslateAnchor::defaultValue()) {
+            const auto it = matrixCache.find(tileID);
+            if (it == matrixCache.end()) {
+                matrix = getTileMatrix(tileID, parameters, translate, anchor, nearClipped, inViewportPixelUnits, drawable);
+                matrixCache[tileID] = matrix;
+            } else {
+                matrix = it->second;
+#if !defined(NDEBUG)
+                matrixCacheHits++;
+#endif
+            }
+        } else {
+            matrix = getTileMatrix(tileID, parameters, translate, anchor, nearClipped, inViewportPixelUnits, drawable);
+        }
 
         // from symbol_program, makeValues
         const auto currentZoom = static_cast<float>(parameters.state.getZoom());

@@ -22,6 +22,10 @@
 #include <mbgl/renderer/layer_tweaker.hpp>
 #include <mbgl/renderer/render_target.hpp>
 
+#include <mbgl/renderer/layers/fill_layer_tweaker.hpp>
+#include <mbgl/renderer/layers/line_layer_tweaker.hpp>
+#include <mbgl/renderer/layers/symbol_layer_tweaker.hpp>
+
 #include <limits>
 #endif // MLN_DRAWABLE_RENDERER
 
@@ -40,6 +44,8 @@ constexpr auto CaptureFrameCount = 1;
 #include <mbgl/gl/drawable_gl.hpp>
 #endif // MLN_DRAWABLE_RENDERER
 #endif // !MLN_RENDER_BACKEND_METAL
+
+#include <sstream>
 
 namespace mbgl {
 
@@ -506,6 +512,25 @@ void Renderer::Impl::render(const RenderTree& renderTree,
     }
 
     frameCount += 1;
+    
+#if !MLN_LEGACY_RENDERER
+
+#if !defined(NDEBUG)
+    std::stringstream ss;
+    ss << "\nFill layer matrix cache hits: " << FillLayerTweaker::matrixCacheHits
+       << "\nLine layer matrix cache hits: " << LineLayerTweaker::matrixCacheHits
+       << "\nSymbol layer matrix cache hits: " << SymbolLayerTweaker::matrixCacheHits;
+    Log::Debug(Event::General, ss.str());
+
+    FillLayerTweaker::matrixCacheHits = 0;
+    LineLayerTweaker::matrixCacheHits = 0;
+    SymbolLayerTweaker::matrixCacheHits = 0;
+#endif
+
+    FillLayerTweaker::matrixCache.clear();
+    LineLayerTweaker::matrixCache.clear();
+    SymbolLayerTweaker::matrixCache.clear();
+#endif
 }
 
 void Renderer::Impl::reduceMemoryUse() {
