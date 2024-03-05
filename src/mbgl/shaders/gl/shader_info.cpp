@@ -95,8 +95,8 @@ const std::vector<AttributeInfo> ShaderInfo<BuiltIn::CustomSymbolIconShader, gfx
 };
 const std::vector<UniformBlockInfo>
     ShaderInfo<BuiltIn::CustomSymbolIconShader, gfx::Backend::Type::OpenGL>::uniformBlocks = {
-        UniformBlockInfo{"CustomSymbolIconDrawableUBO", idCustomSymbolDrawableUBO},
-        UniformBlockInfo{"CustomSymbolIconParametersUBO", idCustomSymbolParametersUBO},
+        UniformBlockInfo{"CustomSymbolIconDrawableUBO", idCustomSymbolDrawableUBO, 0},
+        UniformBlockInfo{"CustomSymbolIconParametersUBO", idCustomSymbolParametersUBO, 1},
 };
 const std::vector<TextureInfo> ShaderInfo<BuiltIn::CustomSymbolIconShader, gfx::Backend::Type::OpenGL>::textures = {
     TextureInfo{"u_texture", idCustomSymbolImageTexture},
