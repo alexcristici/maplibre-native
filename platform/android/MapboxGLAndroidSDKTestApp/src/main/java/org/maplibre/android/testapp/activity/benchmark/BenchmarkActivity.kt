@@ -97,6 +97,7 @@ class BenchmarkActivity : AppCompatActivity() {
     private val TAG = "BenchmarkActivity"
 
     private lateinit var mapView: MapView
+    private lateinit var maplibreMap: MapLibreMap
     private var handler: Handler? = null
     private var delayed: Runnable? = null
     private var fpsStore = FpsStore()
@@ -207,11 +208,14 @@ class BenchmarkActivity : AppCompatActivity() {
         mapView = findViewById<View>(R.id.mapView) as MapView
         if (measureFrameTime) {
             mapView.addOnDidFinishRenderingFrameListener { fully: Boolean, frameEncodingTime: Double, frameRenderingTime: Double ->
-                encodingTimeStore.add(frameEncodingTime * 1e3)
-                renderingTimeStore.add(frameRenderingTime * 1e3)
+                if (maplibreMap.isFullyLoaded()) {
+                    encodingTimeStore.add(frameEncodingTime * 1e3)
+                    renderingTimeStore.add(frameRenderingTime * 1e3)
+                }
             }
         }
         mapView.getMapAsync { maplibreMap: MapLibreMap ->
+            this.maplibreMap = maplibreMap
             maplibreMap.setStyle(inputData.styleURLs[0])
             maplibreMap.setSwapBehaviorFlush(measureFrameTime)
             if (!measureFrameTime) {
