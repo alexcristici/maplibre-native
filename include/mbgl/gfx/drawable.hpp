@@ -260,6 +260,11 @@ protected:
     LayerTweakerPtr layerTweaker;
 
     std::size_t type = 0;
+
+public:
+    static int bindUBOCount;
+    static int bindUBOExecutedCount;
+    static int bindUBOCacheHitCount;
 };
 
 using DrawablePtr = std::shared_ptr<Drawable>;
