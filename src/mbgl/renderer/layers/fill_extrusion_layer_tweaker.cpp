@@ -14,7 +14,6 @@
 #include <mbgl/style/layers/fill_extrusion_layer_properties.hpp>
 #include <mbgl/util/convert.hpp>
 #include <mbgl/util/std.hpp>
-#include <mbgl/util/string_indexer.hpp>
 
 #if MLN_RENDER_BACKEND_METAL
 #include <mbgl/shaders/mtl/fill_extrusion.hpp>
@@ -25,11 +24,6 @@ namespace mbgl {
 
 using namespace shaders;
 using namespace style;
-
-namespace {
-const StringIdentity idTexImageName = stringIndexer().get("u_image");
-
-} // namespace
 
 void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) {
     auto& context = parameters.context;
@@ -49,7 +43,7 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
 
     // UBO depends on more than just evaluated properties, so we need to update every time,
     // but the resulting buffer can be shared across all the drawables from the layer.
-    const FillExtrusionDrawablePropsUBO paramsUBO = {
+    const FillExtrusionPropsUBO propsUBO = {
         /* .color = */ constOrDefault<FillExtrusionColor>(evaluated),
         /* .light_color = */ FillExtrusionProgram::lightColor(parameters.evaluatedLight),
         /* .pad = */ 0,
@@ -63,7 +57,9 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
         /* .pad = */ 0,
         0,
         0};
-    context.emplaceOrUpdateUniformBuffer(propsBuffer, &paramsUBO);
+    auto& layerUniforms = layerGroup.mutableUniformBuffers();
+    layerUniforms.createOrUpdate(idFillExtrusionPropsUBO, &propsUBO, context);
+
     propertiesUpdated = false;
 
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
@@ -72,10 +68,6 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
         }
 
         const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
-
-        auto& uniforms = drawable.mutableUniformBuffers();
-        uniforms.set(idFillExtrusionDrawablePropsUBO, propsBuffer);
-
         const auto& translation = evaluated.get<FillExtrusionTranslate>();
         const auto anchor = evaluated.get<FillExtrusionTranslateAnchor>();
         constexpr bool inViewportPixelUnits = false; // from RenderTile::translatedMatrix
@@ -95,12 +87,8 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
         const auto heightFactor = static_cast<float>(-numTiles / util::tileSize_D / 8.0);
 
         Size textureSize = {0, 0};
-        if (const auto shader = drawable.getShader()) {
-            if (const auto index = shader->getSamplerLocation(idTexImageName)) {
-                if (const auto& tex = drawable.getTexture(*index)) {
-                    textureSize = tex->getSize();
-                }
-            }
+        if (const auto& tex = drawable.getTexture(idFillExtrusionImageTexture)) {
+            textureSize = tex->getSize();
         }
 
         const FillExtrusionDrawableUBO drawableUBO = {
@@ -112,7 +100,8 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
             /* .height_factor = */ heightFactor,
             /* .pad = */ 0};
 
-        uniforms.createOrUpdate(idFillExtrusionDrawableUBO, &drawableUBO, context);
+        auto& drawableUniforms = drawable.mutableUniformBuffers();
+        drawableUniforms.createOrUpdate(idFillExtrusionDrawableUBO, &drawableUBO, context);
     });
 }
 

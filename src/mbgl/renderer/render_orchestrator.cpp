@@ -121,7 +121,8 @@ RenderOrchestrator::RenderOrchestrator(bool backgroundLayerAsColor_, const std::
       sourceImpls(makeMutable<std::vector<Immutable<style::Source::Impl>>>()),
       layerImpls(makeMutable<std::vector<Immutable<style::Layer::Impl>>>()),
       renderLight(makeMutable<Light::Impl>()),
-      backgroundLayerAsColor(backgroundLayerAsColor_) {
+      backgroundLayerAsColor(backgroundLayerAsColor_),
+      threadPool(Scheduler::GetBackground()) {
     glyphManager->setObserver(this);
     imageManager->setObserver(this);
 }
@@ -137,6 +138,13 @@ RenderOrchestrator::~RenderOrchestrator() {
             layer.markContextDestroyed();
         }
     }
+
+    // Wait for any deferred cleanup tasks to complete before releasing and potentially
+    // destroying the scheduler.  Those cleanup tasks must not hold the final reference
+    // to the scheduler because it cannot be destroyed from one of its own pool threads.
+    constexpr auto deferredCleanupTimeout = Milliseconds{1000};
+    [[maybe_unused]] const auto remaining = threadPool->waitForEmpty(deferredCleanupTimeout);
+    assert(remaining == 0);
 }
 
 void RenderOrchestrator::setObserver(RendererObserver* observer_) {
@@ -180,8 +188,8 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                                         updateParameters->fileSource,
                                         updateParameters->mode,
                                         updateParameters->annotationManager,
-                                        *imageManager,
-                                        *glyphManager,
+                                        imageManager,
+                                        glyphManager,
                                         updateParameters->prefetchZoomDelta};
 
     glyphManager->setURL(updateParameters->glyphURL);
@@ -292,8 +300,14 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
     for (RenderLayer& layer : orderedLayers) {
         const std::string& id = layer.getID();
         const bool layerAddedOrChanged = layerDiff.added.count(id) || layerDiff.changed.count(id);
-        if (layerAddedOrChanged || zoomChanged || layer.hasTransition() || layer.hasCrossfade()) {
-            auto previousMask = layer.evaluatedProperties->constantsMask();
+
+        // Only re-evaluate on change of zoom if the style has some reference to it
+        using Dependency = expression::Dependency;
+        const bool zoomChangedAndMatters = zoomChanged && !layerAddedOrChanged &&
+                                           (layer.getStyleDependencies() & Dependency::Zoom) != Dependency::None;
+
+        if (layerAddedOrChanged || zoomChangedAndMatters || layer.hasTransition() || layer.hasCrossfade()) {
+            const auto previousMask = layer.evaluatedProperties->constantsMask();
             layer.evaluate(evaluationParameters);
             if (previousMask != layer.evaluatedProperties->constantsMask()) {
                 constantsMaskChanged.insert(id);
@@ -311,7 +325,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
 
     // Create render sources for newly added sources.
     for (const auto& entry : sourceDiff.added) {
-        std::unique_ptr<RenderSource> renderSource = RenderSource::create(entry.second);
+        std::unique_ptr<RenderSource> renderSource = RenderSource::create(entry.second, threadPool);
         renderSource->setObserver(this);
         renderSources.emplace(entry.first, std::move(renderSource));
     }

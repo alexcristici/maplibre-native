@@ -106,19 +106,17 @@ bool VertexAttributeGL::get(const gfx::VertexAttribute::ElementType& element, GL
         case GL_FLOAT:
             return gl::get<float>(element, buffer) || gl::get<float, std::int32_t>(element, buffer);
         case GL_FLOAT_VEC2:
-            return gl::get<float2>(element, buffer) || gl::get<int2, float2>(element, buffer, [](int2 x) {
-                       return float2{(float)x[0], (float)x[1]};
-                   });
+            return gl::get<float2>(element, buffer) ||
+                   gl::get<int2, float2>(element, buffer, [](int2 x) { return float2{(float)x[0], (float)x[1]}; });
         case GL_FLOAT_VEC3:
             return gl::get<float3>(element, buffer);
         case GL_FLOAT_VEC4:
         case GL_FLOAT_MAT2:
             return gl::get<float4>(element, buffer) ||
-                   gl::get<int4, float4>(element,
-                                         buffer,
-                                         [](int4 x) {
-                                             return float4{(float)x[0], (float)x[1], (float)x[2], (float)x[3]};
-                                         }) ||
+                   gl::get<int4, float4>(
+                       element,
+                       buffer,
+                       [](int4 x) { return float4{(float)x[0], (float)x[1], (float)x[2], (float)x[3]}; }) ||
                    gl::get<ushort8, float4>(element, buffer, [](ushort8 x) {
                        return float4{(float)x[0], (float)x[1], (float)x[2], (float)x[3]};
                    });
@@ -183,15 +181,15 @@ const std::vector<std::uint8_t>& VertexAttributeGL::getRaw(gfx::VertexAttribute&
 }
 
 bool VertexAttributeArrayGL::isDirty() const {
-    return std::any_of(attrs.begin(), attrs.end(), [](const auto& kv) {
-        if (kv.second) {
+    return std::any_of(attrs.begin(), attrs.end(), [](const auto& attr) {
+        if (attr) {
             // If we have shared data, the dirty flag from that overrides ours
-            const auto& glAttrib = static_cast<const VertexAttributeGL&>(*kv.second);
+            const auto& glAttrib = static_cast<const VertexAttributeGL&>(*attr);
             if (const auto& shared = glAttrib.getSharedRawData()) {
                 return shared->getDirty();
             }
         }
-        return kv.second && kv.second->isDirty();
+        return attr && attr->isDirty();
     });
 }
 

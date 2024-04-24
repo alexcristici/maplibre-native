@@ -13,12 +13,12 @@
 #include <mbgl/gfx/cull_face_mode.hpp>
 #include <mbgl/gfx/drawable.hpp>
 #include <mbgl/gfx/drawable_builder.hpp>
+#include <mbgl/gfx/shader_group.hpp>
 #include <mbgl/renderer/layer_group.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
 #include <mbgl/shaders/debug_layer_ubo.hpp>
 #include <mbgl/shaders/shader_program_base.hpp>
 #include <mbgl/util/convert.hpp>
-#include <mbgl/util/string_indexer.hpp>
 #include <mbgl/tile/geojson_tile_data.hpp>
 #include <mbgl/gfx/polyline_generator.hpp>
 #include <mbgl/style/types.hpp>
@@ -65,7 +65,6 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
     if (!debugShader) {
         return;
     }
-    static const StringIdentity idVertexAttribName = stringIndexer().get("a_pos");
     std::unique_ptr<gfx::DrawableBuilder> debugBuilder = [&]() -> std::unique_ptr<gfx::DrawableBuilder> {
         auto builder = context.createDrawableBuilder("debug-builder");
         builder->setShader(debugShader);
@@ -73,7 +72,7 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         builder->setEnableDepth(false);
         builder->setColorMode(gfx::ColorMode::unblended());
         builder->setCullFaceMode(gfx::CullFaceMode::disabled());
-        builder->setVertexAttrNameId(idVertexAttribName);
+        builder->setVertexAttrId(idDebugPosVertexAttribute);
 
         return builder;
     }();
@@ -83,14 +82,14 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
     gfx::ShaderPtr polylineShader;
     const auto createPolylineShader = [&]() -> gfx::ShaderPtr {
         gfx::ShaderGroupPtr shaderGroup = shaders.getShaderGroup("LineShader");
-        const mbgl::unordered_set<StringIdentity> propertiesAsUniforms{
-            stringIndexer().get("a_color"),
-            stringIndexer().get("a_blur"),
-            stringIndexer().get("a_opacity"),
-            stringIndexer().get("a_gapwidth"),
-            stringIndexer().get("a_offset"),
-            stringIndexer().get("a_width"),
-        };
+        const StringIDSetsPair propertiesAsUniforms{
+            {"a_color", "a_blur", "a_opacity", "a_gapwidth", "a_offset", "a_width"},
+            {idLineColorVertexAttribute,
+             idLineBlurVertexAttribute,
+             idLineOpacityVertexAttribute,
+             idLineGapWidthVertexAttribute,
+             idLineOffsetVertexAttribute,
+             idLineWidthVertexAttribute}};
         return shaderGroup->getOrCreateShader(context, propertiesAsUniforms);
     };
 
@@ -102,7 +101,7 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         builder->setEnableDepth(false);
         builder->setColorMode(gfx::ColorMode::alphaBlended());
         builder->setCullFaceMode(gfx::CullFaceMode::disabled());
-        builder->setVertexAttrNameId(idVertexAttribName);
+        builder->setVertexAttrId(idLinePosNormalVertexAttribute);
 
         return builder;
     };
@@ -131,26 +130,21 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
 
     // create texture. to be reused for all the tiles of the debug layers
     auto texture = context.createTexture2D();
-    std::optional<uint32_t> samplerLocation;
     {
         std::array<uint8_t, 4> data{{0, 0, 0, 0}};
         auto emptyImage = std::make_shared<PremultipliedImage>(Size(1, 1), data.data(), data.size());
         texture->setImage(emptyImage);
         texture->setSamplerConfiguration(
             {gfx::TextureFilterType::Linear, gfx::TextureWrapType::Clamp, gfx::TextureWrapType::Clamp});
-        static const StringIdentity idDebugOverlayUniformName = stringIndexer().get("u_overlay");
-        samplerLocation = debugShader->getSamplerLocation(idDebugOverlayUniformName);
     }
-    assert(samplerLocation.has_value());
-    if (!samplerLocation.has_value()) return;
 
     // function to update existing tile drawables with UBO value. return number of updated drawables
     const auto updateDrawables =
         [&](TileLayerGroup* tileLayerGroup, const OverscaledTileID& tileID, const DebugUBO& debugUBO) -> size_t {
         auto updatedCount = tileLayerGroup->visitDrawables(renderPass, tileID, [&](gfx::Drawable& drawable) {
             // update existing drawable
-            auto& uniforms = drawable.mutableUniformBuffers();
-            uniforms.createOrUpdate(idDebugUBO, &debugUBO, context);
+            auto& drawableUniforms = drawable.mutableUniformBuffers();
+            drawableUniforms.createOrUpdate(idDebugUBO, &debugUBO, context);
         });
         return updatedCount;
     };
@@ -172,14 +166,14 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         debugBuilder->addVertices(verts, 0, verts.size());
         debugBuilder->setSegments(mode, indexes, segments.data(), segments.size());
         // texture
-        debugBuilder->setTexture(texture, samplerLocation.value());
+        debugBuilder->setTexture(texture, idDebugOverlayTexture);
 
         // finish
         debugBuilder->flush(context);
         for (auto& drawable : debugBuilder->clearDrawables()) {
             drawable->setTileID(tileID);
-            auto& uniforms = drawable->mutableUniformBuffers();
-            uniforms.createOrUpdate(idDebugUBO, &debugUBO, context);
+            auto& drawableUniforms = drawable->mutableUniformBuffers();
+            drawableUniforms.createOrUpdate(idDebugUBO, &debugUBO, context);
 
             tileLayerGroup->addDrawable(renderPass, tileID, std::move(drawable));
         }
@@ -190,11 +184,11 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
     const auto addPolylineDrawable = [&](TileLayerGroup* tileLayerGroup, const RenderTile& tile) {
         class PolylineDrawableTweaker : public gfx::DrawableTweaker {
         public:
-            PolylineDrawableTweaker(const shaders::LinePropertiesUBO& properties)
+            PolylineDrawableTweaker(const shaders::LineEvaluatedPropsUBO& properties)
                 : linePropertiesUBO(properties) {}
             ~PolylineDrawableTweaker() override = default;
 
-            void init(gfx::Drawable&) override{};
+            void init(gfx::Drawable&) override {};
 
             void execute(gfx::Drawable& drawable, const PaintParameters& parameters) override {
                 if (!drawable.getTileID().has_value()) {
@@ -214,29 +208,28 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                     0,
                     0};
 
-                const shaders::LineUBO lineUBO{/*matrix = */ util::cast<float>(matrix),
-                                               /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
-                                               0,
-                                               0,
-                                               0};
-
-                const shaders::LineInterpolationUBO lineInterpolationUBO{/*color_t =*/0.f,
-                                                                         /*blur_t =*/0.f,
-                                                                         /*opacity_t =*/0.f,
-                                                                         /*gapwidth_t =*/0.f,
-                                                                         /*offset_t =*/0.f,
-                                                                         /*width_t =*/0.f,
-                                                                         0,
-                                                                         0};
-                auto& uniforms = drawable.mutableUniformBuffers();
-                uniforms.createOrUpdate(idLineDynamicUBO, &dynamicUBO, parameters.context);
-                uniforms.createOrUpdate(idLineUBO, &lineUBO, parameters.context);
-                uniforms.createOrUpdate(idLinePropertiesUBO, &linePropertiesUBO, parameters.context);
-                uniforms.createOrUpdate(idLineInterpolationUBO, &lineInterpolationUBO, parameters.context);
+                const shaders::LineDrawableUBO drawableUBO = {/*matrix = */ util::cast<float>(matrix),
+                                                              /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
+                                                              0,
+                                                              0,
+                                                              0};
+                const shaders::LineInterpolationUBO lineInterpolationUBO = {/*color_t =*/0.f,
+                                                                            /*blur_t =*/0.f,
+                                                                            /*opacity_t =*/0.f,
+                                                                            /*gapwidth_t =*/0.f,
+                                                                            /*offset_t =*/0.f,
+                                                                            /*width_t =*/0.f,
+                                                                            0,
+                                                                            0};
+                auto& drawableUniforms = drawable.mutableUniformBuffers();
+                drawableUniforms.createOrUpdate(idLineDynamicUBO, &dynamicUBO, parameters.context);
+                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
+                drawableUniforms.createOrUpdate(idLineInterpolationUBO, &lineInterpolationUBO, parameters.context);
+                drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
             };
 
         private:
-            shaders::LinePropertiesUBO linePropertiesUBO;
+            shaders::LineEvaluatedPropsUBO linePropertiesUBO;
         };
 
         GeometryCoordinates coords{{0, 0}, {util::EXTENT, 0}, {util::EXTENT, util::EXTENT}, {0, util::EXTENT}, {0, 0}};
@@ -250,15 +243,15 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         polylineBuilder->addPolyline(coords, options);
 
         // create line tweaker
-        const shaders::LinePropertiesUBO linePropertiesUBO{/*color*/ Color::red(),
-                                                           /*blur*/ 0.f,
-                                                           /*opacity*/ 1.f,
-                                                           /*gapwidth*/ 0.f,
-                                                           /*offset*/ 0.f,
-                                                           /*width*/ 4.f,
-                                                           0,
-                                                           0,
-                                                           0};
+        const shaders::LineEvaluatedPropsUBO linePropertiesUBO = {/*color*/ Color::red(),
+                                                                  /*blur*/ 0.f,
+                                                                  /*opacity*/ 1.f,
+                                                                  /*gapwidth*/ 0.f,
+                                                                  /*offset*/ 0.f,
+                                                                  /*width*/ 4.f,
+                                                                  /*floorwidth*/ 0,
+                                                                  0,
+                                                                  0};
         auto tweaker = std::make_shared<PolylineDrawableTweaker>(linePropertiesUBO);
 
         // finish
@@ -375,8 +368,9 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
 }
 #endif
 
-RenderTileSource::RenderTileSource(Immutable<style::Source::Impl> impl_)
+RenderTileSource::RenderTileSource(Immutable<style::Source::Impl> impl_, std::shared_ptr<Scheduler> threadPool_)
     : RenderSource(std::move(impl_)),
+      tilePyramid(std::move(threadPool_)),
       renderTiles(makeMutable<std::vector<RenderTile>>()) {
     tilePyramid.setObserver(this);
 }
@@ -495,8 +489,8 @@ void RenderTileSource::dumpDebugLogs() const {
 
 // RenderTileSetSource implementation
 
-RenderTileSetSource::RenderTileSetSource(Immutable<style::Source::Impl> impl_)
-    : RenderTileSource(std::move(impl_)) {}
+RenderTileSetSource::RenderTileSetSource(Immutable<style::Source::Impl> impl_, std::shared_ptr<Scheduler> threadPool_)
+    : RenderTileSource(std::move(impl_), std::move(threadPool_)) {}
 
 RenderTileSetSource::~RenderTileSetSource() = default;
 

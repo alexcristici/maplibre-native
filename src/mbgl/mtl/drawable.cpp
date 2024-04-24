@@ -186,6 +186,7 @@ void Drawable::draw(PaintParameters& parameters) const {
 #endif
 
     bindAttributes(renderPass);
+    bindInstanceAttributes(renderPass);
     bindUniformBuffers(renderPass);
     bindTextures(renderPass);
 
@@ -256,7 +257,7 @@ void Drawable::draw(PaintParameters& parameters) const {
             const auto primitiveType = getPrimitiveType(mode.type);
             constexpr auto indexType = MTL::IndexType::IndexTypeUInt16;
             constexpr auto indexSize = sizeof(std::uint16_t);
-            constexpr NS::UInteger instanceCount = 1;
+            const NS::UInteger instanceCount = instanceAttributes ? instanceAttributes->getMaxCount() : 1;
             constexpr NS::UInteger baseInstance = 0;
             const NS::UInteger indexOffset = static_cast<NS::UInteger>(indexSize *
                                                                        mlSegment.indexOffset); // in bytes, not indexes
@@ -317,14 +318,13 @@ void Drawable::setVertices(std::vector<uint8_t>&& data, std::size_t count, gfx::
         if (!vertexAttributes) {
             vertexAttributes = std::make_shared<VertexAttributeArray>();
         }
-        if (auto& attrib = vertexAttributes->getOrAdd(impl->idVertexAttrName, /*index=*/-1, type)) {
+        if (auto& attrib = vertexAttributes->set(impl->vertexAttrId, /*index=*/-1, type)) {
             attrib->setRawData(std::move(data));
             attrib->setStride(VertexAttribute::getStrideOf(type));
         } else {
             using namespace std::string_literals;
-            Log::Warning(
-                Event::General,
-                "Vertex attribute type mismatch: "s + name + " / " + stringIndexer().get(impl->idVertexAttrName));
+            Log::Warning(Event::General,
+                         "Vertex attribute type mismatch: "s + name + " / " + util::toString(impl->vertexAttrId));
             assert(false);
         }
     }
@@ -338,8 +338,8 @@ gfx::UniformBufferArray& Drawable::mutableUniformBuffers() {
     return impl->uniformBuffers;
 }
 
-void Drawable::setVertexAttrNameId(const StringIdentity value) {
-    impl->idVertexAttrName = value;
+void Drawable::setVertexAttrId(const size_t id) {
+    impl->vertexAttrId = id;
 }
 
 void Drawable::bindAttributes(RenderPass& renderPass) const noexcept {
@@ -361,6 +361,25 @@ void Drawable::bindAttributes(RenderPass& renderPass) const noexcept {
     }
 }
 
+void Drawable::bindInstanceAttributes(RenderPass& renderPass) const noexcept {
+    const auto& encoder = renderPass.getMetalEncoder();
+
+    NS::UInteger attributeIndex = 0;
+    for (const auto& binding : impl->instanceBindings) {
+        if (binding.has_value()) {
+            const auto* buffer = static_cast<const mtl::VertexBufferResource*>(binding->vertexBufferResource);
+            if (buffer && buffer->get()) {
+                renderPass.bindVertex(buffer->get(), /*offset=*/0, attributeIndex);
+            } else {
+                const auto* shaderMTL = static_cast<const ShaderProgram*>(shader.get());
+                auto& context = renderPass.getCommandEncoder().getContext();
+                renderPass.bindVertex(context.getEmptyBuffer(), /*offset=*/0, attributeIndex);
+            }
+        }
+        attributeIndex += 1;
+    }
+}
+
 void Drawable::bindUniformBuffers(RenderPass& renderPass) const noexcept {
     if (shader) {
         const auto& uniformBlocks = shader->getUniformBlocks();
@@ -368,7 +387,6 @@ void Drawable::bindUniformBuffers(RenderPass& renderPass) const noexcept {
             const auto& block = uniformBlocks.get(id);
             if (!block) continue;
             const auto& uniformBuffer = getUniformBuffers().get(id);
-            assert(uniformBuffer && "UBO missing, drawable skipped");
             if (uniformBuffer) {
                 const auto& buffer = static_cast<UniformBuffer&>(*uniformBuffer.get());
                 const auto& resource = buffer.getBufferResource();
@@ -386,27 +404,29 @@ void Drawable::bindUniformBuffers(RenderPass& renderPass) const noexcept {
 }
 
 void Drawable::bindTextures(RenderPass& renderPass) const noexcept {
-    for (const auto& pair : textures) {
-        if (const auto& tex = pair.second) {
-            const auto& location = pair.first;
-            static_cast<mtl::Texture2D&>(*tex).bind(renderPass, location);
+    for (size_t id = 0; id < textures.size(); id++) {
+        if (const auto& texture = textures[id]) {
+            if (const auto& location = shader->getSamplerLocation(id)) {
+                static_cast<mtl::Texture2D&>(*texture).bind(renderPass, static_cast<int32_t>(*location));
+            }
         }
     }
 }
 
 void Drawable::unbindTextures(RenderPass& renderPass) const noexcept {
-    for (const auto& pair : textures) {
-        if (const auto& tex = pair.second) {
-            const auto& location = pair.first;
-            static_cast<mtl::Texture2D&>(*tex).unbind(renderPass, location);
+    for (size_t id = 0; id < textures.size(); id++) {
+        if (const auto& texture = textures[id]) {
+            if (const auto& location = shader->getSamplerLocation(id)) {
+                static_cast<mtl::Texture2D&>(*texture).unbind(renderPass, static_cast<int32_t>(*location));
+            }
         }
     }
 }
 
 void Drawable::uploadTextures(UploadPass&) const noexcept {
-    for (const auto& pair : textures) {
-        if (const auto& tex = pair.second) {
-            static_cast<mtl::Texture2D&>(*tex).upload();
+    for (const auto& texture : textures) {
+        if (texture) {
+            texture->upload();
         }
     }
 }
@@ -479,6 +499,9 @@ MTL::VertexFormat mtlVertexTypeOf(gfx::AttributeDataType type) noexcept {
 } // namespace
 
 void Drawable::upload(gfx::UploadPass& uploadPass_) {
+    if (isCustom) {
+        return;
+    }
     if (!shader) {
         Log::Warning(Event::General, "Missing shader for drawable " + util::toString(getID()) + "/" + getName());
         assert(false);
@@ -535,7 +558,7 @@ void Drawable::upload(gfx::UploadPass& uploadPass_) {
                                                                     vertexBuffers);
         impl->attributeBuffers = std::move(vertexBuffers);
 
-        vertexAttributes->visitAttributes([](const auto&, gfx::VertexAttribute& attrib) { attrib.setDirty(false); });
+        vertexAttributes->visitAttributes([](gfx::VertexAttribute& attrib) { attrib.setDirty(false); });
 
         if (impl->attributeBindings != attributeBindings_) {
             impl->attributeBindings = std::move(attributeBindings_);
@@ -580,8 +603,32 @@ void Drawable::upload(gfx::UploadPass& uploadPass_) {
         }
     }
 
+    // build instance buffer
+    const bool buildInstanceBuffer = (instanceAttributes && instanceAttributes->isDirty());
+
+    if (buildInstanceBuffer) {
+        // Build instance attribute buffers
+        std::vector<std::unique_ptr<gfx::VertexBufferResource>> instanceBuffers;
+        auto instanceBindings_ = uploadPass.buildAttributeBindings(instanceAttributes->getMaxCount(),
+                                                                   /*vertexType*/ gfx::AttributeDataType::Byte,
+                                                                   /*vertexAttributeIndex=*/-1,
+                                                                   /*vertexData=*/{},
+                                                                   shader->getInstanceAttributes(),
+                                                                   *instanceAttributes,
+                                                                   usage,
+                                                                   instanceBuffers);
+        impl->instanceBuffers = std::move(instanceBuffers);
+
+        // clear dirty flag
+        instanceAttributes->visitAttributes([](gfx::VertexAttribute& attrib) { attrib.setDirty(false); });
+
+        if (impl->instanceBindings != instanceBindings_) {
+            impl->instanceBindings = std::move(instanceBindings_);
+        }
+    }
+
     const bool texturesNeedUpload = std::any_of(
-        textures.begin(), textures.end(), [](const auto& pair) { return pair.second && pair.second->needsUpload(); });
+        textures.begin(), textures.end(), [](const auto& texture) { return texture && texture->needsUpload(); });
 
     if (texturesNeedUpload) {
         uploadTextures(uploadPass);

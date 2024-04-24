@@ -9,6 +9,7 @@
 #include <mbgl/gfx/renderable.hpp>
 #include <mbgl/gfx/upload_pass.hpp>
 #include <mbgl/programs/programs.hpp>
+#include <mbgl/renderer/paint_parameters.hpp>
 #include <mbgl/renderer/pattern_atlas.hpp>
 #include <mbgl/renderer/renderer_observer.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
@@ -76,6 +77,7 @@ void Renderer::Impl::render(const RenderTree& renderTree,
 #if MLN_RENDER_BACKEND_METAL
     if constexpr (EnableMetalCapture) {
         const auto& mtlBackend = static_cast<mtl::RendererBackend&>(backend);
+
         const auto& mtlDevice = mtlBackend.getDevice();
 
         if (!commandCaptureScope) {

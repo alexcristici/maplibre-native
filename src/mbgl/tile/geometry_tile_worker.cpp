@@ -19,6 +19,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/exception.hpp>
 #include <mbgl/util/stopwatch.hpp>
+#include <mbgl/util/thread_pool.hpp>
 
 #include <unordered_set>
 #include <utility>
@@ -44,7 +45,9 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
       pixelRatio(pixelRatio_),
       showCollisionBoxes(showCollisionBoxes_) {}
 
-GeometryTileWorker::~GeometryTileWorker() = default;
+GeometryTileWorker::~GeometryTileWorker() {
+    Scheduler::GetBackground()->runOnRenderThread([renderData_{std::move(renderData)}]() {});
+}
 
 /*
    GeometryTileWorker is a state machine. This is its transition diagram.
@@ -436,10 +439,9 @@ void GeometryTileWorker::parse() {
     requestNewImages(imageDependencies);
 
     MBGL_TIMING_FINISH(watch,
-                       " Action: "
-                           << "Parsing,"
-                           << " SourceID: " << sourceID.c_str() << " Canonical: " << static_cast<int>(id.canonical.z)
-                           << "/" << id.canonical.x << "/" << id.canonical.y << " Time");
+                       " Action: " << "Parsing," << " SourceID: " << sourceID.c_str()
+                                   << " Canonical: " << static_cast<int>(id.canonical.z) << "/" << id.canonical.x << "/"
+                                   << id.canonical.y << " Time");
     finalizeLayout();
 }
 
@@ -490,10 +492,9 @@ void GeometryTileWorker::finalizeLayout() {
     firstLoad = false;
 
     MBGL_TIMING_FINISH(watch,
-                       " Action: "
-                           << "SymbolLayout,"
-                           << " SourceID: " << sourceID.c_str() << " Canonical: " << static_cast<int>(id.canonical.z)
-                           << "/" << id.canonical.x << "/" << id.canonical.y << " Time");
+                       " Action: " << "SymbolLayout," << " SourceID: " << sourceID.c_str()
+                                   << " Canonical: " << static_cast<int>(id.canonical.z) << "/" << id.canonical.x << "/"
+                                   << id.canonical.y << " Time");
 
     parent.invoke(&GeometryTile::onLayout,
                   std::make_shared<GeometryTile::LayoutResult>(

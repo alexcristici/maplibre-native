@@ -14,6 +14,7 @@ MLN_IOS_SDK_HEADERS = [
 ]
 
 MLN_IOS_PUBLIC_HEADERS = [
+    "src/Mapbox.h",
 ]
 
 MLN_IOS_PRIVATE_HEADERS = [
@@ -91,7 +92,7 @@ MLN_PUBLIC_IOS_APP_SOPURCE = [
     "app/MBXState.m",
     "app/MBXStateManager.m",
     "app/MBXUserLocationAnnotationView.m",
-    "app/MBXViewController.m",
+    "app/MBXViewController.mm",
     "app/main.m",
     "app/MBXAnnotationView.h",
     "app/MBXAppDelegate.h",
