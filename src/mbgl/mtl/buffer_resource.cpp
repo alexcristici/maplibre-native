@@ -161,6 +161,7 @@ void BufferResource::bindVertex(const MTLRenderCommandEncoderPtr& encoder,
         size_ = size_ ? std::min(size_, size - offset) : size - offset;
         encoder->setVertexBytes(raw.data() + offset, size_, index);
     }
+    context.renderingStats().numVertexBinds++;
 }
 
 void BufferResource::bindFragment(const MTLRenderCommandEncoderPtr& encoder,
@@ -174,6 +175,7 @@ void BufferResource::bindFragment(const MTLRenderCommandEncoderPtr& encoder,
         size_ = size_ ? std::min(size_, size - offset) : size - offset;
         encoder->setFragmentBytes(raw.data() + offset, size_, index);
     }
+    context.renderingStats().numFragmentBinds++;
 }
 
 void BufferResource::updateVertexBindOffset(const MTLRenderCommandEncoderPtr& encoder,
