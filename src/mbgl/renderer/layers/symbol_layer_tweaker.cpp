@@ -81,6 +81,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
     constexpr bool aligned = false;
     constexpr bool nearClipped = false;
     constexpr bool inViewportPixelUnits = false;
+
     const auto camDist = state.getCameraToCenterDistance();
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
         if (!drawable.getTileID() || !drawable.getData()) {
