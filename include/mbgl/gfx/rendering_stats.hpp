@@ -52,6 +52,8 @@ struct RenderingStats {
     int numUniformBuffers = 0;
     int numUniformUpdates = 0;
     std::size_t uniformUpdateBytes = 0;
+    int numVertexBinds = 0;
+    int numFragmentBinds = 0;
 
     int memTextures = 0;
     int memBuffers = 0;

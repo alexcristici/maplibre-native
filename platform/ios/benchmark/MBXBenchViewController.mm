@@ -87,6 +87,9 @@ protected:
     };
     constexpr auto styleIndex = 0;
     NSURL *url = [NSURL URLWithString:tile ? @"asset://styles/streets.json" : [NSString stringWithCString:styles[styleIndex].c_str() encoding:NSUTF8StringEncoding]];
+    //NSURL *url = [NSURL URLWithString:@"https://external.xx.fbcdn.net/maps/vt/style/canterbury_1_0/?locale=en_US"];
+    //NSURL *url = [NSURL URLWithString:@"https://zelonewolf.github.io/openstreetmap-americana/style.json"];
+    //NSURL *url = [NSURL URLWithString:@"https://api.maptiler.com/maps/basic-v2/style.json?key=G4MQXsYbLiUxOu3SV4lh"];
     NSLog(@"Using style URL: \"%@\"", [url absoluteString]);
 
     self.imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
@@ -225,7 +228,7 @@ namespace  mbgl {
         cameraOptions.zoom = location.zoom;
         cameraOptions.bearing = location.bearing;
         mbgl::AnimationOptions animationOptions;
-        animationOptions.duration.emplace(std::chrono::duration_cast<mbgl::Duration>(std::chrono::duration<NSTimeInterval>(benchmarkDuration)));
+        animationOptions.duration.emplace(std::chrono::duration_cast<mbgl::Duration>(std::chrono::duration<NSTimeInterval>(0)));
         map->easeTo(cameraOptions, animationOptions);
         
         state = State::WaitingForAssets;
@@ -248,13 +251,13 @@ namespace  mbgl {
         double totalFrameEncodingTime = 0;
         double totalFrameRenderingTime = 0;
         for (const auto& row : result) {
-            NSLog(@"| %-*s | %4.2f ms | %4.2f ms |", int(colWidth), row.first.c_str(), 1e3 * row.second.first, 1e3 * row.second.second);
+            NSLog(@"| %-*s | %4.2f | %4.2f |", int(colWidth), row.first.c_str(), row.second.first, row.second.second);
             totalFrameEncodingTime += row.second.first;
             totalFrameRenderingTime += row.second.second;
         }
 
-        NSLog(@"Average frame encoding time: %4.2f ms", totalFrameEncodingTime * 1e3 / result.size());
-        NSLog(@"Average frame rendering time: %4.2f ms", totalFrameRenderingTime * 1e3 / result.size());
+        NSLog(@"Average number of UBO vertex binds per frame: %4.2f", totalFrameEncodingTime / result.size());
+        NSLog(@"Average number of UBO fragment binds per frame: %4.2f", totalFrameRenderingTime / result.size());
 
         // NSLog(@"Total uploads: %zu", mbgl::uploadCount);
         // NSLog(@"Total uploads with dirty vattr: %zu", mbgl::uploadVertextAttrsDirty);
@@ -291,9 +294,9 @@ namespace  mbgl {
 {
     if (state == State::Benchmarking)
     {
-        frames++;
-        totalFrameEncodingTime += frameEncodingTime;
-        totalFrameRenderingTime += frameRenderingTime;
+        frames = 1;
+        totalFrameEncodingTime = frameEncodingTime;
+        totalFrameRenderingTime = frameRenderingTime;
         
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
         if (duration >= benchmarkDuration * 1e6)
@@ -304,7 +307,7 @@ namespace  mbgl {
             const auto frameEncodingTime = static_cast<double>(totalFrameEncodingTime) / frames;
             const auto frameRenderingTime = static_cast<double>(totalFrameRenderingTime) / frames;
             result.emplace_back(mbgl::bench::locations[idx].name, std::make_pair(frameEncodingTime, frameRenderingTime));
-            NSLog(@"- Frame encoding time: %.1f ms, Frame rendering time: %.1f ms (%d frames)", frameEncodingTime * 1e3, frameRenderingTime * 1e3, frames);
+            NSLog(@"- Avg number of UBO vertex binds: %.1f, Avg number of UBO fragment binds: %.1f (%d frames)", frameEncodingTime, frameRenderingTime, frames);
 
             // Start benchmarking the next location.
             idx++;
