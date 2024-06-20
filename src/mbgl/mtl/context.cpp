@@ -61,7 +61,7 @@ Context::~Context() noexcept {
         }
 
 #if !defined(NDEBUG)
-        Log::Debug(Event::General, "Rendering Stats:\n" + stats.toString("\n"));
+        // Log::Debug(Event::General, "Rendering Stats:\n" + stats.toString("\n"));
 #endif
         assert(stats.isZero());
     }

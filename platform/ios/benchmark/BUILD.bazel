@@ -6,6 +6,7 @@ filegroup(
         "MBXBenchAppDelegate.mm",
         "MBXBenchViewController.mm",
         "locations.cpp",
+        "file_source.cpp",
         "main.mm",
     ],
     visibility = ["//platform:__pkg__"],
@@ -17,6 +18,7 @@ filegroup(
         "MBXBenchAppDelegate.h",
         "MBXBenchViewController.h",
         "locations.hpp",
+        "file_source.hpp",
     ],
     visibility = ["//platform:__pkg__"],
 )
