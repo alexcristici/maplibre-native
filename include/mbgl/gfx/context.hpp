@@ -56,8 +56,7 @@ using ComputePassPtr = std::unique_ptr<gfx::ComputePass>;
 class Context {
 protected:
     Context(uint32_t maximumVertexBindingCount_)
-        : maximumVertexBindingCount(maximumVertexBindingCount_),
-          backgroundScheduler(Scheduler::GetBackground()) {}
+        : maximumVertexBindingCount(maximumVertexBindingCount_) {}
 
 public:
     static constexpr const uint32_t minimumRequiredVertexBindingCount = 8;
@@ -179,8 +178,6 @@ protected:
     virtual std::unique_ptr<DrawScopeResource> createDrawScopeResource() = 0;
 
     gfx::RenderingStats stats;
-
-    std::shared_ptr<Scheduler> backgroundScheduler;
 };
 
 } // namespace gfx
