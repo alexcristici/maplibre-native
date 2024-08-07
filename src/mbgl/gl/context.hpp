@@ -125,6 +125,8 @@ public:
 
     RenderTargetPtr createRenderTarget(const Size size, const gfx::TextureChannelDataType type) override;
 
+    gfx::ComputePassPtr createComputePass() override;
+
     Framebuffer createFramebuffer(const gfx::Texture2D& color);
 
     gfx::VertexAttributeArrayPtr createVertexAttributeArray() const override;

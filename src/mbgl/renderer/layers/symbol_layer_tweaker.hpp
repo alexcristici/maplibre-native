@@ -22,6 +22,7 @@ public:
 private:
     gfx::UniformBufferPtr evaluatedPropsUniformBuffer;
     gfx::UniformBufferPtr drawableBuffer;
+    gfx::UniformBufferPtr computeBuffer;
 };
 
 } // namespace mbgl

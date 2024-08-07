@@ -94,6 +94,8 @@ public:
 
     RenderTargetPtr createRenderTarget(const Size size, const gfx::TextureChannelDataType type) override;
 
+    gfx::ComputePassPtr createComputePass() override;
+
     void resetState(gfx::DepthMode depthMode, gfx::ColorMode colorMode) override;
 
     void setDirtyState() override;
