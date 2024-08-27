@@ -114,7 +114,7 @@ Context::~Context() noexcept {
 }
 
 void Context::beginFrame() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     backend.getThreadPool().runRenderJobs();
 
@@ -134,7 +134,7 @@ void Context::beginFrame() {
 }
 
 void Context::endFrame() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
 #if MLN_DRAWABLE_RENDERER
     if (!frameInFlightFence) {
@@ -146,7 +146,7 @@ void Context::endFrame() {
 }
 
 void Context::initializeExtensions(const std::function<gl::ProcAddress(const char*)>& getProcAddress) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     if (const auto* extensions = reinterpret_cast<const char*>(MBGL_CHECK_ERROR(glGetString(GL_EXTENSIONS)))) {
         auto fn = [&](std::initializer_list<std::pair<const char*, const char*>> probes) -> ProcAddress {
@@ -176,7 +176,7 @@ void Context::initializeExtensions(const std::function<gl::ProcAddress(const cha
         extension::loadTimeStampQueryExtension(fn);
 #endif
     }
-    MLN_TRACE_GL_CONTEXT()
+    MLN_TRACE_GL_CONTEXT();
 }
 
 void Context::enableDebugging() {
@@ -240,14 +240,14 @@ UniqueProgram Context::createProgram(ShaderID vertexShader, ShaderID fragmentSha
 }
 
 void Context::linkProgram(ProgramID program_) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     MBGL_CHECK_ERROR(glLinkProgram(program_));
     verifyProgramLinkage(program_);
 }
 
 void Context::verifyProgramLinkage(ProgramID program_) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     GLint status;
     MBGL_CHECK_ERROR(glGetProgramiv(program_, GL_LINK_STATUS, &status));
@@ -267,7 +267,7 @@ void Context::verifyProgramLinkage(ProgramID program_) {
 }
 
 UniqueTexture Context::createUniqueTexture() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     if (pooledTextures.empty()) {
         pooledTextures.resize(TextureMax);
@@ -283,7 +283,7 @@ UniqueTexture Context::createUniqueTexture() {
 }
 
 VertexArray Context::createVertexArray() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     VertexArrayID id = 0;
     MBGL_CHECK_ERROR(glGenVertexArrays(1, &id));
@@ -293,7 +293,7 @@ VertexArray Context::createVertexArray() {
 }
 
 UniqueFramebuffer Context::createFramebuffer() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     FramebufferID id = 0;
     MBGL_CHECK_ERROR(glGenFramebuffers(1, &id));
@@ -305,7 +305,7 @@ UniqueFramebuffer Context::createFramebuffer() {
 std::unique_ptr<gfx::TextureResource> Context::createTextureResource(const Size size,
                                                                      const gfx::TexturePixelType format,
                                                                      const gfx::TextureChannelDataType type) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     auto obj = createUniqueTexture();
     int textureByteSize = gl::TextureResource::getStorageSize(size, format, type);
@@ -341,11 +341,11 @@ std::unique_ptr<gfx::TextureResource> Context::createTextureResource(const Size 
 
 std::unique_ptr<gfx::RenderbufferResource> Context::createRenderbufferResource(const gfx::RenderbufferPixelType type,
                                                                                const Size size) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     RenderbufferID id = 0;
     MBGL_CHECK_ERROR(glGenRenderbuffers(1, &id));
-    MLN_TRACE_ALLOC_RT(id, renderBufferByteSize(type, size))
+    MLN_TRACE_ALLOC_RT(id, renderBufferByteSize(type, size));
     // NOLINTNEXTLINE(performance-move-const-arg)
     UniqueRenderbuffer renderbuffer{std::move(id), {this}};
 
@@ -360,8 +360,8 @@ std::unique_ptr<gfx::RenderbufferResource> Context::createRenderbufferResource(c
 std::unique_ptr<uint8_t[]> Context::readFramebuffer(const Size size,
                                                     const gfx::TexturePixelType format,
                                                     const bool flip) {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     const size_t stride = size.width * (format == gfx::TexturePixelType::RGBA ? 4 : 1);
     auto data = std::make_unique<uint8_t[]>(stride * size.height);
@@ -389,7 +389,7 @@ std::unique_ptr<uint8_t[]> Context::readFramebuffer(const Size size,
 namespace {
 
 void checkFramebuffer() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     GLenum status = MBGL_CHECK_ERROR(glCheckFramebufferStatus(GL_FRAMEBUFFER));
     if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -422,8 +422,8 @@ void checkFramebuffer() {
 }
 
 void bindDepthStencilRenderbuffer(const gfx::Renderbuffer<gfx::RenderbufferPixelType::DepthStencil>& depthStencil) {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     auto& depthStencilResource = depthStencil.getResource<gl::RenderbufferResource>();
 #ifdef GL_DEPTH_STENCIL_ATTACHMENT
@@ -442,7 +442,7 @@ void bindDepthStencilRenderbuffer(const gfx::Renderbuffer<gfx::RenderbufferPixel
 Framebuffer Context::createFramebuffer(
     const gfx::Renderbuffer<gfx::RenderbufferPixelType::RGBA>& color,
     const gfx::Renderbuffer<gfx::RenderbufferPixelType::DepthStencil>& depthStencil) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     if (color.getSize() != depthStencil.getSize()) {
         throw std::runtime_error("Renderbuffer size mismatch");
@@ -459,7 +459,7 @@ Framebuffer Context::createFramebuffer(
 }
 
 Framebuffer Context::createFramebuffer(const gfx::Renderbuffer<gfx::RenderbufferPixelType::RGBA>& color) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     auto fbo = createFramebuffer();
     bindFramebuffer = fbo;
@@ -472,7 +472,7 @@ Framebuffer Context::createFramebuffer(const gfx::Renderbuffer<gfx::Renderbuffer
 
 Framebuffer Context::createFramebuffer(
     const gfx::Texture& color, const gfx::Renderbuffer<gfx::RenderbufferPixelType::DepthStencil>& depthStencil) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     if (color.size != depthStencil.getSize()) {
         throw std::runtime_error("Renderbuffer size mismatch");
@@ -487,7 +487,7 @@ Framebuffer Context::createFramebuffer(
 }
 
 Framebuffer Context::createFramebuffer(const gfx::Texture& color) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     auto fbo = createFramebuffer();
     bindFramebuffer = fbo;
@@ -499,7 +499,7 @@ Framebuffer Context::createFramebuffer(const gfx::Texture& color) {
 
 Framebuffer Context::createFramebuffer(const gfx::Texture& color,
                                        const gfx::Renderbuffer<gfx::RenderbufferPixelType::Depth>& depth) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
     if (color.size != depth.getSize()) {
         throw std::runtime_error("Renderbuffer size mismatch");
     }
@@ -517,19 +517,19 @@ Framebuffer Context::createFramebuffer(const gfx::Texture& color,
 
 std::unique_ptr<gfx::OffscreenTexture> Context::createOffscreenTexture(const Size size,
                                                                        const gfx::TextureChannelDataType type) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_unique<gl::OffscreenTexture>(*this, size, type);
 }
 
 std::unique_ptr<gfx::DrawScopeResource> Context::createDrawScopeResource() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_unique<gl::DrawScopeResource>(createVertexArray());
 }
 
 void Context::reset() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     std::copy(pooledTextures.begin(), pooledTextures.end(), std::back_inserter(abandonedTextures));
     pooledTextures.resize(0);
@@ -538,8 +538,8 @@ void Context::reset() {
 
 #if MLN_DRAWABLE_RENDERER
 void Context::resetState(gfx::DepthMode depthMode, gfx::ColorMode colorMode) {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     // Reset GL state to a known state so the CustomLayer always has a clean slate.
     bindVertexArray = value::BindVertexArray::Default;
@@ -553,7 +553,7 @@ bool Context::emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr& buffer,
                                            const void* data,
                                            std::size_t size,
                                            bool persistent) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     if (buffer) {
         buffer->update(data, size);
@@ -565,7 +565,7 @@ bool Context::emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr& buffer,
 }
 
 void Context::bindGlobalUniformBuffers(gfx::RenderPass&) const noexcept {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     for (size_t id = 0; id < globalUniformBuffers.allocatedSize(); id++) {
         const auto& globalUniformBuffer = globalUniformBuffers.get(id);
@@ -581,7 +581,7 @@ void Context::bindGlobalUniformBuffers(gfx::RenderPass&) const noexcept {
 }
 
 void Context::unbindGlobalUniformBuffers(gfx::RenderPass&) const noexcept {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     for (size_t id = 0; id < globalUniformBuffers.allocatedSize(); id++) {
         const auto& globalUniformBuffer = globalUniformBuffers.get(id);
@@ -593,7 +593,7 @@ void Context::unbindGlobalUniformBuffers(gfx::RenderPass&) const noexcept {
 #endif
 
 void Context::setDirtyState() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     // Note: does not set viewport/scissorTest/bindFramebuffer to dirty
     // since they are handled separately in the view object.
@@ -633,19 +633,19 @@ void Context::setDirtyState() {
 
 #if MLN_DRAWABLE_RENDERER
 gfx::UniqueDrawableBuilder Context::createDrawableBuilder(std::string name) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_unique<gl::DrawableGLBuilder>(std::move(name));
 }
 
 gfx::UniformBufferPtr Context::createUniformBuffer(const void* data, std::size_t size, bool /*persistent*/) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_shared<gl::UniformBufferGL>(data, size, *uboAllocator);
 }
 
 gfx::ShaderProgramBasePtr Context::getGenericShader(gfx::ShaderRegistry& shaders, const std::string& name) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     auto shaderGroup = shaders.getShaderGroup(name);
     if (!shaderGroup) {
@@ -655,25 +655,25 @@ gfx::ShaderProgramBasePtr Context::getGenericShader(gfx::ShaderRegistry& shaders
 }
 
 TileLayerGroupPtr Context::createTileLayerGroup(int32_t layerIndex, std::size_t initialCapacity, std::string name) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_shared<TileLayerGroupGL>(layerIndex, initialCapacity, std::move(name));
 }
 
 LayerGroupPtr Context::createLayerGroup(int32_t layerIndex, std::size_t initialCapacity, std::string name) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_shared<LayerGroupGL>(layerIndex, initialCapacity, std::move(name));
 }
 
 gfx::Texture2DPtr Context::createTexture2D() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_shared<gl::Texture2D>(*this);
 }
 
 RenderTargetPtr Context::createRenderTarget(const Size size, const gfx::TextureChannelDataType type) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     return std::make_shared<RenderTarget>(*this, size, type);
 }
@@ -683,7 +683,7 @@ gfx::ComputePassPtr Context::createComputePass() {
 }
 
 Framebuffer Context::createFramebuffer(const gfx::Texture2D& color) {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     auto fbo = createFramebuffer();
     bindFramebuffer = fbo;
@@ -703,8 +703,8 @@ gfx::VertexAttributeArrayPtr Context::createVertexAttributeArray() const {
 #endif
 
 void Context::clear(std::optional<mbgl::Color> color, std::optional<float> depth, std::optional<int32_t> stencil) {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     GLbitfield mask = 0;
 
@@ -793,7 +793,7 @@ void Context::setColorMode(const gfx::ColorMode& color) {
 }
 
 std::unique_ptr<gfx::CommandEncoder> Context::createCommandEncoder() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 
     backend.updateAssumedState();
     if (backend.contextIsShared()) {
@@ -803,8 +803,8 @@ std::unique_ptr<gfx::CommandEncoder> Context::createCommandEncoder() {
 }
 
 void Context::finish() {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     MBGL_CHECK_ERROR(glFinish());
 }
@@ -816,8 +816,8 @@ std::shared_ptr<gl::Fence> Context::getCurrentFrameFence() const {
 #endif
 
 void Context::draw(const gfx::DrawMode& drawMode, std::size_t indexOffset, std::size_t indexLength) {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     switch (drawMode.type) {
         case gfx::DrawModeType::Points:
@@ -840,7 +840,7 @@ void Context::draw(const gfx::DrawMode& drawMode, std::size_t indexOffset, std::
 }
 
 void Context::performCleanup() {
-    MLN_TRACE_FUNC()
+    MLN_TRACE_FUNC();
 #ifndef NDEBUG
     // In debug builds, un-bind all texture units so that any incorrect use results in an
     // error rather than using whatever texture happened to have been bound previously.
@@ -924,8 +924,8 @@ void Context::performCleanup() {
 }
 
 void Context::reduceMemoryUsage() {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     performCleanup();
 
@@ -945,8 +945,8 @@ void Context::visualizeDepthBuffer([[maybe_unused]] const float depthRangeSize) 
 #endif
 
 void Context::clearStencilBuffer(const int32_t bits) {
-    MLN_TRACE_FUNC()
-    MLN_TRACE_FUNC_GL()
+    MLN_TRACE_FUNC();
+    MLN_TRACE_FUNC_GL();
 
     MBGL_CHECK_ERROR(glClearStencil(bits));
     MBGL_CHECK_ERROR(glClear(GL_STENCIL_BUFFER_BIT));
