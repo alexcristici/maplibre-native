@@ -43,6 +43,7 @@ class DrawableBuilder;
 class ShaderProgramBase;
 class Texture2D;
 class VertexAttributeArray;
+class ComputePass;
 
 using DrawablePtr = std::shared_ptr<Drawable>;
 using ShaderProgramBasePtr = std::shared_ptr<ShaderProgramBase>;
@@ -50,6 +51,7 @@ using Texture2DPtr = std::shared_ptr<Texture2D>;
 using UniformBufferPtr = std::shared_ptr<UniformBuffer>;
 using UniqueDrawableBuilder = std::unique_ptr<DrawableBuilder>;
 using VertexAttributeArrayPtr = std::shared_ptr<VertexAttributeArray>;
+using ComputePassPtr = std::unique_ptr<gfx::ComputePass>;
 #endif
 
 namespace {
@@ -143,6 +145,9 @@ public:
 
     /// Create a render target
     virtual RenderTargetPtr createRenderTarget(const Size size, const TextureChannelDataType type) = 0;
+
+    /// Create a compute pass
+    virtual gfx::ComputePassPtr createComputePass() = 0;
 
     /// Resets the context state to defaults
     virtual void resetState(gfx::DepthMode depthMode, gfx::ColorMode colorMode) = 0;
