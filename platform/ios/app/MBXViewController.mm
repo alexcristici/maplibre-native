@@ -267,7 +267,7 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     // Keep track of current map state and debug preferences,
     // saving and restoring when the application's state changes.
     self.currentState =  [MBXStateManager sharedManager].currentState;
-    [self.mapView experimental_setTileCacheEnabled:false];
+    [self.mapView setTileCacheEnabled:false];
     
     if (!self.currentState) {
         // Create a new state with the below default values
