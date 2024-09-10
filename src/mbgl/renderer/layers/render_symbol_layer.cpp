@@ -1067,9 +1067,6 @@ void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
             removeTile(passes, tileID);
             continue;
         }
-        
-        context.renderingStats().usedSymbolBucketsMem += optRenderData->bucket->getMemSize();
-        context.renderingStats().usedSymbolBucketsCount ++;
 
         const auto& renderData = *optRenderData;
         const auto& bucket = static_cast<const SymbolBucket&>(*renderData.bucket);

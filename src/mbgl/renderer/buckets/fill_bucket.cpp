@@ -108,18 +108,18 @@ bool FillBucket::hasData() const {
 size_t FillBucket::getMemSize() const {
     size_t memSize = 0;
     
-    memSize += sizeof(this);
+    //memSize += sizeof(this);
     
     memSize += lineVertices.bytes();
-    memSize += lineIndexes.bytes();
-    memSize += lineSegments.size() * sizeof(LineAttributes);
+    //memSize += lineIndexes.bytes();
+    //memSize += lineSegments.size() * sizeof(LineAttributes);
     
-    memSize += basicLines.bytes();
-    memSize += basicLineSegments.size() * sizeof(FillAttributes);
+    //memSize += basicLines.bytes();
+    //memSize += basicLineSegments.size() * sizeof(FillAttributes);
     
     memSize += vertices.bytes();
-    memSize += triangles.bytes();
-    memSize += triangleSegments.size() * sizeof(FillAttributes);
+    //memSize += triangles.bytes();
+    //memSize += triangleSegments.size() * sizeof(FillAttributes);
     
     return memSize;
 }

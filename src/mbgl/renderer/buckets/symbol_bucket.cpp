@@ -204,61 +204,61 @@ bool SymbolBucket::hasData() const {
 size_t SymbolBucket::getMemSize() const {
     size_t memSize = 0;
     
-    memSize += sizeof(this);
+    //memSize += sizeof(this);
     
-    memSize += symbolInstances.size() * sizeof(SymbolInstance);
-    memSize += sortKeyRanges.size() * sizeof(SortKeyRange);
-    memSize += paintProperties.size() * (sizeof(std::string) + sizeof(PaintProperties));
-    memSize += placementModes.size() * sizeof(style::TextWritingModeType);
-    if(featureSortOrder) {
-        memSize += featureSortOrder->size() * sizeof(std::size_t);
-    }
+    //memSize += symbolInstances.size() * sizeof(SymbolInstance);
+    //memSize += sortKeyRanges.size() * sizeof(SortKeyRange);
+    //memSize += paintProperties.size() * (sizeof(std::string) + sizeof(PaintProperties));
+    //memSize += placementModes.size() * sizeof(style::TextWritingModeType);
+    //if(featureSortOrder) {
+    //    memSize += featureSortOrder->size() * sizeof(std::size_t);
+    //}
     
     memSize += text.vertices().bytes();
     memSize += text.dynamicVertices().bytes();
     memSize += text.opacityVertices().bytes();
-    memSize += text.triangles.bytes();
-    memSize += text.segments.size() * sizeof(SymbolTextAttributes);
-    memSize += text.placedSymbols.size() * sizeof(PlacedSymbol);
+    //memSize += text.triangles.bytes();
+    //memSize += text.segments.size() * sizeof(SymbolTextAttributes);
+    //memSize += text.placedSymbols.size() * sizeof(PlacedSymbol);
     
     memSize += icon.vertices().bytes();
     memSize += icon.dynamicVertices().bytes();
     memSize += icon.opacityVertices().bytes();
-    memSize += icon.triangles.bytes();
-    memSize += icon.segments.size() * sizeof(SymbolTextAttributes);
-    memSize += icon.placedSymbols.size() * sizeof(PlacedSymbol);
+    //memSize += icon.triangles.bytes();
+    //memSize += icon.segments.size() * sizeof(SymbolTextAttributes);
+    //memSize += icon.placedSymbols.size() * sizeof(PlacedSymbol);
     
     memSize += sdfIcon.vertices().bytes();
     memSize += sdfIcon.dynamicVertices().bytes();
     memSize += sdfIcon.opacityVertices().bytes();
-    memSize += sdfIcon.triangles.bytes();
-    memSize += sdfIcon.segments.size() * sizeof(SymbolTextAttributes);
-    memSize += sdfIcon.placedSymbols.size() * sizeof(PlacedSymbol);
+    //memSize += sdfIcon.triangles.bytes();
+    //memSize += sdfIcon.segments.size() * sizeof(SymbolTextAttributes);
+    //memSize += sdfIcon.placedSymbols.size() * sizeof(PlacedSymbol);
     
     if (textCollisionBox) {
         memSize += textCollisionBox->vertices().bytes();
         memSize += textCollisionBox->dynamicVertices().bytes();
-        memSize += textCollisionBox->lines.bytes();
-        memSize += textCollisionBox->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
+        //memSize += textCollisionBox->lines.bytes();
+        //memSize += textCollisionBox->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
     }
     if (iconCollisionBox) {
         memSize += iconCollisionBox->vertices().bytes();
         memSize += iconCollisionBox->dynamicVertices().bytes();
-        memSize += iconCollisionBox->lines.bytes();
-        memSize += iconCollisionBox->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
+        //memSize += iconCollisionBox->lines.bytes();
+        //memSize += iconCollisionBox->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
     }
     
     if (textCollisionCircle) {
         memSize += textCollisionCircle->vertices().bytes();
         memSize += textCollisionCircle->dynamicVertices().bytes();
-        memSize += textCollisionCircle->triangles.bytes();
-        memSize += textCollisionCircle->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
+        //memSize += textCollisionCircle->triangles.bytes();
+        //memSize += textCollisionCircle->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
     }
     if (iconCollisionCircle) {
         memSize += iconCollisionCircle->vertices().bytes();
         memSize += iconCollisionCircle->dynamicVertices().bytes();
-        memSize += iconCollisionCircle->triangles.bytes();
-        memSize += iconCollisionCircle->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
+        //memSize += iconCollisionCircle->triangles.bytes();
+        //memSize += iconCollisionCircle->segments.size() * sizeof(CollisionBoxProgram::AttributeList);
     }
     return memSize;
 }

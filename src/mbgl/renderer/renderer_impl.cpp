@@ -545,10 +545,10 @@ void Renderer::Impl::render(const RenderTree& renderTree,
     frameCount += 1;
     MLN_END_FRAME();
     
-    /*size_t totalSymbolBucketsMem = 0;
+    size_t symbolBucketsMem = 0;
     for(size_t i = 0; i < SymbolBucket::list.size(); i++) {
-        totalSymbolBucketsMem += SymbolBucket::list[i]->getMemSize();
-    }*/
+        symbolBucketsMem += SymbolBucket::list[i]->getMemSize();
+    }
     
     size_t fillBucketsMem = 0;
     for(size_t i = 0; i < FillBucket::list.size(); i++) {
@@ -556,22 +556,16 @@ void Renderer::Impl::render(const RenderTree& renderTree,
     }
     
     std::stringstream ss;
-    /*ss << "\ntotalSymbolBucketsMem: " << totalSymbolBucketsMem
+    ss << "\ntotalSymbolBucketsMem: " << symbolBucketsMem
        << "\ntotalSymbolBucketsCount: " << SymbolBucket::count
-       << "\nusedSymbolBucketsMem: " << context.renderingStats().usedSymbolBucketsMem
-       << "\nusedSymbolBucketsCount: " << context.renderingStats().usedSymbolBucketsCount
+       << "\nfillSymbolBucketsMem: " << fillBucketsMem
+       << "\nfillSymbolBucketsCount: " << FillBucket::count
        << "\nsymbolRenderLayersCount: " << context.renderingStats().symbolRenderLayersCount
        << "\nlineRenderLayersCount: " << context.renderingStats().lineRenderLayersCount
-       << "\nfillRenderLayersCount: " << context.renderingStats().fillRenderLayersCount
-       << "\nzoom: " << parameters.state.getZoom();*/
-    ss << "\nfillSymbolBucketsMem: " << fillBucketsMem
-       << "\nfillSymbolBucketsCount: " << FillBucket::count
        << "\nfillRenderLayersCount: " << context.renderingStats().fillRenderLayersCount
        << "\nzoom: " << parameters.state.getZoom();
     Log::Debug(Event::General, ss.str());
 
-    context.renderingStats().usedSymbolBucketsMem = 0;
-    context.renderingStats().usedSymbolBucketsCount = 0;
     context.renderingStats().symbolRenderLayersCount = 0;
     context.renderingStats().lineRenderLayersCount = 0;
     context.renderingStats().fillRenderLayersCount = 0;
