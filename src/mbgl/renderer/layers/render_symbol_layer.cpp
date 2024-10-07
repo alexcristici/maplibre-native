@@ -913,6 +913,8 @@ void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
         removeAllDrawables();
         return;
     }
+    
+    context.renderingStats().symbolRenderLayersCount ++;
 
     // Set up a layer group
     if (!layerGroup) {
