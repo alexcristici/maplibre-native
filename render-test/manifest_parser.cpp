@@ -283,6 +283,10 @@ std::optional<Manifest> ManifestParser::parseManifest(const std::string& manifes
             continue;
         }
 
+        /*if (testPath.path().string().find("text-max-width/zoom-and-property-function") == std::string::npos) {
+            continue;
+        }*/
+
         if (testPath.path().filename() == "style.json") {
             const auto defaultExpectationPath{std::move(mbgl::filesystem::path(testPath).remove_filename())};
             const auto rootLength = manifest.testRootPath.length();

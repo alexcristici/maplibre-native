@@ -185,13 +185,10 @@ void Map::Impl::onDidFinishRenderingFrame(RenderMode renderMode,
                                           double frameRenderingTime) {
     rendererFullyLoaded = renderMode == RenderMode::Full;
 
-    if (mode == MapMode::Continuous) {
-        observer.onDidFinishRenderingFrame({MapObserver::RenderMode(renderMode),
-                                            needsRepaint,
-                                            placemenChanged,
-                                            frameEncodingTime,
-                                            frameRenderingTime});
+    observer.onDidFinishRenderingFrame(
+        {MapObserver::RenderMode(renderMode), needsRepaint, placemenChanged, frameEncodingTime, frameRenderingTime});
 
+    if (mode == MapMode::Continuous) {
         if (needsRepaint || transform.inTransition()) {
             onUpdate();
         } else if (rendererFullyLoaded) {
