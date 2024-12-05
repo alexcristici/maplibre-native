@@ -14,7 +14,7 @@ struct ShaderSource<BuiltIn::SymbolIconShader, gfx::Backend::Type::Metal> {
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<UniformBlockInfo, 5> uniforms;
+    static const std::array<UniformBlockInfo, 4> uniforms;
     static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
@@ -48,7 +48,7 @@ struct FragmentStage {
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(0)]],
                                 device const uint32_t& uboIndex [[buffer(1)]],
-                                device const SymbolDrawableUBO* drawableVector [[buffer(2)]],
+                                device const SymbolDrawableVertexUBO* drawableVector [[buffer(2)]],
                                 device const SymbolTilePropsUBO* tilePropsVector [[buffer(3)]],
                                 device const SymbolInterpolateUBO* interpVector [[buffer(4)]]) {
 

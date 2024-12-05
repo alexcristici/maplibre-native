@@ -89,9 +89,8 @@ enum {
 };
 
 enum {
-    idSymbolDrawableUBO = globalUBOCountWithIndex,
-    idSymbolTilePropsUBO,
-    idSymbolInterpolateUBO,
+    idSymbolDrawableVertexUBO = globalUBOCountWithIndex,
+    idSymbolDrawableFragmentUBO,
     symbolDrawableUBOCount
 };
 

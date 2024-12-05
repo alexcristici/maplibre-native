@@ -22,6 +22,37 @@ enum class LineExpressionMask : uint32_t {
     Offset = 1 << 6,
 };
 
+/*union alignas(16) LineDrawableUBO {
+    struct {
+        std::array<float, 4 * 4> matrix;
+        float ratio;
+        //float pad1, pad2, pad3;
+    };
+    
+    struct {
+        //std::array<float, 4 * 4> matrix;
+        std::array<float, 4> pattern_from;
+        std::array<float, 4> pattern_to;
+        //std::array<float, 4> scale;
+        std::array<float, 2> texsize;
+        //float ratio;
+        //float fade;
+        float tileZoomRatio;
+    };
+    
+    struct {
+        //std::array<float, 4 * 4> matrix;
+        std::array<float, 2> patternscale_a;
+        std::array<float, 2> patternscale_b;
+        //float ratio;
+        float tex_y_a;
+        float tex_y_b;
+        //float sdfgamma;
+        //float mix;
+        //float pad1, pad2, pad3;
+    };
+};*/
+
 //
 // Line
 

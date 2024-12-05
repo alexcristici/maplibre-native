@@ -6,7 +6,7 @@ namespace shaders {
 
 const std::array<UniformBlockInfo, 5> ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
-    UniformBlockInfo{true, false, sizeof(idLineDrawableUBO), idLineDrawableUBO},
+    UniformBlockInfo{true, false, sizeof(LineDrawableUBO), idLineDrawableUBO},
     UniformBlockInfo{true, false, sizeof(LineInterpolationUBO), idLineInterpolationUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
     UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
