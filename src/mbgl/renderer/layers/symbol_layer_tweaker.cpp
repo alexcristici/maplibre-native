@@ -51,17 +51,6 @@ auto getInterpFactor(const SymbolBucket::PaintProperties& paintProps, bool isTex
     return std::get<N>(getProperty<TText, TIcon>(paintProps, isText)->interpolationFactor(currentZoom));
 }
 
-SymbolInterpolateUBO buildInterpUBO(const SymbolBucket::PaintProperties& paint, const bool t, const float z) {
-    return {/* .fill_color_t = */ getInterpFactor<TextColor, IconColor, 0>(paint, t, z),
-            /* .halo_color_t = */ getInterpFactor<TextHaloColor, IconHaloColor, 0>(paint, t, z),
-            /* .opacity_t = */ getInterpFactor<TextOpacity, IconOpacity, 0>(paint, t, z),
-            /* .halo_width_t = */ getInterpFactor<TextHaloWidth, IconHaloWidth, 0>(paint, t, z),
-            /* .halo_blur_t = */ getInterpFactor<TextHaloBlur, IconHaloBlur, 0>(paint, t, z),
-            /* .padding = */ 0,
-            0,
-            0};
-}
-
 } // namespace
 
 void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) {
@@ -80,47 +69,32 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 
     const auto zoom = static_cast<float>(state.getZoom());
 
-    if (!evaluatedPropsUniformBuffer || propertiesUpdated) {
-        const SymbolEvaluatedPropsUBO propsUBO = {/*.text_fill_color=*/constOrDefault<TextColor>(evaluated),
-                                                  /*.text_halo_color=*/constOrDefault<TextHaloColor>(evaluated),
-                                                  /*.text_opacity=*/constOrDefault<TextOpacity>(evaluated),
-                                                  /*.text_halo_width=*/constOrDefault<TextHaloWidth>(evaluated),
-                                                  /*.text_halo_blur=*/constOrDefault<TextHaloBlur>(evaluated),
-                                                  /* pad */ 0,
-                                                  /*.icon_fill_color=*/constOrDefault<IconColor>(evaluated),
-                                                  /*.icon_halo_color=*/constOrDefault<IconHaloColor>(evaluated),
-                                                  /*.icon_opacity=*/constOrDefault<IconOpacity>(evaluated),
-                                                  /*.icon_halo_width=*/constOrDefault<IconHaloWidth>(evaluated),
-                                                  /*.icon_halo_blur=*/constOrDefault<IconHaloBlur>(evaluated),
-                                                  /* pad */ 0};
-        context.emplaceOrUpdateUniformBuffer(evaluatedPropsUniformBuffer, &propsUBO);
+    if (!evaluatedPropsBuffer || propertiesUpdated) {
+        const SymbolEvaluatedPropsUBO propsUBO = {
+            /* .text_fill_color = */ constOrDefault<TextColor>(evaluated),
+            /* .text_halo_color = */ constOrDefault<TextHaloColor>(evaluated),
+            /* .text_opacity = */ constOrDefault<TextOpacity>(evaluated),
+            /* .text_halo_width = */ constOrDefault<TextHaloWidth>(evaluated),
+            /* .text_halo_blur = */ constOrDefault<TextHaloBlur>(evaluated),
+            /* .pad */ 0,
+            
+            /* .icon_fill_color = */ constOrDefault<IconColor>(evaluated),
+            /* .icon_halo_color = */ constOrDefault<IconHaloColor>(evaluated),
+            /* .icon_opacity = */ constOrDefault<IconOpacity>(evaluated),
+            /* .icon_halo_width = */ constOrDefault<IconHaloWidth>(evaluated),
+            /* .icon_halo_blur = */constOrDefault<IconHaloBlur>(evaluated),
+            /* .pad */ 0
+        };
+        context.emplaceOrUpdateUniformBuffer(evaluatedPropsBuffer, &propsUBO);
         propertiesUpdated = false;
     }
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
-    layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
+    layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsBuffer);
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
     int i = 0;
     std::vector<SymbolDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
     std::vector<SymbolTilePropsUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
-    std::vector<SymbolInterpolateUBO> interpolateUBOVector(layerGroup.getDrawableCount());
-#else
-    const auto getInterpUBO =
-        [&](const UnwrappedTileID& tileID, bool isText, const SymbolBucket::PaintProperties& paintProps) {
-            auto result = interpUBOs.insert(
-                std::make_pair(InterpUBOKey{tileID, isText}, InterpUBOValue{{}, parameters.frameCount}));
-            if (result.second) {
-                // new item inserted
-                const auto interpolateBuf = buildInterpUBO(paintProps, isText, zoom);
-                result.first->second.ubo = context.createUniformBuffer(&interpolateBuf, sizeof(interpolateBuf));
-            } else if (result.first->second.updatedFrame < parameters.frameCount) {
-                // existing item found, but hasn't been updated this frame
-                const auto interpolateBuf = buildInterpUBO(paintProps, isText, zoom);
-                result.first->second.ubo->update(&interpolateBuf, sizeof(interpolateBuf));
-                result.first->second.updatedFrame = parameters.frameCount;
-            }
-            return result.first->second.ubo;
-        };
 #endif
 
     const auto camDist = state.getCameraToCenterDistance();
@@ -178,51 +152,55 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         // Unpitched point labels need to have their rotation applied after projection
         const bool rotateInShader = rotateWithMap && !pitchWithMap && !alongLine;
 
+        const auto& sizeBinder = isText ? bucket->textSizeBinder : bucket->iconSizeBinder;
+        const auto size = sizeBinder->evaluateForZoom(currentZoom);
+        
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
         drawableUBOVector[i] = {
 #else
         const SymbolDrawableUBO drawableUBO = {
 #endif
-            /*.matrix=*/util::cast<float>(matrix),
-            /*.label_plane_matrix=*/util::cast<float>(labelPlaneMatrix),
-            /*.coord_matrix=*/util::cast<float>(glCoordMatrix),
+            /* .matrix = */ util::cast<float>(matrix),
+            /* .label_plane_matrix = */ util::cast<float>(labelPlaneMatrix),
+            /* .coord_matrix = */ util::cast<float>(glCoordMatrix),
 
-            /*.texsize=*/toArray(getTexSize(drawable, idSymbolImageTexture)),
-            /*.texsize_icon=*/toArray(getTexSize(drawable, idSymbolImageIconTexture)),
+            /* .texsize = */ toArray(getTexSize(drawable, idSymbolImageTexture)),
+            /* .texsize_icon = */ toArray(getTexSize(drawable, idSymbolImageIconTexture)),
 
-            /*.gamma_scale=*/gammaScale,
-            /*.rotate_symbol=*/rotateInShader,
-            /*.pad=*/{0},
+            /* .is_text = */ isText,
+            /* .rotate_symbol = */ rotateInShader,
+            /* .pitch_with_map = */ (symbolData.pitchAlignment == style::AlignmentType::Map),
+            /* .is_size_zoom_constant = */ size.isZoomConstant,
+            /* .is_size_feature_constant = */ size.isFeatureConstant,
+            
+            /* .size_t = */ size.sizeT,
+            /* .size = */ size.size,
+            
+            /* .fill_color_t = */ getInterpFactor<TextColor, IconColor, 0>(paintProperties, isText, zoom),
+            /* .halo_color_t = */ getInterpFactor<TextHaloColor, IconHaloColor, 0>(paintProperties, isText, zoom),
+            /* .opacity_t = */ getInterpFactor<TextOpacity, IconOpacity, 0>(paintProperties, isText, zoom),
+            /* .halo_width_t = */ getInterpFactor<TextHaloWidth, IconHaloWidth, 0>(paintProperties, isText, zoom),
+            /* .halo_blur_t = */ getInterpFactor<TextHaloBlur, IconHaloBlur, 0>(paintProperties, isText, zoom),
         };
-
-        const auto& sizeBinder = isText ? bucket->textSizeBinder : bucket->iconSizeBinder;
-        const auto size = sizeBinder->evaluateForZoom(currentZoom);
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
         tilePropsUBOVector[i] = SymbolTilePropsUBO {
 #else
-        const auto tileUBO = SymbolTilePropsUBO{
+        const auto tilePropsUBO = SymbolTilePropsUBO{
 #endif
             /* .is_text = */ isText,
-                /* .is_halo = */ symbolData.isHalo,
-                /* .pitch_with_map = */ (symbolData.pitchAlignment == style::AlignmentType::Map),
-                /* .is_size_zoom_constant = */ size.isZoomConstant,
-                /* .is_size_feature_constant = */ size.isFeatureConstant,
-                /* .size_t = */ size.sizeT,
-                /* .size = */ size.size,
-                /* .padding = */ 0,
+            /* .is_halo = */ symbolData.isHalo,
+            /* .gamma_scale= */ gammaScale,
+            /* .padding = */ 0,
         };
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        interpolateUBOVector[i] = buildInterpUBO(paintProperties, isText, zoom);
-
         drawable.setUBOIndex(i);
         i++;
 #else
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idSymbolDrawableUBO, &drawableUBO, context);
-        drawableUniforms.createOrUpdate(idSymbolTilePropsUBO, &tileUBO, context);
-        drawableUniforms.set(idSymbolInterpolateUBO, getInterpUBO(tileID, isText, paintProperties));
+        drawableUniforms.createOrUpdate(idSymbolTilePropsUBO, &tilePropsUBO, context);
 #endif
     });
 
@@ -241,29 +219,8 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         tilePropsBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
     }
 
-    const size_t interpolateUBOVectorSize = sizeof(SymbolInterpolateUBO) * interpolateUBOVector.size();
-    if (!interpolateBuffer || interpolateBuffer->getSize() < interpolateUBOVectorSize) {
-        interpolateBuffer = context.createUniformBuffer(
-            interpolateUBOVector.data(), interpolateUBOVectorSize, false, true);
-    } else {
-        interpolateBuffer->update(interpolateUBOVector.data(), interpolateUBOVectorSize);
-    }
-
     layerUniforms.set(idSymbolDrawableUBO, drawableBuffer);
     layerUniforms.set(idSymbolTilePropsUBO, tilePropsBuffer);
-    layerUniforms.set(idSymbolInterpolateUBO, interpolateBuffer);
-#else
-    // Regularly remove UBOs which are not being updated
-    constexpr int pruneFrameInterval = 10;
-    if ((parameters.frameCount % pruneFrameInterval) == 0) {
-        for (auto i = interpUBOs.begin(); i != interpUBOs.end();) {
-            if (i->second.updatedFrame < parameters.frameCount) {
-                i = interpUBOs.erase(i);
-            } else {
-                i++;
-            }
-        }
-    }
 #endif
 }
 

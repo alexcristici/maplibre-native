@@ -32,14 +32,14 @@ struct alignas(16) SymbolDrawableUBO {
 };
 static_assert(sizeof(SymbolDrawableUBO) == 16 * 16);
 
-struct alignas(16) SymbolDrawableFragmentUBO {
+struct alignas(16) SymbolTilePropsUBO {
     /*  0 */ /*bool*/ int is_text;
     /*  4 */ /*bool*/ int is_halo;
     /*  8 */ float gamma_scale;
     /* 12 */ float padding;
     /* 16 */
 };
-static_assert(sizeof(SymbolDrawableFragmentUBO) == 16);
+static_assert(sizeof(SymbolTilePropsUBO) == 16);
 
 /// Evaluated properties that do not depend on the tile
 struct alignas(16) SymbolEvaluatedPropsUBO {

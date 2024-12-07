@@ -6,8 +6,8 @@ namespace shaders {
 
 const std::array<UniformBlockInfo, 4> ShaderSource<BuiltIn::SymbolIconShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
-    UniformBlockInfo{true, false, sizeof(SymbolDrawableVertexUBO), idSymbolDrawableVertexUBO},
-    UniformBlockInfo{false, true, sizeof(SymbolDrawableFragmentUBO), idSymbolDrawableFragmentUBO},
+    UniformBlockInfo{true, false, sizeof(SymbolDrawableUBO), idSymbolDrawableUBO},
+    UniformBlockInfo{false, true, sizeof(SymbolTilePropsUBO), idSymbolTilePropsUBO},
     UniformBlockInfo{false, true, sizeof(SymbolEvaluatedPropsUBO), idSymbolEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 6> ShaderSource<BuiltIn::SymbolIconShader, gfx::Backend::Type::Metal>::attributes = {

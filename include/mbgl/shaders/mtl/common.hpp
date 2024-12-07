@@ -202,7 +202,9 @@ static_assert(sizeof(GPUExpression) % 16 == 0, "wrong alignment");
 
 enum {
     idGlobalPaintParamsUBO,
-    globalUBOCount
+    globalUBOCount,
+    idGlobalUBOIndex = globalUBOCount,
+    globalUBOCountWithIndex,
 };
 
 enum {
@@ -212,6 +214,13 @@ enum {
     idLineEvaluatedPropsUBO,
     idLineExpressionUBO,
     lineUBOCount
+};
+
+enum {
+    idSymbolDrawableUBO = globalUBOCountWithIndex,
+    idSymbolTilePropsUBO,
+    idSymbolEvaluatedPropsUBO,
+    symbolUBOCount
 };
 
 
@@ -327,33 +336,31 @@ struct alignas(16) SymbolDrawableUBO {
     float2 texsize;
     float2 texsize_icon;
 
-    float gamma_scale;
-    /*bool*/ int rotate_symbol;
-    float2 pad;
-};
-static_assert(sizeof(SymbolDrawableUBO) == 14 * 16, "unexpected padding");
-
-struct alignas(16) SymbolTilePropsUBO {
     /*bool*/ int is_text;
-    /*bool*/ int is_halo;
+    /*bool*/ int rotate_symbol;
     /*bool*/ int pitch_with_map;
     /*bool*/ int is_size_zoom_constant;
     /*bool*/ int is_size_feature_constant;
+
     float size_t;
     float size;
-    float padding;
-};
-static_assert(sizeof(SymbolTilePropsUBO) == 2 * 16, "unexpected padding");
 
-struct alignas(16) SymbolInterpolateUBO {
+    // Interpolations
     float fill_color_t;
     float halo_color_t;
     float opacity_t;
     float halo_width_t;
     float halo_blur_t;
-    float pad1, pad2, pad3;
 };
-static_assert(sizeof(SymbolInterpolateUBO) == 32, "unexpected padding");
+static_assert(sizeof(SymbolDrawableUBO) == 16 * 16, "unexpected padding");
+
+struct alignas(16) SymbolTilePropsUBO {
+    /*bool*/ int is_text;
+    /*bool*/ int is_halo;
+    float gamma_scale;
+    float padding;
+};
+static_assert(sizeof(SymbolTilePropsUBO) == 16, "unexpected padding");
 
 struct alignas(16) SymbolEvaluatedPropsUBO {
     float4 text_fill_color;

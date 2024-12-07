@@ -21,14 +21,14 @@ struct ShaderSource<BuiltIn::SymbolIconShader, gfx::Backend::Type::Metal> {
 
     static constexpr auto source = R"(
 struct VertexStage {
-    float4 pos_offset [[attribute(6)]];
-    float4 data [[attribute(7)]];
-    float4 pixeloffset [[attribute(8)]];
-    float3 projected_pos [[attribute(9)]];
-    float fade_opacity [[attribute(10)]];
+    float4 pos_offset [[attribute(symbolUBOCount + 0)]];
+    float4 data [[attribute(symbolUBOCount + 1)]];
+    float4 pixeloffset [[attribute(symbolUBOCount + 2)]];
+    float3 projected_pos [[attribute(symbolUBOCount + 3)]];
+    float fade_opacity [[attribute(symbolUBOCount + 4)]];
 
 #if !defined(HAS_UNIFORM_u_opacity)
-    float opacity [[attribute(11)]];
+    float opacity [[attribute(symbolUBOCount + 5)]];
 #endif
 };
 
@@ -46,15 +46,11 @@ struct FragmentStage {
 };
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
-                                device const GlobalPaintParamsUBO& paintParams [[buffer(0)]],
-                                device const uint32_t& uboIndex [[buffer(1)]],
-                                device const SymbolDrawableVertexUBO* drawableVector [[buffer(2)]],
-                                device const SymbolTilePropsUBO* tilePropsVector [[buffer(3)]],
-                                device const SymbolInterpolateUBO* interpVector [[buffer(4)]]) {
+                                device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const SymbolDrawableUBO* drawableVector [[buffer(idSymbolDrawableUBO)]]) {
 
     device const SymbolDrawableUBO& drawable = drawableVector[uboIndex];
-    device const SymbolTilePropsUBO& tileprops = tilePropsVector[uboIndex];
-    device const SymbolInterpolateUBO& interp = interpVector[uboIndex];
 
     const float2 a_pos = vertx.pos_offset.xy;
     const float2 a_offset = vertx.pos_offset.zw;
@@ -69,18 +65,18 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     const float segment_angle = -vertx.projected_pos[2];
 
     float size;
-    if (!tileprops.is_size_zoom_constant && !tileprops.is_size_feature_constant) {
-        size = mix(a_size_min, a_size[1], tileprops.size_t) / 128.0;
-    } else if (tileprops.is_size_zoom_constant && !tileprops.is_size_feature_constant) {
+    if (!drawable.is_size_zoom_constant && !drawable.is_size_feature_constant) {
+        size = mix(a_size_min, a_size[1], drawable.size_t) / 128.0;
+    } else if (drawable.is_size_zoom_constant && !drawable.is_size_feature_constant) {
         size = a_size_min / 128.0;
     } else {
-        size = tileprops.size;
+        size = drawable.size;
     }
 
     const float4 projectedPoint = drawable.matrix * float4(a_pos, 0, 1);
     const float camera_to_anchor_distance = projectedPoint.w;
     // See comments in symbol_sdf.vertex
-    const float distance_ratio = tileprops.pitch_with_map ?
+    const float distance_ratio = drawable.pitch_with_map ?
         camera_to_anchor_distance / paintParams.camera_to_center_distance :
         paintParams.camera_to_center_distance / camera_to_anchor_distance;
     const float perspective_ratio = clamp(
@@ -90,7 +86,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
     size *= perspective_ratio;
 
-    const float fontScale = tileprops.is_text ? size / 24.0 : size;
+    const float fontScale = drawable.is_text ? size / 24.0 : size;
 
     float symbol_rotation = 0.0;
     if (drawable.rotate_symbol) {
@@ -121,15 +117,15 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 #if defined(HAS_UNIFORM_u_opacity)
         .fade_opacity = half(fade_opacity),
 #else
-        .opacity      = half(unpack_mix_float(vertx.opacity, interp.opacity_t) * fade_opacity),
+        .opacity      = half(unpack_mix_float(vertx.opacity, drawable.opacity_t) * fade_opacity),
 #endif
     };
 }
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
-                            device const uint32_t& uboIndex [[buffer(1)]],
-                            device const SymbolTilePropsUBO* tilePropsVector [[buffer(3)]],
-                            device const SymbolEvaluatedPropsUBO& props [[buffer(5)]],
+                            device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                            device const SymbolTilePropsUBO* tilePropsVector [[buffer(idSymbolTilePropsUBO)]],
+                            device const SymbolEvaluatedPropsUBO& props [[buffer(idSymbolEvaluatedPropsUBO)]],
                             texture2d<float, access::sample> image [[texture(0)]],
                             sampler image_sampler [[sampler(0)]]) {
 #if defined(OVERDRAW_INSPECTOR)
