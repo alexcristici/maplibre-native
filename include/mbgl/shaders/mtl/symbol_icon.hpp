@@ -132,10 +132,10 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     return half4(1.0);
 #endif
 
-    device const SymbolTilePropsUBO& tileprops = tilePropsVector[uboIndex];
+    device const SymbolTilePropsUBO& tileProps = tilePropsVector[uboIndex];
 
 #if defined(HAS_UNIFORM_u_opacity)
-    const float opacity = (tileprops.is_text ? props.text_opacity : props.icon_opacity) * in.fade_opacity;
+    const float opacity = (tileProps.is_text ? props.text_opacity : props.icon_opacity) * in.fade_opacity;
 #else
     const float opacity = in.opacity; // fade_opacity is baked in for this case
 #endif

@@ -151,5 +151,21 @@ struct alignas(16) LineEvaluatedPropsUBO {
 };
 static_assert(sizeof(LineEvaluatedPropsUBO) == 3 * 16);
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+
+union LineDrawableUnionUBO {
+    LineDrawableUBO lineDrawableUBO;
+    LineGradientDrawableUBO lineGradientDrawableUBO;
+    LinePatternDrawableUBO linePatternDrawableUBO;
+    LineSDFDrawableUBO lineSDFDrawableUBO;
+};
+
+union LineTilePropsUnionUBO {
+    LinePatternTilePropsUBO linePatternTilePropsUBO;
+    LineSDFTilePropsUBO lineSDFTilePropsUBO;
+};
+
+#endif
+
 } // namespace shaders
 } // namespace mbgl

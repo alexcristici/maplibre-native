@@ -186,30 +186,30 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     return half4(1.0);
 #endif
 
-    device const SymbolTilePropsUBO& tileprops = tilePropsVector[uboIndex];
+    device const SymbolTilePropsUBO& tileProps = tilePropsVector[uboIndex];
 
 #if defined(HAS_UNIFORM_u_fill_color)
-    const half4 fill_color = half4(tileprops.is_text ? props.text_fill_color : props.icon_fill_color);
+    const half4 fill_color = half4(tileProps.is_text ? props.text_fill_color : props.icon_fill_color);
 #else
     const half4 fill_color = in.fill_color;
 #endif
 #if defined(HAS_UNIFORM_u_halo_color)
-    const half4 halo_color = half4(tileprops.is_text ? props.text_halo_color : props.icon_halo_color);
+    const half4 halo_color = half4(tileProps.is_text ? props.text_halo_color : props.icon_halo_color);
 #else
     const half4 halo_color = in.halo_color;
 #endif
 #if defined(HAS_UNIFORM_u_opacity)
-    const half opacity = half(tileprops.is_text ? props.text_opacity : props.icon_opacity);
+    const half opacity = half(tileProps.is_text ? props.text_opacity : props.icon_opacity);
 #else
     const half opacity = in.opacity;
 #endif
 #if defined(HAS_UNIFORM_u_halo_width)
-    const half halo_width = half(tileprops.is_text ? props.text_halo_width : props.icon_halo_width);
+    const half halo_width = half(tileProps.is_text ? props.text_halo_width : props.icon_halo_width);
 #else
     const half halo_width = in.halo_width;
 #endif
 #if defined(HAS_UNIFORM_u_halo_blur)
-    const half halo_blur = half(tileprops.is_text ? props.text_halo_blur : props.icon_halo_blur);
+    const half halo_blur = half(tileProps.is_text ? props.text_halo_blur : props.icon_halo_blur);
 #else
     const half halo_blur = in.halo_blur;
 #endif
@@ -220,10 +220,10 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     }
 
     const float EDGE_GAMMA = 0.105 / DEVICE_PIXEL_RATIO;
-    const half4 color = tileprops.is_halo ? halo_color : fill_color;
-    const float fontGamma = in.fontScale * tileprops.gamma_scale;
-    const float gamma = ((tileprops.is_halo ? (halo_blur * 1.19 / SDF_PX) : 0) + EDGE_GAMMA) / fontGamma;
-    const float buff = tileprops.is_halo ? (6.0 - halo_width / in.fontScale) / SDF_PX : (256.0 - 64.0) / 256.0;
+    const half4 color = tileProps.is_halo ? halo_color : fill_color;
+    const float fontGamma = in.fontScale * tileProps.gamma_scale;
+    const float gamma = ((tileProps.is_halo ? (halo_blur * 1.19 / SDF_PX) : 0) + EDGE_GAMMA) / fontGamma;
+    const float buff = tileProps.is_halo ? (6.0 - halo_width / in.fontScale) / SDF_PX : (256.0 - 64.0) / 256.0;
     const float dist = glyph_image.sample(glyph_sampler, float2(in.tex)).a;
     const float gamma_scaled = gamma * in.gamma_scale;
     const float alpha = smoothstep(buff - gamma_scaled, buff + gamma_scaled, dist);

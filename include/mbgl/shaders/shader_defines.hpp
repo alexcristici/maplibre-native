@@ -77,7 +77,7 @@ enum {
 };
 
 enum {
-    idLineDrawableUBO = globalUBOCount,
+    idLineDrawableUBO = globalUBOCountWithIndex,
     idLineTilePropsUBO,
     lineDrawableUBOCount
 };

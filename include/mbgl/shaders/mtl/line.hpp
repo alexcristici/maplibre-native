@@ -61,27 +61,14 @@ struct FragmentStage {
 #endif
 };
 
-struct alignas(16) LineDrawableUBO {
-    /*  0 */ float4x4 matrix;
-    /* 64 */ float ratio;
-    
-    // Interpolations
-    /* 68 */ float color_t;
-    /* 72 */ float blur_t;
-    /* 76 */ float opacity_t;
-    /* 80 */ float gapwidth_t;
-    /* 84 */ float offset_t;
-    /* 88 */ float width_t;
-    /* 92 */ float pad1;
-    /* 96 */
-};
-static_assert(sizeof(LineDrawableUBO) == 6 * 16, "unexpected padding");
-
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const LineDrawableUBO& drawable [[buffer(idLineDrawableUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const LineDrawableUnionUBO* drawableVector [[buffer(idLineDrawableUBO)]],
                                 device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
                                 device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]]) {
+
+    device const LineDrawableUBO& drawable = drawableVector[uboIndex].lineDrawableUBO;
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
@@ -247,27 +234,14 @@ struct FragmentStage {
 #endif
 };
 
-struct alignas(16) LineGradientDrawableUBO {
-    /*  0 */ float4x4 matrix;
-    /* 64 */ float ratio;
-    
-    // Interpolations
-    /* 68 */ float blur_t;
-    /* 72 */ float opacity_t;
-    /* 76 */ float gapwidth_t;
-    /* 80 */ float offset_t;
-    /* 84 */ float width_t;
-    /* 88 */ float pad1;
-    /* 92 */ float pad2;
-    /* 96 */
-};
-static_assert(sizeof(LineGradientDrawableUBO) == 6 * 16, "unexpected padding");
-
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const LineGradientDrawableUBO& drawable [[buffer(idLineDrawableUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const LineDrawableUnionUBO* drawableVector [[buffer(idLineDrawableUBO)]],
                                 device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
                                 device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]]) {
+
+    device const LineGradientDrawableUBO& drawable = drawableVector[uboIndex].lineGradientDrawableUBO;
 
 #if !defined(HAS_UNIFORM_u_blur)
     const auto blur     = unpack_mix_float(vertx.blur,     drawable.blur_t);
@@ -441,38 +415,14 @@ struct FragmentStage {
 #endif
 };
 
-struct alignas(16) LinePatternDrawableUBO {
-    /*  0 */ float4x4 matrix;
-    /* 64 */ float ratio;
-    
-    // Interpolations
-    /* 68 */ float blur_t;
-    /* 72 */ float opacity_t;
-    /* 76 */ float gapwidth_t;
-    /* 80 */ float offset_t;
-    /* 84 */ float width_t;
-    /* 88 */ float pattern_from_t;
-    /* 92 */ float pattern_to_t;
-    /* 96 */
-};
-static_assert(sizeof(LinePatternDrawableUBO) == 6 * 16, "unexpected padding");
-
-struct alignas(16) LinePatternTilePropsUBO {
-    /*  0 */ float4 pattern_from;
-    /* 16 */ float4 pattern_to;
-    /* 32 */ float4 scale;
-    /* 48 */ float2 texsize;
-    /* 56 */ float pad1;
-    /* 60 */ float pad2;
-    /* 64 */
-};
-static_assert(sizeof(LinePatternTilePropsUBO) == 4 * 16, "unexpected padding");
-
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const LinePatternDrawableUBO& drawable [[buffer(idLineDrawableUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const LineDrawableUnionUBO* drawableVector [[buffer(idLineDrawableUBO)]],
                                 device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
                                 device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]]) {
+
+    device const LinePatternDrawableUBO& drawable = drawableVector[uboIndex].linePatternDrawableUBO;
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
@@ -557,14 +507,18 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
                             device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                            device const LinePatternTilePropsUBO& tileProps [[buffer(idLineTilePropsUBO)]],
+                            device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                            device const LineTilePropsUnionUBO* tilePropsVector [[buffer(idLineTilePropsUBO)]],
                             device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
                             device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]],
                             texture2d<float, access::sample> image0 [[texture(0)]],
                             sampler image0_sampler [[sampler(0)]]) {
+
 #if defined(OVERDRAW_INSPECTOR)
     return half4(1.0);
 #endif
+
+    device const LinePatternTilePropsUBO& tileProps = tilePropsVector[uboIndex].linePatternTilePropsUBO;
 
 #if defined(HAS_UNIFORM_u_blur)
     const auto exprBlur = (props.expressionMask & LineExpressionMask::Blur);
@@ -698,42 +652,14 @@ struct FragmentStage {
 #endif
 };
 
-struct alignas(16) LineSDFDrawableUBO {
-    /*   0 */ float4x4 matrix;
-    /*  64 */ float2 patternscale_a;
-    /*  72 */ float2 patternscale_b;
-    /*  80 */ float tex_y_a;
-    /*  84 */ float tex_y_b;
-    /*  88 */ float ratio;
-    
-    // Interpolations
-    /*  92 */ float color_t;
-    /*  96 */ float blur_t;
-    /* 100 */ float opacity_t;
-    /* 104 */ float gapwidth_t;
-    /* 108 */ float offset_t;
-    /* 112 */ float width_t;
-    /* 116 */ float floorwidth_t;
-    /* 120 */ float pad1;
-    /* 124 */ float pad2;
-    /* 128 */
-};
-static_assert(sizeof(LineSDFDrawableUBO) == 8 * 16, "unexpected padding");
-
-struct alignas(16) LineSDFTilePropsUBO {
-    /* 0 */ float sdfgamma;
-    /* 4 */ float mix;
-    /* 8 */ float pad1;
-    /* 12 */ float pad2;
-    /* 16 */
-};
-static_assert(sizeof(LineSDFTilePropsUBO) == 16, "unexpected padding");
-
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const LineSDFDrawableUBO& drawable [[buffer(idLineDrawableUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const LineDrawableUnionUBO* drawableVector [[buffer(idLineDrawableUBO)]],
                                 device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
                                 device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]]) {
+
+    device const LineSDFDrawableUBO& drawable = drawableVector[uboIndex].lineSDFDrawableUBO;
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
@@ -826,14 +752,18 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
                             device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                            device const LineSDFTilePropsUBO& tileProps [[buffer(idLineTilePropsUBO)]],
+                            device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                            device const LineTilePropsUnionUBO* tilePropsVector [[buffer(idLineTilePropsUBO)]],
                             device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
                             device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]],
                             texture2d<float, access::sample> image0 [[texture(0)]],
                             sampler image0_sampler [[sampler(0)]]) {
+
 #if defined(OVERDRAW_INSPECTOR)
     return half4(1.0);
 #endif
+
+    device const LineSDFTilePropsUBO& tileProps = tilePropsVector[uboIndex].lineSDFTilePropsUBO;
 
 #if defined(HAS_UNIFORM_u_color)
     const auto exprColor = (props.expressionMask & LineExpressionMask::Color);

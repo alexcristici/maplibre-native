@@ -156,6 +156,12 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
     layerUniforms.set(idLineExpressionUBO, getExpressionBuffer());
 #endif // MLN_RENDER_BACKEND_METAL
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    int i = 0;
+    std::vector<LineDrawableUnionUBO> drawableUBOVector(layerGroup.getDrawableCount());
+    std::vector<LineTilePropsUnionUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
+#endif
+    
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
         const auto shader = drawable.getShader();
         if (!drawable.getTileID() || !shader || !checkTweakDrawable(drawable)) {
@@ -185,7 +191,11 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         switch (static_cast<LineType>(drawable.getType())) {
             case LineType::Simple: {
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                drawableUBOVector[i].lineDrawableUBO = LineDrawableUBO {
+#else
                 const LineDrawableUBO drawableUBO = {
+#endif
                     /* .matrix = */ util::cast<float>(matrix),
                     /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
                     
@@ -197,11 +207,22 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .width_t = */ std::get<0>(binders->get<LineWidth>()->interpolationFactor(zoom)),
                     /* .pad1 = */ 0
                 };
+                    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                drawable.setUBOIndex(i);
+                i++;
+#else
                 drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
+#endif
+                
             } break;
 
             case LineType::Gradient: {
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                drawableUBOVector[i].lineGradientDrawableUBO = LineGradientDrawableUBO {
+#else
                 const LineGradientDrawableUBO drawableUBO = {
+#endif
                     /* .matrix = */ util::cast<float>(matrix),
                     /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
                     
@@ -213,7 +234,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad1 = */ 0,
                     /* .pad2 = */ 0
                 };
+                    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                drawable.setUBOIndex(i);
+                i++;
+#else
                 drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
+#endif
             } break;
 
             case LineType::Pattern: {
@@ -221,7 +248,11 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 if (const auto& texture = drawable.getTexture(idLineImageTexture)) {
                     textureSize = texture->getSize();
                 }
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                drawableUBOVector[i].linePatternDrawableUBO = LinePatternDrawableUBO {
+#else
                 const LinePatternDrawableUBO drawableUBO = {
+#endif
                     /* .matrix = */ util::cast<float>(matrix),
                     /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, static_cast<float>(zoom)),
 
@@ -233,9 +264,12 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pattern_from_t = */ std::get<0>(binders->get<LinePattern>()->interpolationFactor(zoom)),
                     /* .pattern_to_t = */ std::get<1>(binders->get<LinePattern>()->interpolationFactor(zoom))
                 };
-                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                tilePropsUBOVector[i].linePatternTilePropsUBO = LinePatternTilePropsUBO {
+#else
                 const LinePatternTilePropsUBO lineTilePropsUBO = {
+#endif
                     /* .pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
                     /* .pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
                     /* .scale = */ {parameters.pixelRatio, 1 / tileID.pixelsToTileUnits(1, intZoom), crossfade.fromScale, crossfade.toScale},
@@ -243,7 +277,14 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .fade = */ crossfade.t,
                     /* .pad1 = */ 0
                 };
+                    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                drawable.setUBOIndex(i);
+                i++;
+#else
+                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
                 drawableUniforms.createOrUpdate(idLineTilePropsUBO, &lineTilePropsUBO, context);
+#endif
             } break;
 
             case LineType::SDF: {
@@ -267,7 +308,12 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     const LinePatternPos& posB = dashPatternTexture.getTo();
                     const float widthA = posA.width * crossfade.fromScale;
                     const float widthB = posB.width * crossfade.toScale;
-                    const LineSDFDrawableUBO drawableUBO{
+                    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                    drawableUBOVector[i].lineSDFDrawableUBO = LineSDFDrawableUBO {
+#else
+                    const LineSDFDrawableUBO drawableUBO = {
+#endif
                         /* .matrix = */ util::cast<float>(matrix),
                         /* .patternscale_a = */ {1.0f / tileID.pixelsToTileUnits(widthA, intZoom), -posA.height / 2.0f},
                         /* .patternscale_b = */ {1.0f / tileID.pixelsToTileUnits(widthB, intZoom), -posB.height / 2.0f},
@@ -285,15 +331,26 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                         /* .pad1 = */ 0,
                         /* .pad2 = */ 0
                     };
-                    drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
                     
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                    tilePropsUBOVector[i].lineSDFTilePropsUBO = LineSDFTilePropsUBO {
+#else
                     const LineSDFTilePropsUBO lineTilePropsUBO = {
+#endif
+                    
                         /* .sdfgamma = */ static_cast<float>(dashPatternTexture.getSize().width) / (std::min(widthA, widthB) * 256.0f * parameters.pixelRatio) / 2.0f,
                         /* .mix = */ crossfade.t,
                         /* .pad1 = */ 0,
                         /* .pad2 = */ 0
                     };
+                    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+                    drawable.setUBOIndex(i);
+                    i++;
+#else
+                    drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
                     drawableUniforms.createOrUpdate(idLineTilePropsUBO, &lineTilePropsUBO, context);
+#endif
                 }
             } break;
 
@@ -303,6 +360,25 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             } break;
         }
     });
+                    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    const size_t drawableUBOVectorSize = sizeof(LineDrawableUnionUBO) * drawableUBOVector.size();
+    if (!drawableBuffer || drawableBuffer->getSize() < drawableUBOVectorSize) {
+        drawableBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+    } else {
+        drawableBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
+    }
+
+    const size_t tilePropsUBOVectorSize = sizeof(LineTilePropsUnionUBO) * tilePropsUBOVector.size();
+    if (!tilePropsBuffer || tilePropsBuffer->getSize() < tilePropsUBOVectorSize) {
+        tilePropsBuffer = context.createUniformBuffer(tilePropsUBOVector.data(), tilePropsUBOVectorSize, false, true);
+    } else {
+        tilePropsBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
+    }
+
+    layerUniforms.set(idSymbolDrawableUBO, drawableBuffer);
+    layerUniforms.set(idSymbolTilePropsUBO, tilePropsBuffer);
+#endif
 }
 
 #if MLN_RENDER_BACKEND_METAL
