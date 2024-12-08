@@ -78,8 +78,7 @@ enum {
 
 enum {
     idLineDrawableUBO = globalUBOCount,
-    idLineInterpolationUBO,
-    idLineTilePropertiesUBO,
+    idLineTilePropsUBO,
     lineDrawableUBOCount
 };
 

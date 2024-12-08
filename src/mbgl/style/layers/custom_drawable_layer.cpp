@@ -108,22 +108,20 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::LineDrawableUBO drawableUBO = {/*matrix = */ util::cast<float>(matrix),
-                                                      /*ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
-                                                      0,
-                                                      0,
-                                                      0};
-        const shaders::LineInterpolationUBO lineInterpolationUBO{/*color_t =*/0.f,
-                                                                 /*blur_t =*/0.f,
-                                                                 /*opacity_t =*/0.f,
-                                                                 /*gapwidth_t =*/0.f,
-                                                                 /*offset_t =*/0.f,
-                                                                 /*width_t =*/0.f,
-                                                                 0,
-                                                                 0};
+        const shaders::LineDrawableUBO drawableUBO = {
+            /* .matrix = */ util::cast<float>(matrix),
+            /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
+            
+            /* .color_t = */ 0.f,
+            /* .blur_t = */ 0.f,
+            /* .opacity_t = */ 0.f,
+            /* .gapwidth_t = */ 0.f,
+            /* .offset_t = */ 0.f,
+            /* .width_t = */ 0.f,
+            /* .pad1 = */ 0
+        };
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
-        drawableUniforms.createOrUpdate(idLineInterpolationUBO, &lineInterpolationUBO, parameters.context);
         drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty

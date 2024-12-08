@@ -4,10 +4,9 @@
 namespace mbgl {
 namespace shaders {
 
-const std::array<UniformBlockInfo, 5> ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal>::uniforms = {
+const std::array<UniformBlockInfo, 4> ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineDrawableUBO), idLineDrawableUBO},
-    UniformBlockInfo{true, false, sizeof(LineInterpolationUBO), idLineInterpolationUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
     UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
 };
@@ -23,10 +22,9 @@ const std::array<AttributeInfo, 8> ShaderSource<BuiltIn::LineShader, gfx::Backen
 };
 const std::array<TextureInfo, 0> ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal>::textures = {};
 
-const std::array<UniformBlockInfo, 4> ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>::uniforms = {
+const std::array<UniformBlockInfo, 3> ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineGradientDrawableUBO), idLineDrawableUBO},
-    UniformBlockInfo{true, false, sizeof(LineGradientInterpolationUBO), idLineInterpolationUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 7> ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>::attributes = {
@@ -42,11 +40,10 @@ const std::array<TextureInfo, 1> ShaderSource<BuiltIn::LineGradientShader, gfx::
     TextureInfo{0, idLineImageTexture},
 };
 
-const std::array<UniformBlockInfo, 6> ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Metal>::uniforms = {
+const std::array<UniformBlockInfo, 5> ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
-    UniformBlockInfo{true, true, sizeof(LinePatternDrawableUBO), idLineDrawableUBO},
-    UniformBlockInfo{true, false, sizeof(LinePatternInterpolationUBO), idLineInterpolationUBO},
-    UniformBlockInfo{true, true, sizeof(LinePatternTilePropertiesUBO), idLineTilePropertiesUBO},
+    UniformBlockInfo{true, false, sizeof(LinePatternDrawableUBO), idLineDrawableUBO},
+    UniformBlockInfo{false, true, sizeof(LinePatternTilePropsUBO), idLineTilePropsUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
     UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
 };
@@ -67,8 +64,8 @@ const std::array<TextureInfo, 1> ShaderSource<BuiltIn::LinePatternShader, gfx::B
 
 const std::array<UniformBlockInfo, 5> ShaderSource<BuiltIn::LineSDFShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
-    UniformBlockInfo{true, true, sizeof(LineSDFDrawableUBO), idLineDrawableUBO},
-    UniformBlockInfo{true, false, sizeof(LineSDFInterpolationUBO), idLineInterpolationUBO},
+    UniformBlockInfo{true, false, sizeof(LineSDFDrawableUBO), idLineDrawableUBO},
+    UniformBlockInfo{false, true, sizeof(LineSDFTilePropsUBO), idLineTilePropsUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
     UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
 };
