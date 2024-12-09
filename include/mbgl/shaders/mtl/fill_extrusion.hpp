@@ -11,16 +11,34 @@ namespace shaders {
 #define FILL_EXTRUSION_SHADER_COMMON R"(
 
 struct alignas(16) FillExtrusionDrawableUBO {
-    /*  0 */ float4x4 matrix;
-    /* 64 */ float2 texsize;
-    /* 72 */ float2 pixel_coord_upper;
-    /* 80 */ float2 pixel_coord_lower;
-    /* 88 */ float height_factor;
-    /* 92 */ float tile_ratio;
-    /* 96 */
+    /*   0 */ float4x4 matrix;
+    /*  64 */ float2 pixel_coord_upper;
+    /*  72 */ float2 pixel_coord_lower;
+    /*  80 */ float height_factor;
+    /*  84 */ float tile_ratio;
+    
+    // Interpolations
+    /*  88 */ float base_t;
+    /*  92 */ float height_t;
+    /*  96 */ float color_t;
+    /* 100 */ float pattern_from_t;
+    /* 104 */ float pattern_to_t;
+    /* 108 */ float pad1;
+    /* 112 */
 };
-static_assert(sizeof(FillExtrusionDrawableUBO) == 6 * 16, "wrong size");
+static_assert(sizeof(FillExtrusionDrawableUBO) == 7 * 16);
 
+struct alignas(16) FillExtrusionTilePropsUBO {
+    /*  0 */ float4 pattern_from;
+    /* 16 */ float4 pattern_to;
+    /* 32 */ float2 texsize;
+    /* 40 */ float pad1;
+    /* 44 */ float pad2;
+    /* 48 */
+};
+static_assert(sizeof(FillExtrusionTilePropsUBO) == 3 * 16);
+
+/// Evaluated properties that do not depend on the tile
 struct alignas(16) FillExtrusionPropsUBO {
     /*  0 */ float4 color;
     /* 16 */ float4 light_color_pad;
@@ -37,28 +55,9 @@ struct alignas(16) FillExtrusionPropsUBO {
 };
 static_assert(sizeof(FillExtrusionPropsUBO) == 5 * 16, "wrong size");
 
-struct alignas(16) FillExtrusionTilePropsUBO {
-    /*  0 */ float4 pattern_from;
-    /* 16 */ float4 pattern_to;
-    /* 32 */
-};
-static_assert(sizeof(FillExtrusionTilePropsUBO) == 2 * 16, "wrong size");
-
-struct alignas(16) FillExtrusionInterpolateUBO {
-    /*  0 */ float base_t;
-    /*  4 */ float height_t;
-    /*  8 */ float color_t;
-    /* 12 */ float pattern_from_t;
-    /* 16 */ float pattern_to_t;
-    /* 20 */ float pad1, pad2, pad3;
-    /* 32 */
-};
-static_assert(sizeof(FillExtrusionInterpolateUBO) == 2 * 16, "wrong size");
-
 enum {
-    idFillExtrusionDrawableUBO = globalUBOCount,
+    idFillExtrusionDrawableUBO = globalUBOCountWithIndex,
     idFillExtrusionTilePropsUBO,
-    idFillExtrusionInterpolateUBO,
     idFillExtrusionPropsUBO,
     fillExtrusionUBOCount
 };
@@ -71,7 +70,7 @@ struct ShaderSource<BuiltIn::FillExtrusionShader, gfx::Backend::Type::Metal> {
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<UniformBlockInfo, 3> uniforms;
+    static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 5> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
@@ -103,19 +102,21 @@ struct FragmentOutput {
 };
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
-                                device const FillExtrusionDrawableUBO& drawable [[buffer(idFillExtrusionDrawableUBO)]],
-                                device const FillExtrusionInterpolateUBO& interp [[buffer(idFillExtrusionInterpolateUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const FillExtrusionDrawableUBO* drawableVector [[buffer(idFillExtrusionDrawableUBO)]],
                                 device const FillExtrusionPropsUBO& props [[buffer(idFillExtrusionPropsUBO)]]) {
+
+    device const FillExtrusionDrawableUBO& drawable = drawableVector[uboIndex];
 
 #if defined(HAS_UNIFORM_u_base)
     const auto base   = props.light_position_base.w;
 #else
-    const auto base   = max(unpack_mix_float(vertx.base, interp.base_t), 0.0);
+    const auto base   = max(unpack_mix_float(vertx.base, drawable.base_t), 0.0);
 #endif
 #if defined(HAS_UNIFORM_u_height)
     const auto height = props.height;
 #else
-    const auto height = max(unpack_mix_float(vertx.height, interp.height_t), 0.0);
+    const auto height = max(unpack_mix_float(vertx.height, drawable.height_t), 0.0);
 #endif
 
     const float3 normal = float3(vertx.normal_ed.xyz);
@@ -133,7 +134,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 #if defined(HAS_UNIFORM_u_color)
     auto color = props.color;
 #else
-    auto color = unpack_mix_color(vertx.color, interp.color_t);
+    auto color = unpack_mix_color(vertx.color, drawable.color_t);
 #endif
 
     // Relative luminance (how dark/bright is the surface color?)
@@ -189,7 +190,7 @@ struct ShaderSource<BuiltIn::FillExtrusionPatternShader, gfx::Backend::Type::Met
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<UniformBlockInfo, 5> uniforms;
+    static const std::array<UniformBlockInfo, 4> uniforms;
     static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
@@ -234,20 +235,23 @@ struct FragmentOutput {
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const FillExtrusionDrawableUBO& drawable [[buffer(idFillExtrusionDrawableUBO)]],
-                                device const FillExtrusionTilePropsUBO& tileProps [[buffer(idFillExtrusionTilePropsUBO)]],
-                                device const FillExtrusionInterpolateUBO& interp [[buffer(idFillExtrusionInterpolateUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const FillExtrusionDrawableUBO* drawableVector [[buffer(idFillExtrusionDrawableUBO)]],
+                                device const FillExtrusionTilePropsUBO* tilePropsVector [[buffer(idFillExtrusionTilePropsUBO)]],
                                 device const FillExtrusionPropsUBO& props [[buffer(idFillExtrusionPropsUBO)]]) {
+
+    device const FillExtrusionDrawableUBO& drawable = drawableVector[uboIndex];
+    device const FillExtrusionTilePropsUBO& tileProps = tilePropsVector[uboIndex];
 
 #if defined(HAS_UNIFORM_u_base)
     const auto base   = props.light_position_base.w;
 #else
-    const auto base   = max(unpack_mix_float(vertx.base, interp.base_t), 0.0);
+    const auto base   = max(unpack_mix_float(vertx.base, drawable.base_t), 0.0);
 #endif
 #if defined(HAS_UNIFORM_u_height)
     const auto height = props.height;
 #else
-    const auto height = max(unpack_mix_float(vertx.height, interp.height_t), 0.0);
+    const auto height = max(unpack_mix_float(vertx.height, drawable.height_t), 0.0);
 #endif
 
     const float3 normal = float3(vertx.normal_ed.xyz);
@@ -325,14 +329,16 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 }
 
 fragment FragmentOutput fragmentMain(FragmentStage in [[stage_in]],
-                                    device const FillExtrusionDrawableUBO& drawable [[buffer(idFillExtrusionDrawableUBO)]],
-                                    device const FillExtrusionTilePropsUBO& tileProps [[buffer(idFillExtrusionTilePropsUBO)]],
-                                    device const FillExtrusionPropsUBO& props [[buffer(idFillExtrusionPropsUBO)]],
-                                    texture2d<float, access::sample> image0 [[texture(0)]],
-                                    sampler image0_sampler [[sampler(0)]]) {
+                                     device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                     device const FillExtrusionTilePropsUBO* tilePropsVector [[buffer(idFillExtrusionTilePropsUBO)]],
+                                     device const FillExtrusionPropsUBO& props [[buffer(idFillExtrusionPropsUBO)]],
+                                     texture2d<float, access::sample> image0 [[texture(0)]],
+                                     sampler image0_sampler [[sampler(0)]]) {
 #if defined(OVERDRAW_INSPECTOR)
     return {half4(1.0)/*, in.position.z*/};
 #endif
+
+    device const FillExtrusionTilePropsUBO& tileProps = tilePropsVector[uboIndex];
 
 #if defined(HAS_UNIFORM_u_pattern_from)
     const auto pattern_from = float4(tileProps.pattern_from);
@@ -351,11 +357,11 @@ fragment FragmentOutput fragmentMain(FragmentStage in [[stage_in]],
     const float2 pattern_br_b = pattern_to.zw;
 
     const float2 imagecoord = glMod(in.pos_a, 1.0);
-    const float2 pos = mix(pattern_tl_a / drawable.texsize, pattern_br_a / drawable.texsize, imagecoord);
+    const float2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
     const float4 color1 = image0.sample(image0_sampler, pos);
 
     const float2 imagecoord_b = glMod(in.pos_b, 1.0);
-    const float2 pos2 = mix(pattern_tl_b / drawable.texsize, pattern_br_b / drawable.texsize, imagecoord_b);
+    const float2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
     const float4 color2 = image0.sample(image0_sampler, pos2);
 
     return {half4(mix(color1, color2, props.fade) * in.lighting)/*, in.position.z*/};

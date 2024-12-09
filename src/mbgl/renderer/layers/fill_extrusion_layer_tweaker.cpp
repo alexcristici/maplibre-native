@@ -64,6 +64,12 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
     const auto defPattern = mbgl::Faded<expression::Image>{"", ""};
     const auto fillPatternValue = evaluated.get<FillExtrusionPattern>().constantOr(defPattern);
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    int i = 0;
+    std::vector<FillExtrusionDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
+    std::vector<FillExtrusionTilePropsUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
+#endif
+    
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
         if (!drawable.getTileID() || !checkTweakDrawable(drawable)) {
             return;
@@ -106,34 +112,65 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
             binders->setPatternParameters(patternPosA, patternPosB, crossfade);
         }
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+        drawableUBOVector[i] = FillExtrusionDrawableUBO {
+#elif MLN_RENDER_BACKEND_OPENGL
         const FillExtrusionDrawableUBO drawableUBO = {
+#endif
             /* .matrix = */ util::cast<float>(matrix),
-            /* .texsize = */ {static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
             /* .pixel_coord_upper = */ {static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
             /* .pixel_coord_lower = */ {static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
             /* .height_factor = */ heightFactor,
-            /* .tile_ratio = */ tileRatio};
+            /* .tile_ratio = */ tileRatio,
 
-        const FillExtrusionInterpolateUBO interpUBO = {
             /* .base_t = */ std::get<0>(binders->get<FillExtrusionBase>()->interpolationFactor(zoom)),
             /* .height_t = */ std::get<0>(binders->get<FillExtrusionHeight>()->interpolationFactor(zoom)),
             /* .color_t = */ std::get<0>(binders->get<FillExtrusionColor>()->interpolationFactor(zoom)),
             /* .pattern_from_t = */ std::get<0>(binders->get<FillExtrusionPattern>()->interpolationFactor(zoom)),
             /* .pattern_to_t = */ std::get<0>(binders->get<FillExtrusionPattern>()->interpolationFactor(zoom)),
-            /* .pad = */ 0,
-            0,
-            0};
-
-        const FillExtrusionTilePropsUBO tilePropsUBO = {
-            /* pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
-            /* pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
+            /* .pad1 = */ 0
         };
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+        tilePropsUBOVector[i] = FillExtrusionTilePropsUBO {
+#elif MLN_RENDER_BACKEND_OPENGL
+        const FillExtrusionTilePropsUBO tilePropsUBO = {
+#endif
+            /* pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
+            /* pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
+            /* .texsize = */ {static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
+            /* .pad1 = */ 0,
+            /* .pad2 = */ 0
+        };
+
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+        drawable.setUBOIndex(i);
+        i++;
+#elif MLN_RENDER_BACKEND_OPENGL
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idFillExtrusionDrawableUBO, &drawableUBO, context);
         drawableUniforms.createOrUpdate(idFillExtrusionTilePropsUBO, &tilePropsUBO, context);
-        drawableUniforms.createOrUpdate(idFillExtrusionInterpolateUBO, &interpUBO, context);
+#endif
     });
+            
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    const size_t drawableUBOVectorSize = sizeof(FillExtrusionDrawableUBO) * drawableUBOVector.size();
+    if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
+        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+    } else {
+        drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
+    }
+
+    const size_t tilePropsUBOVectorSize = sizeof(FillExtrusionTilePropsUBO) * tilePropsUBOVector.size();
+    if (!tilePropsUniformBuffer || tilePropsUniformBuffer->getSize() < tilePropsUBOVectorSize) {
+        tilePropsUniformBuffer = context.createUniformBuffer(tilePropsUBOVector.data(), tilePropsUBOVectorSize, false, true);
+    } else {
+        tilePropsUniformBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
+    }
+
+    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer);
+    layerUniforms.set(idSymbolTilePropsUBO, tilePropsUniformBuffer);
+#endif
 }
 
 } // namespace mbgl

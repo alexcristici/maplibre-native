@@ -53,9 +53,8 @@ enum {
 };
 
 enum {
-    idFillExtrusionDrawableUBO = globalUBOCount,
+    idFillExtrusionDrawableUBO = globalUBOCountWithIndex,
     idFillExtrusionTilePropsUBO,
-    idFillExtrusionInterpolateUBO,
     fillExtrusionDrawableUBOCount
 };
 
