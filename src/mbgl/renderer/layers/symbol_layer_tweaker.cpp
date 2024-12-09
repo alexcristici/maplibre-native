@@ -156,7 +156,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
         drawableUBOVector[i] = {
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
         const SymbolDrawableUBO drawableUBO = {
 #endif
             /* .matrix = */ util::cast<float>(matrix),
@@ -184,7 +184,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
         tilePropsUBOVector[i] = SymbolTilePropsUBO {
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
         const auto tilePropsUBO = SymbolTilePropsUBO{
 #endif
             /* .is_text = */ isText,
@@ -196,7 +196,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
         drawable.setUBOIndex(i);
         i++;
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idSymbolDrawableUBO, &drawableUBO, context);
         drawableUniforms.createOrUpdate(idSymbolTilePropsUBO, &tilePropsUBO, context);

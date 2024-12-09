@@ -193,7 +193,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             case LineType::Simple: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
                 drawableUBOVector[i].lineDrawableUBO = LineDrawableUBO {
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
                 const LineDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -208,10 +208,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad1 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawable.setUBOIndex(i);
-                i++;
-#else
+#if MLN_RENDER_BACKEND_OPENGL
                 drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
 #endif
                 
@@ -220,7 +217,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             case LineType::Gradient: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
                 drawableUBOVector[i].lineGradientDrawableUBO = LineGradientDrawableUBO {
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
                 const LineGradientDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -235,10 +232,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad2 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawable.setUBOIndex(i);
-                i++;
-#else
+#if MLN_RENDER_BACKEND_OPENGL
                 drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
 #endif
             } break;
@@ -250,7 +244,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 }
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
                 drawableUBOVector[i].linePatternDrawableUBO = LinePatternDrawableUBO {
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
                 const LinePatternDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -267,8 +261,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
                 tilePropsUBOVector[i].linePatternTilePropsUBO = LinePatternTilePropsUBO {
-#else
-                const LinePatternTilePropsUBO lineTilePropsUBO = {
+#elif MLN_RENDER_BACKEND_OPENGL
+                const LinePatternTilePropsUBO tilePropsUBO = {
 #endif
                     /* .pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
                     /* .pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
@@ -278,12 +272,9 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad1 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawable.setUBOIndex(i);
-                i++;
-#else
+#if MLN_RENDER_BACKEND_OPENGL
                 drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
-                drawableUniforms.createOrUpdate(idLineTilePropsUBO, &lineTilePropsUBO, context);
+                drawableUniforms.createOrUpdate(idLineTilePropsUBO, &tilePropsUBO, context);
 #endif
             } break;
 
@@ -311,7 +302,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
                     drawableUBOVector[i].lineSDFDrawableUBO = LineSDFDrawableUBO {
-#else
+#elif MLN_RENDER_BACKEND_OPENGL
                     const LineSDFDrawableUBO drawableUBO = {
 #endif
                         /* .matrix = */ util::cast<float>(matrix),
@@ -334,8 +325,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
                     tilePropsUBOVector[i].lineSDFTilePropsUBO = LineSDFTilePropsUBO {
-#else
-                    const LineSDFTilePropsUBO lineTilePropsUBO = {
+#elif MLN_RENDER_BACKEND_OPENGL
+                    const LineSDFTilePropsUBO tilePropsUBO = {
 #endif
                     
                         /* .sdfgamma = */ static_cast<float>(dashPatternTexture.getSize().width) / (std::min(widthA, widthB) * 256.0f * parameters.pixelRatio) / 2.0f,
@@ -344,12 +335,9 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                         /* .pad2 = */ 0
                     };
                     
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                    drawable.setUBOIndex(i);
-                    i++;
-#else
+#if MLN_RENDER_BACKEND_OPENGL
                     drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
-                    drawableUniforms.createOrUpdate(idLineTilePropsUBO, &lineTilePropsUBO, context);
+                    drawableUniforms.createOrUpdate(idLineTilePropsUBO, &tilePropsUBO, context);
 #endif
                 }
             } break;
@@ -359,6 +347,11 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                            "LineLayerTweaker: unknown line type: " + std::to_string(drawable.getType()));
             } break;
         }
+                
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+        drawable.setUBOIndex(i);
+        i++;
+#endif
     });
                     
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN

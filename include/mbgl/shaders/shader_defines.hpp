@@ -47,7 +47,7 @@ enum {
 };
 
 enum {
-    idFillDrawableUBO = globalUBOCount,
+    idFillDrawableUBO = globalUBOCountWithIndex,
     idFillTilePropsUBO,
     fillDrawableUBOCount
 };

@@ -21,6 +21,11 @@ public:
 
 private:
     gfx::UniformBufferPtr evaluatedPropsUniformBuffer;
+    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    gfx::UniformBufferPtr drawableUniformBuffer;
+    gfx::UniformBufferPtr tilePropsUniformBuffer;
+#endif
 };
 
 } // namespace mbgl
