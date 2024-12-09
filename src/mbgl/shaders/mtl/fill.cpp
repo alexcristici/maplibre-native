@@ -4,6 +4,9 @@
 namespace mbgl {
 namespace shaders {
 
+//
+// Fill
+
 const std::array<UniformBlockInfo, 2> ShaderSource<BuiltIn::FillShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, false, sizeof(FillDrawableUBO), idFillDrawableUBO},
     UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
@@ -14,6 +17,9 @@ const std::array<AttributeInfo, 3> ShaderSource<BuiltIn::FillShader, gfx::Backen
     AttributeInfo{fillUBOCount + 2, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
 };
 const std::array<TextureInfo, 0> ShaderSource<BuiltIn::FillShader, gfx::Backend::Type::Metal>::textures = {};
+
+//
+// Fill outline
 
 const std::array<UniformBlockInfo, 3> ShaderSource<BuiltIn::FillOutlineShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
@@ -26,6 +32,9 @@ const std::array<AttributeInfo, 3> ShaderSource<BuiltIn::FillOutlineShader, gfx:
     AttributeInfo{fillUBOCount + 2, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
 };
 const std::array<TextureInfo, 0> ShaderSource<BuiltIn::FillOutlineShader, gfx::Backend::Type::Metal>::textures = {};
+
+//
+// Fill pattern
 
 const std::array<UniformBlockInfo, 4> ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
@@ -42,6 +51,9 @@ const std::array<AttributeInfo, 4> ShaderSource<BuiltIn::FillPatternShader, gfx:
 const std::array<TextureInfo, 1> ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::Metal>::textures = {
     TextureInfo{0, idFillImageTexture},
 };
+
+//
+// Fill pattern outline
 
 const std::array<UniformBlockInfo, 4>
     ShaderSource<BuiltIn::FillOutlinePatternShader, gfx::Backend::Type::Metal>::uniforms = {
@@ -61,6 +73,9 @@ const std::array<TextureInfo, 1> ShaderSource<BuiltIn::FillOutlinePatternShader,
     {
         TextureInfo{0, idFillImageTexture},
 };
+
+//
+// Fill outline triangulated
 
 const std::array<UniformBlockInfo, 3>
     ShaderSource<BuiltIn::FillOutlineTriangulatedShader, gfx::Backend::Type::Metal>::uniforms = {

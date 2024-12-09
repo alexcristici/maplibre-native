@@ -27,9 +27,7 @@
 #include <mbgl/shaders/mtl/line.hpp>
 #include <mbgl/shaders/mtl/fill.hpp>
 #include <mbgl/shaders/mtl/raster.hpp>
-#include <mbgl/shaders/mtl/symbol_icon.hpp>
-#include <mbgl/shaders/mtl/symbol_sdf.hpp>
-#include <mbgl/shaders/mtl/symbol_text_and_icon.hpp>
+#include <mbgl/shaders/mtl/symbol.hpp>
 #endif
 
 using namespace mbgl;

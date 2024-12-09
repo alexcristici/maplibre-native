@@ -19,8 +19,7 @@
 #include <mbgl/util/std.hpp>
 
 #if MLN_RENDER_BACKEND_METAL
-#include <mbgl/shaders/mtl/symbol_icon.hpp>
-#include <mbgl/shaders/mtl/symbol_sdf.hpp>
+#include <mbgl/shaders/mtl/symbol.hpp>
 #endif // MLN_RENDER_BACKEND_METAL
 
 namespace mbgl {

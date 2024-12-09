@@ -234,7 +234,7 @@ struct alignas(16) FillExtrusionDrawableUBO {
     /* 92 */ float tile_ratio;
     /* 96 */
 };
-static_assert(sizeof(FillExtrusionDrawableUBO) == 6 * 16, "unexpected padding");
+static_assert(sizeof(FillExtrusionDrawableUBO) == 6 * 16, "wrong size");
 
 struct alignas(16) FillExtrusionPropsUBO {
     /*  0 */ float4 color;
@@ -250,14 +250,14 @@ struct alignas(16) FillExtrusionPropsUBO {
     /* 76 */ float pad2;
     /* 80 */
 };
-static_assert(sizeof(FillExtrusionPropsUBO) == 5 * 16, "unexpected padding");
+static_assert(sizeof(FillExtrusionPropsUBO) == 5 * 16, "wrong size");
 
 struct alignas(16) FillExtrusionTilePropsUBO {
     /*  0 */ float4 pattern_from;
     /* 16 */ float4 pattern_to;
     /* 32 */
 };
-static_assert(sizeof(FillExtrusionTilePropsUBO) == 2 * 16, "unexpected padding");
+static_assert(sizeof(FillExtrusionTilePropsUBO) == 2 * 16, "wrong size");
 
 struct alignas(16) FillExtrusionInterpolateUBO {
     /*  0 */ float base_t;
@@ -268,64 +268,7 @@ struct alignas(16) FillExtrusionInterpolateUBO {
     /* 20 */ float pad1, pad2, pad3;
     /* 32 */
 };
-static_assert(sizeof(FillExtrusionInterpolateUBO) == 2 * 16, "unexpected padding");
-
-struct alignas(16) SymbolDrawableUBO {
-    float4x4 matrix;
-    float4x4 label_plane_matrix;
-    float4x4 coord_matrix;
-
-    float2 texsize;
-    float2 texsize_icon;
-
-    /*bool*/ int is_text;
-    /*bool*/ int rotate_symbol;
-    /*bool*/ int pitch_with_map;
-    /*bool*/ int is_size_zoom_constant;
-    /*bool*/ int is_size_feature_constant;
-
-    float size_t;
-    float size;
-
-    // Interpolations
-    float fill_color_t;
-    float halo_color_t;
-    float opacity_t;
-    float halo_width_t;
-    float halo_blur_t;
-};
-static_assert(sizeof(SymbolDrawableUBO) == 16 * 16, "unexpected padding");
-
-struct alignas(16) SymbolTilePropsUBO {
-    /*bool*/ int is_text;
-    /*bool*/ int is_halo;
-    float gamma_scale;
-    float padding;
-};
-static_assert(sizeof(SymbolTilePropsUBO) == 16, "unexpected padding");
-
-struct alignas(16) SymbolEvaluatedPropsUBO {
-    float4 text_fill_color;
-    float4 text_halo_color;
-    float text_opacity;
-    float text_halo_width;
-    float text_halo_blur;
-    float pad1;
-    float4 icon_fill_color;
-    float4 icon_halo_color;
-    float icon_opacity;
-    float icon_halo_width;
-    float icon_halo_blur;
-    float pad2;
-};
-static_assert(sizeof(SymbolEvaluatedPropsUBO) == 6 * 16, "unexpected padding");
-
-enum {
-    idSymbolDrawableUBO = globalUBOCountWithIndex,
-    idSymbolTilePropsUBO,
-    idSymbolEvaluatedPropsUBO,
-    symbolUBOCount
-};
+static_assert(sizeof(FillExtrusionInterpolateUBO) == 2 * 16, "wrong size");
 
 )";
 

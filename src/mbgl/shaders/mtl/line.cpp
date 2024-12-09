@@ -4,6 +4,9 @@
 namespace mbgl {
 namespace shaders {
 
+//
+// Line
+
 const std::array<UniformBlockInfo, 4> ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineDrawableUBO), idLineDrawableUBO},
@@ -22,6 +25,9 @@ const std::array<AttributeInfo, 8> ShaderSource<BuiltIn::LineShader, gfx::Backen
 };
 const std::array<TextureInfo, 0> ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal>::textures = {};
 
+//
+// Line gradient
+
 const std::array<UniformBlockInfo, 3> ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineGradientDrawableUBO), idLineDrawableUBO},
@@ -39,6 +45,9 @@ const std::array<AttributeInfo, 7> ShaderSource<BuiltIn::LineGradientShader, gfx
 const std::array<TextureInfo, 1> ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>::textures = {
     TextureInfo{0, idLineImageTexture},
 };
+
+//
+// Line pattern
 
 const std::array<UniformBlockInfo, 5> ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
@@ -61,6 +70,9 @@ const std::array<AttributeInfo, 9> ShaderSource<BuiltIn::LinePatternShader, gfx:
 const std::array<TextureInfo, 1> ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Metal>::textures = {
     TextureInfo{0, idLineImageTexture},
 };
+
+//
+// Line SDF
 
 const std::array<UniformBlockInfo, 5> ShaderSource<BuiltIn::LineSDFShader, gfx::Backend::Type::Metal>::uniforms = {
     UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},

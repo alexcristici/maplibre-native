@@ -1090,9 +1090,7 @@ MLN_DRAWABLES_MTL_SOURCE = [
     "src/mbgl/shaders/mtl/hillshade_prepare.cpp",
     "src/mbgl/shaders/mtl/line.cpp",
     "src/mbgl/shaders/mtl/raster.cpp",
-    "src/mbgl/shaders/mtl/symbol_icon.cpp",
-    "src/mbgl/shaders/mtl/symbol_sdf.cpp",
-    "src/mbgl/shaders/mtl/symbol_text_and_icon.cpp",
+    "src/mbgl/shaders/mtl/symbol.cpp",
     "src/mbgl/style/layers/mtl/custom_layer_render_parameters.cpp",
 ]
 
@@ -1136,9 +1134,7 @@ MLN_DRAWABLES_MTL_HEADERS = [
     "include/mbgl/shaders/mtl/raster.hpp",
     "include/mbgl/shaders/mtl/shader_group.hpp",
     "include/mbgl/shaders/mtl/shader_program.hpp",
-    "include/mbgl/shaders/mtl/symbol_icon.hpp",
-    "include/mbgl/shaders/mtl/symbol_sdf.hpp",
-    "include/mbgl/shaders/mtl/symbol_text_and_icon.hpp",
+    "include/mbgl/shaders/mtl/symbol.hpp",
     "include/mbgl/style/layers/mtl/custom_layer_render_parameters.hpp",
     "include/mbgl/shaders/mtl/widevector.hpp",
 ]
