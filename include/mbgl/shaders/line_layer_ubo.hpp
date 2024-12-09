@@ -113,7 +113,7 @@ struct alignas(16) LineSDFTilePropsUBO {
 };
 static_assert(sizeof(LineSDFTilePropsUBO) == 16);
 
-/// Expressio properties that do not depend on the tile
+/// Expression properties that do not depend on the tile
 enum class LineExpressionMask : uint32_t {
     None = 0,
     Color = 1 << 0,

@@ -99,89 +99,83 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
         switch (static_cast<RenderFillLayer::FillVariant>(drawable.getType())) {
             case RenderFillLayer::FillVariant::Fill: {
-                const FillDrawableUBO drawableUBO = {/*.matrix=*/util::cast<float>(matrix)};
-                drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
-
-                const auto fillInterpolateUBO = FillInterpolateUBO{
+                const FillDrawableUBO drawableUBO = {
+                    /* .matrix = */ util::cast<float>(matrix),
+ 
                     /* .color_t = */ std::get<0>(binders->get<FillColor>()->interpolationFactor(zoom)),
                     /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
-                    0,
-                    0,
+                    /* .pad1 = */ 0,
+                    /* .pad2 = */ 0
                 };
-                drawableUniforms.createOrUpdate(idFillInterpolateUBO, &fillInterpolateUBO, context);
+                drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
                 break;
             }
             case RenderFillLayer::FillVariant::FillOutline: {
-                const FillOutlineDrawableUBO drawableUBO = {/*.matrix=*/util::cast<float>(matrix)};
-                drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
-
-                const auto fillOutlineInterpolateUBO = FillOutlineInterpolateUBO{
+                const FillOutlineDrawableUBO drawableUBO = {
+                    /* .matrix=*/util::cast<float>(matrix),
+  
                     /* .color_t = */ std::get<0>(binders->get<FillOutlineColor>()->interpolationFactor(zoom)),
                     /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
-                    0,
-                    0,
+                    /* .pad1 = */ 0,
+                    /* .pad2 = */ 0
                 };
-                drawableUniforms.createOrUpdate(idFillInterpolateUBO, &fillOutlineInterpolateUBO, context);
+                drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
                 break;
             }
             case RenderFillLayer::FillVariant::FillPattern: {
                 const FillPatternDrawableUBO drawableUBO = {
-                    /*.matrix=*/util::cast<float>(matrix),
-                    /*.pixel_coord_upper=*/{static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
-                    /*.pixel_coord_lower=*/{static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
-                    /*.texsize=*/{static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
-                    /*.tile_ratio = */ tileRatio,
-                    0,
+                    /* .matrix = */ util::cast<float>(matrix),
+                    /* .pixel_coord_upper = */ {static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
+                    /* .pixel_coord_lower = */ {static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
+                    /* .tile_ratio = */ tileRatio,
+
+                    /* .pattern_from_t = */ std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
+                    /* .pattern_to_t = */ std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
+                    /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom))
                 };
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
 
-                const auto fillPatternInterpolateUBO = FillPatternInterpolateUBO{
-                    /* .pattern_from_t = */ std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
-                    /* .pattern_to_t = */ std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
-                    /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
-                    0,
-                };
-                drawableUniforms.createOrUpdate(idFillInterpolateUBO, &fillPatternInterpolateUBO, context);
-
-                const auto fillPatternTilePropsUBO = FillPatternTilePropsUBO{
-                    /* pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
-                    /* pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
+                const FillPatternTilePropsUBO fillPatternTilePropsUBO = {
+                    /* .pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
+                    /* .pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
+                    /* .texsize = */ {static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
+                    /* .pad1 = */ 0,
+                    /* .pad2 = */ 0
                 };
                 drawableUniforms.createOrUpdate(idFillTilePropsUBO, &fillPatternTilePropsUBO, context);
                 break;
             }
             case RenderFillLayer::FillVariant::FillOutlinePattern: {
                 const FillOutlinePatternDrawableUBO drawableUBO = {
-                    /*.matrix=*/util::cast<float>(matrix),
-                    /*.pixel_coord_upper=*/{static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
-                    /*.pixel_coord_lower=*/{static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
-                    /*.texsize=*/{static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
-                    /*.tile_ratio = */ tileRatio,
-                    0};
-                drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
+                    /* .matrix = */ util::cast<float>(matrix),
+                    /* .pixel_coord_upper = */ {static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
+                    /* .pixel_coord_lower = */ {static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
+                    /* .tile_ratio = */ tileRatio,
 
-                const auto fillOutlinePatternInterpolateUBO = FillPatternInterpolateUBO{
                     /* .pattern_from_t = */ std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
                     /* .pattern_to_t = */ std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
-                    /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
-                    0,
+                    /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom))
                 };
-                drawableUniforms.createOrUpdate(idFillInterpolateUBO, &fillOutlinePatternInterpolateUBO, context);
+                drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
 
-                const auto fillOutlinePatternTilePropsUBO = FillOutlinePatternTilePropsUBO{
-                    /* pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
-                    /* pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
+                const FillOutlinePatternTilePropsUBO fillOutlinePatternTilePropsUBO = {
+                    /* .pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
+                    /* .pattern_to = */ patternPosB ? util::cast<float>(patternPosB->tlbr()) : std::array<float, 4>{0},
+                    /* .texsize = */ {static_cast<float>(textureSize.width), static_cast<float>(textureSize.height)},
+                    /* .pad1 = */ 0,
+                    /* .pad2 = */ 0
                 };
                 drawableUniforms.createOrUpdate(idFillTilePropsUBO, &fillOutlinePatternTilePropsUBO, context);
                 break;
             }
             case RenderFillLayer::FillVariant::FillOutlineTriangulated: {
                 const FillOutlineTriangulatedDrawableUBO drawableUBO = {
-                    /*.matrix=*/util::cast<float>(matrix),
-                    /*.ratio=*/1.0f / tileID.pixelsToTileUnits(1.0f, parameters.state.getZoom()),
-                    0,
-                    0,
-                    0};
+                    /* .matrix = */ util::cast<float>(matrix),
+                    /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, parameters.state.getZoom()),
+                    /* .pad1 = */ 0,
+                    /* .pad2 = */ 0,
+                    /* .pad3 = */ 0
+                };
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
                 break;
             }

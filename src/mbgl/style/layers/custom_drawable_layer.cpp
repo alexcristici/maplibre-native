@@ -216,25 +216,25 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::FillDrawableUBO fillDrawableUBO{/*matrix = */ util::cast<float>(matrix)};
-
-        const shaders::FillInterpolateUBO fillInterpolateUBO{
+        const shaders::FillDrawableUBO fillDrawableUBO = {
+            /* .matrix = */ util::cast<float>(matrix),
+            
             /* .color_t = */ 0.f,
             /* .opacity_t = */ 0.f,
-            0,
-            0,
+            /* .pad1 = */ 0,
+            /* .pad2 = */ 0
         };
-        const shaders::FillEvaluatedPropsUBO fillPropertiesUBO{
+
+        const shaders::FillEvaluatedPropsUBO fillPropertiesUBO = {
             /* .color = */ color,
             /* .outline_color = */ Color::white(),
             /* .opacity = */ opacity,
             /* .fade = */ 0.f,
             /* .from_scale = */ 0.f,
-            /* .to_scale = */ 0.f,
+            /* .to_scale = */ 0.f
         };
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idFillDrawableUBO, &fillDrawableUBO, parameters.context);
-        drawableUniforms.createOrUpdate(idFillInterpolateUBO, &fillInterpolateUBO, parameters.context);
         drawableUniforms.createOrUpdate(idFillEvaluatedPropsUBO, &fillPropertiesUBO, parameters.context);
     };
 
