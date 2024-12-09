@@ -16,7 +16,6 @@
 
 #if MLN_RENDER_BACKEND_METAL
 #include <mbgl/shaders/mtl/fill_extrusion.hpp>
-#include <mbgl/shaders/mtl/fill_extrusion_pattern.hpp>
 #endif
 
 namespace mbgl {

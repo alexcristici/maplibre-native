@@ -225,51 +225,6 @@ enum {
     globalUBOCountWithIndex,
 };
 
-struct alignas(16) FillExtrusionDrawableUBO {
-    /*  0 */ float4x4 matrix;
-    /* 64 */ float2 texsize;
-    /* 72 */ float2 pixel_coord_upper;
-    /* 80 */ float2 pixel_coord_lower;
-    /* 88 */ float height_factor;
-    /* 92 */ float tile_ratio;
-    /* 96 */
-};
-static_assert(sizeof(FillExtrusionDrawableUBO) == 6 * 16, "wrong size");
-
-struct alignas(16) FillExtrusionPropsUBO {
-    /*  0 */ float4 color;
-    /* 16 */ float4 light_color_pad;
-    /* 32 */ float4 light_position_base;
-    /* 48 */ float height;
-    /* 52 */ float light_intensity;
-    /* 56 */ float vertical_gradient;
-    /* 60 */ float opacity;
-    /* 64 */ float fade;
-    /* 68 */ float from_scale;
-    /* 72 */ float to_scale;
-    /* 76 */ float pad2;
-    /* 80 */
-};
-static_assert(sizeof(FillExtrusionPropsUBO) == 5 * 16, "wrong size");
-
-struct alignas(16) FillExtrusionTilePropsUBO {
-    /*  0 */ float4 pattern_from;
-    /* 16 */ float4 pattern_to;
-    /* 32 */
-};
-static_assert(sizeof(FillExtrusionTilePropsUBO) == 2 * 16, "wrong size");
-
-struct alignas(16) FillExtrusionInterpolateUBO {
-    /*  0 */ float base_t;
-    /*  4 */ float height_t;
-    /*  8 */ float color_t;
-    /* 12 */ float pattern_from_t;
-    /* 16 */ float pattern_to_t;
-    /* 20 */ float pad1, pad2, pad3;
-    /* 32 */
-};
-static_assert(sizeof(FillExtrusionInterpolateUBO) == 2 * 16, "wrong size");
-
 )";
 
 }
