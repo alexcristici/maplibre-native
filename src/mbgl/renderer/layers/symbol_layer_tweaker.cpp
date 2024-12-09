@@ -69,7 +69,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 
     const auto zoom = static_cast<float>(state.getZoom());
 
-    if (!evaluatedPropsBuffer || propertiesUpdated) {
+    if (!evaluatedPropsUniformBuffer || propertiesUpdated) {
         const SymbolEvaluatedPropsUBO propsUBO = {
             /* .text_fill_color = */ constOrDefault<TextColor>(evaluated),
             /* .text_halo_color = */ constOrDefault<TextHaloColor>(evaluated),
@@ -85,11 +85,11 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             /* .icon_halo_blur = */constOrDefault<IconHaloBlur>(evaluated),
             /* .pad */ 0
         };
-        context.emplaceOrUpdateUniformBuffer(evaluatedPropsBuffer, &propsUBO);
+        context.emplaceOrUpdateUniformBuffer(evaluatedPropsUniformBuffer, &propsUBO);
         propertiesUpdated = false;
     }
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
-    layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsBuffer);
+    layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
     int i = 0;
@@ -206,21 +206,21 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
     const size_t drawableUBOVectorSize = sizeof(SymbolDrawableUBO) * drawableUBOVector.size();
-    if (!drawableBuffer || drawableBuffer->getSize() < drawableUBOVectorSize) {
-        drawableBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+    if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
+        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
     } else {
-        drawableBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
+        drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
     }
 
     const size_t tilePropsUBOVectorSize = sizeof(SymbolTilePropsUBO) * tilePropsUBOVector.size();
-    if (!tilePropsBuffer || tilePropsBuffer->getSize() < tilePropsUBOVectorSize) {
-        tilePropsBuffer = context.createUniformBuffer(tilePropsUBOVector.data(), tilePropsUBOVectorSize, false, true);
+    if (!tilePropsUniformBuffer || tilePropsUniformBuffer->getSize() < tilePropsUBOVectorSize) {
+        tilePropsUniformBuffer = context.createUniformBuffer(tilePropsUBOVector.data(), tilePropsUBOVectorSize, false, true);
     } else {
-        tilePropsBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
+        tilePropsUniformBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
     }
 
-    layerUniforms.set(idSymbolDrawableUBO, drawableBuffer);
-    layerUniforms.set(idSymbolTilePropsUBO, tilePropsBuffer);
+    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer);
+    layerUniforms.set(idSymbolTilePropsUBO, tilePropsUniformBuffer);
 #endif
 }
 

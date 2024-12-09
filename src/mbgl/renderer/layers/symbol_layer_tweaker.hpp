@@ -21,11 +21,11 @@ public:
     void execute(LayerGroupBase&, const PaintParameters&) override;
 
 private:
-    gfx::UniformBufferPtr evaluatedPropsBuffer;
+    gfx::UniformBufferPtr evaluatedPropsUniformBuffer;
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-    gfx::UniformBufferPtr drawableBuffer;
-    gfx::UniformBufferPtr tilePropsBuffer;
+    gfx::UniformBufferPtr drawableUniformBuffer;
+    gfx::UniformBufferPtr tilePropsUniformBuffer;
 #endif
 };
 
