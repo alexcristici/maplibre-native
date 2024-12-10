@@ -26,7 +26,7 @@ enum {
 };
 
 enum {
-    idBackgroundDrawableUBO = globalUBOCount,
+    idBackgroundDrawableUBO = globalUBOCountWithIndex,
     backgroundDrawableUBOCount
 };
 
@@ -129,7 +129,7 @@ enum {
 };
 
 enum {
-    idBackgroundLayerUBO = getLayerStartValue(backgroundDrawableUBOCount),
+    idBackgroundPropsUBO = getLayerStartValue(backgroundDrawableUBOCount),
     backgroundUBOCount
 };
 

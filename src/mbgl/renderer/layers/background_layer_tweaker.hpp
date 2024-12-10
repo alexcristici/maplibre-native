@@ -26,6 +26,11 @@ public:
     ~BackgroundLayerTweaker() override = default;
 
     void execute(LayerGroupBase&, const PaintParameters&) override;
+
+private:
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    gfx::UniformBufferPtr drawableUniformBuffer;
+#endif
 };
 
 } // namespace mbgl
