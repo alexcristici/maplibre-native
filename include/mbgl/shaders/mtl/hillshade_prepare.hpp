@@ -8,6 +8,25 @@
 namespace mbgl {
 namespace shaders {
 
+#define HILLSHADE_PREPARE_SHADER_PRELUDE R"(
+
+struct alignas(16) HillshadePrepareDrawableUBO {
+    /*  0 */ float4x4 matrix;
+    /* 64 */ float4 unpack;
+    /* 80 */ float2 dimension;
+    /* 88 */ float zoom;
+    /* 92 */ float maxzoom;
+    /* 96 */
+};
+static_assert(sizeof(HillshadePrepareDrawableUBO) == 6 * 16, "wrong size");
+
+enum {
+    idHillshadePrepareDrawableUBO = globalUBOCount,
+    hillshadePrepareUBOCount
+};
+
+)"
+
 template <>
 struct ShaderSource<BuiltIn::HillshadePrepareShader, gfx::Backend::Type::Metal> {
     static constexpr auto name = "HillshadePrepareShader";
@@ -19,10 +38,10 @@ struct ShaderSource<BuiltIn::HillshadePrepareShader, gfx::Backend::Type::Metal> 
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto source = R"(
+    static constexpr auto source = HILLSHADE_PREPARE_SHADER_PRELUDE R"(
 struct VertexStage {
-    short2 pos [[attribute(2)]];
-    short2 texture_pos [[attribute(3)]];
+    short2 pos [[attribute(hillshadePrepareUBOCount + 0)]];
+    short2 texture_pos [[attribute(hillshadePrepareUBOCount + 1)]];
 };
 
 struct FragmentStage {
@@ -30,16 +49,8 @@ struct FragmentStage {
     float2 pos;
 };
 
-struct alignas(16) HillshadePrepareDrawableUBO {
-    float4x4 matrix;
-    float4 unpack;
-    float2 dimension;
-    float zoom;
-    float maxzoom;
-};
-
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
-                                device const HillshadePrepareDrawableUBO& drawable [[buffer(1)]]) {
+                                device const HillshadePrepareDrawableUBO& drawable [[buffer(idHillshadePrepareDrawableUBO)]]) {
 
     const float4 position = drawable.matrix * float4(float2(vertx.pos), 0, 1);
 
@@ -61,7 +72,7 @@ float getElevation(float2 coord, float bias, texture2d<float, access::sample> im
 }
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
-                            device const HillshadePrepareDrawableUBO& drawable [[buffer(1)]],
+                            device const HillshadePrepareDrawableUBO& drawable [[buffer(idHillshadePrepareDrawableUBO)]],
                             texture2d<float, access::sample> image [[texture(0)]],
                             sampler image_sampler [[sampler(0)]]) {
 #if defined(OVERDRAW_INSPECTOR)

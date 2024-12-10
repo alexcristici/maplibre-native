@@ -6,13 +6,14 @@ namespace mbgl {
 namespace shaders {
 
 struct alignas(16) HillshadePrepareDrawableUBO {
-    std::array<float, 4 * 4> matrix;
-    std::array<float, 4> unpack;
-    std::array<float, 2> dimension;
-    float zoom;
-    float maxzoom;
+    /*  0 */ std::array<float, 4 * 4> matrix;
+    /* 64 */ std::array<float, 4> unpack;
+    /* 80 */ std::array<float, 2> dimension;
+    /* 88 */ float zoom;
+    /* 92 */ float maxzoom;
+    /* 96 */
 };
-static_assert(sizeof(HillshadePrepareDrawableUBO) % 16 == 0);
+static_assert(sizeof(HillshadePrepareDrawableUBO) == 6 * 16);
 
 } // namespace shaders
 } // namespace mbgl
