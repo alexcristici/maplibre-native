@@ -20,8 +20,7 @@ enum {
 };
 
 enum {
-    idCircleDrawableUBO = globalUBOCount,
-    idCircleInterpolateUBO,
+    idCircleDrawableUBO = globalUBOCountWithIndex,
     circleDrawableUBOCount
 };
 

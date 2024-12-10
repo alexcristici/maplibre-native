@@ -144,8 +144,7 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
         };
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        drawable.setUBOIndex(i);
-        i++;
+        drawable.setUBOIndex(i++);
 #elif MLN_RENDER_BACKEND_OPENGL
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idFillExtrusionDrawableUBO, &drawableUBO, context);

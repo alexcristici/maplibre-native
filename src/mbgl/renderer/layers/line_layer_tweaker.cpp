@@ -349,8 +349,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         }
                 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        drawable.setUBOIndex(i);
-        i++;
+        drawable.setUBOIndex(i++);
 #endif
     });
                     

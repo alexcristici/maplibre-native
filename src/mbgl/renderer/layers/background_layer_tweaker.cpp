@@ -143,8 +143,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
         }
             
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        drawable.setUBOIndex(i);
-        i++;
+        drawable.setUBOIndex(i++);
 #endif
     });
             
