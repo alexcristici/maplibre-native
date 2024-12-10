@@ -58,8 +58,7 @@ enum {
 };
 
 enum {
-    idHeatmapDrawableUBO = globalUBOCount,
-    idHeatmapInterpolateUBO,
+    idHeatmapDrawableUBO = globalUBOCountWithIndex,
     heatmapDrawableUBOCount
 };
 
