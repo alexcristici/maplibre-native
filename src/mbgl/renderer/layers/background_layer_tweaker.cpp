@@ -113,7 +113,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
             const auto pixToTile = tileID.pixelsToTileUnits(1.0f, state.getIntegerZoom());
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-            drawableUBOVector[i].backgroundPatternDrawableUBO = BackgroundPatternDrawableUBO {
+            drawableUBOVector[i].backgroundPatternDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
             const BackgroundPatternDrawableUBO drawableUBO = {
 #endif
@@ -131,7 +131,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
         } else {
             
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-            drawableUBOVector[i].backgroundDrawableUBO = BackgroundDrawableUBO {
+            drawableUBOVector[i].backgroundDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
             const BackgroundDrawableUBO drawableUBO = {
 #endif

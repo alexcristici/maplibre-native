@@ -183,9 +183,9 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         };
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        tilePropsUBOVector[i] = SymbolTilePropsUBO {
+        tilePropsUBOVector[i] = {
 #elif MLN_RENDER_BACKEND_OPENGL
-        const auto tilePropsUBO = SymbolTilePropsUBO{
+        const SymbolTilePropsUBO tilePropsUBO = {
 #endif
             /* .is_text = */ isText,
             /* .is_halo = */ symbolData.isHalo,

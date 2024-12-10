@@ -113,7 +113,7 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
         }
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        drawableUBOVector[i] = FillExtrusionDrawableUBO {
+        drawableUBOVector[i] = {
 #elif MLN_RENDER_BACKEND_OPENGL
         const FillExtrusionDrawableUBO drawableUBO = {
 #endif
@@ -132,7 +132,7 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
         };
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        tilePropsUBOVector[i] = FillExtrusionTilePropsUBO {
+        tilePropsUBOVector[i] = {
 #elif MLN_RENDER_BACKEND_OPENGL
         const FillExtrusionTilePropsUBO tilePropsUBO = {
 #endif

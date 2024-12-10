@@ -102,7 +102,7 @@ void RasterLayerTweaker::execute([[maybe_unused]] LayerGroupBase& layerGroup,
         }
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        drawableUBOVector[i] = RasterDrawableUBO {
+        drawableUBOVector[i] = {
 #elif MLN_RENDER_BACKEND_OPENGL
         const RasterDrawableUBO drawableUBO = {
 #endif

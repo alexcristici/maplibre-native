@@ -63,7 +63,8 @@ enum {
 };
 
 enum {
-    idHillshadeDrawableUBO = globalUBOCount,
+    idHillshadeDrawableUBO = globalUBOCountWithIndex,
+    idHillshadeTilePropsUBO,
     hillshadeDrawableUBOCount
 };
 

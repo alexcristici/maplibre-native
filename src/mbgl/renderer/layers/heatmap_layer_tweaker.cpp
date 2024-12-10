@@ -71,7 +71,7 @@ void HeatmapLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamet
             tileID, parameters, {0.f, 0.f}, TranslateAnchorType::Viewport, nearClipped, inViewportPixelUnits, drawable);
         
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-        drawableUBOVector[i] = HeatmapDrawableUBO {
+        drawableUBOVector[i] = {
 #elif MLN_RENDER_BACKEND_OPENGL
         const HeatmapDrawableUBO drawableUBO = {
 #endif

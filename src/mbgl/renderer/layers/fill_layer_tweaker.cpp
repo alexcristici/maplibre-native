@@ -106,7 +106,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         switch (static_cast<RenderFillLayer::FillVariant>(drawable.getType())) {
             case RenderFillLayer::FillVariant::Fill: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].fillDrawableUBO = FillDrawableUBO {
+                drawableUBOVector[i].fillDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const FillDrawableUBO drawableUBO = {
 #endif
@@ -125,7 +125,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             }
             case RenderFillLayer::FillVariant::FillOutline: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].fillOutlineDrawableUBO = FillOutlineDrawableUBO {
+                drawableUBOVector[i].fillOutlineDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const FillOutlineDrawableUBO drawableUBO = {
 #endif
@@ -144,7 +144,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             }
             case RenderFillLayer::FillVariant::FillPattern: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].fillPatternDrawableUBO = FillPatternDrawableUBO {
+                drawableUBOVector[i].fillPatternDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const FillPatternDrawableUBO drawableUBO = {
 #endif
@@ -178,7 +178,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             }
             case RenderFillLayer::FillVariant::FillOutlinePattern: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].fillOutlinePatternDrawableUBO = FillOutlinePatternDrawableUBO {
+                drawableUBOVector[i].fillOutlinePatternDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const FillOutlinePatternDrawableUBO drawableUBO = {
 #endif
@@ -212,7 +212,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             }
             case RenderFillLayer::FillVariant::FillOutlineTriangulated: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].fillOutlineTriangulatedDrawableUBO = FillOutlineTriangulatedDrawableUBO {
+                drawableUBOVector[i].fillOutlineTriangulatedDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const FillOutlineTriangulatedDrawableUBO drawableUBO = {
 #endif

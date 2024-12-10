@@ -192,7 +192,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         switch (static_cast<LineType>(drawable.getType())) {
             case LineType::Simple: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].lineDrawableUBO = LineDrawableUBO {
+                drawableUBOVector[i].lineDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const LineDrawableUBO drawableUBO = {
 #endif
@@ -216,7 +216,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
             case LineType::Gradient: {
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].lineGradientDrawableUBO = LineGradientDrawableUBO {
+                drawableUBOVector[i].lineGradientDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const LineGradientDrawableUBO drawableUBO = {
 #endif
@@ -243,7 +243,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     textureSize = texture->getSize();
                 }
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                drawableUBOVector[i].linePatternDrawableUBO = LinePatternDrawableUBO {
+                drawableUBOVector[i].linePatternDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                 const LinePatternDrawableUBO drawableUBO = {
 #endif
@@ -301,7 +301,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     const float widthB = posB.width * crossfade.toScale;
                     
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
-                    drawableUBOVector[i].lineSDFDrawableUBO = LineSDFDrawableUBO {
+                    drawableUBOVector[i].lineSDFDrawableUBO = {
 #elif MLN_RENDER_BACKEND_OPENGL
                     const LineSDFDrawableUBO drawableUBO = {
 #endif
