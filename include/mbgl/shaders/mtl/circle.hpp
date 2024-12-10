@@ -27,7 +27,7 @@ struct alignas(16) CircleDrawableUBO {
     /* 108 */ float pad3;
     /* 112 */
 };
-static_assert(sizeof(CircleDrawableUBO) == 7 * 16);
+static_assert(sizeof(CircleDrawableUBO) == 7 * 16, "wrong size");
 
 /// Evaluated properties that do not depend on the tile
 struct alignas(16) CircleEvaluatedPropsUBO {
@@ -43,7 +43,7 @@ struct alignas(16) CircleEvaluatedPropsUBO {
     /* 60 */ float pad1;
     /* 64 */
 };
-static_assert(sizeof(CircleEvaluatedPropsUBO) == 4 * 16);
+static_assert(sizeof(CircleEvaluatedPropsUBO) == 4 * 16, "wrong size");
 
 enum {
     idCircleDrawableUBO = globalUBOCountWithIndex,

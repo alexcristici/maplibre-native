@@ -24,6 +24,10 @@ public:
 
 protected:
     gfx::UniformBufferPtr evaluatedPropsUniformBuffer = nullptr;
+    
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    gfx::UniformBufferPtr drawableUniformBuffer;
+#endif
 };
 
 } // namespace mbgl

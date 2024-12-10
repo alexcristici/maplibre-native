@@ -80,7 +80,7 @@ enum {
 };
 
 enum {
-    idRasterDrawableUBO = globalUBOCount,
+    idRasterDrawableUBO = globalUBOCountWithIndex,
     rasterDrawableUBOCount
 };
 

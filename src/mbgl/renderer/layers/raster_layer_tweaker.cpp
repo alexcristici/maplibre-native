@@ -18,6 +18,7 @@ using namespace shaders;
 
 void RasterLayerTweaker::execute([[maybe_unused]] LayerGroupBase& layerGroup,
                                  [[maybe_unused]] const PaintParameters& parameters) {
+    auto& context = parameters.context;
     const auto& evaluated = static_cast<const RasterLayerProperties&>(*evaluatedProperties).evaluated;
 
     const auto spinWeights = [](float spin) -> std::array<float, 4> {
@@ -65,6 +66,11 @@ void RasterLayerTweaker::execute([[maybe_unused]] LayerGroupBase& layerGroup,
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
     layerUniforms.set(idRasterEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    int i = 0;
+    std::vector<RasterDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
+#endif
+    
     visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
         if (!checkTweakDrawable(drawable)) {
             return;
@@ -95,10 +101,30 @@ void RasterLayerTweaker::execute([[maybe_unused]] LayerGroupBase& layerGroup,
                                    !parameters.state.isChanging());
         }
 
-        const RasterDrawableUBO drawableUBO{/*.matrix = */ util::cast<float>(matrix)};
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+        drawableUBOVector[i] = RasterDrawableUBO {
+#elif MLN_RENDER_BACKEND_OPENGL
+        const RasterDrawableUBO drawableUBO = {
+#endif
+            /*.matrix = */ util::cast<float>(matrix)
+        };
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+        drawable.setUBOIndex(i++);
+#elif MLN_RENDER_BACKEND_OPENGL
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idRasterDrawableUBO, &drawableUBO, parameters.context);
+#endif
     });
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+    const size_t drawableUBOVectorSize = sizeof(RasterDrawableUBO) * drawableUBOVector.size();
+    if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
+        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+    } else {
+        drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
+    }
+
+    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer);
+#endif
 }
 
 } // namespace mbgl
