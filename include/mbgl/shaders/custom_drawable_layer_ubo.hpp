@@ -21,7 +21,9 @@ struct alignas(16) CustomSymbolIconParametersUBO {
     /* 24 */ uint32_t pitch_with_map;
     /* 28 */ float camera_to_center_distance;
     /* 32 */ float aspect_ratio;
-    /* 36 */ float pad0, pad1, pad2;
+    /* 36 */ float pad1;
+    /* 40 */ float pad2;
+    /* 44 */ float pad3;
     /* 48 */
 };
 static_assert(sizeof(CustomSymbolIconParametersUBO) == 3 * 16);

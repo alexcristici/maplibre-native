@@ -7,6 +7,39 @@
 namespace mbgl {
 namespace shaders {
 
+#define CUSTOM_SYMBOL_ICON_SHADER_PRELUDE R"(
+
+/// Custom Symbol Icon matrix
+struct alignas(16) CustomSymbolIconDrawableUBO {
+    /*   0 */ float4x4 matrix;
+    /*  64 */
+};
+static_assert(sizeof(CustomSymbolIconDrawableUBO) == 4 * 16, "wrong size");
+
+/// Custom Symbol Icon Parameters
+struct alignas(16) CustomSymbolIconParametersUBO {
+    /*  0 */ float2 extrude_scale;
+    /*  8 */ float2 anchor;
+    /* 16 */ float angle_degrees;
+    /* 20 */ uint32_t scale_with_map;
+    /* 24 */ uint32_t pitch_with_map;
+    /* 28 */ float camera_to_center_distance;
+    /* 32 */ float aspect_ratio;
+    /* 36 */ float pad1;
+    /* 40 */ float pad2;
+    /* 44 */ float pad3;
+    /* 48 */
+};
+static_assert(sizeof(CustomSymbolIconParametersUBO) == 3 * 16, "wrong size");
+
+enum {
+    idCustomSymbolDrawableUBO = globalUBOCount,
+    idCustomSymbolParametersUBO,
+    customSymbolUBOCount
+};
+
+)"
+
 template <>
 struct ShaderSource<BuiltIn::CustomSymbolIconShader, gfx::Backend::Type::Metal> {
     static constexpr auto name = "CustomSymbolIconShader";
@@ -18,25 +51,10 @@ struct ShaderSource<BuiltIn::CustomSymbolIconShader, gfx::Backend::Type::Metal> 
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto source = R"(
-struct alignas(16) CustomSymbolIconDrawableUBO {
-    float4x4 matrix;
-};
-
-struct alignas(16) CustomSymbolIconParametersUBO {
-    float2 extrude_scale;
-    float2 anchor;
-    float angle_degrees;
-    int scale_with_map;
-    int pitch_with_map;
-    float camera_to_center_distance;
-    float aspect_ratio;
-    float pad0, pad1, pad3;
-};
-
+    static constexpr auto source = CUSTOM_SYMBOL_ICON_SHADER_PRELUDE R"(
 struct VertexStage {
-    float2 a_pos [[attribute(3)]];
-    float2 a_tex [[attribute(4)]];
+    float2 a_pos [[attribute(customSymbolUBOCount + 0)]];
+    float2 a_tex [[attribute(customSymbolUBOCount + 1)]];
 };
 
 struct FragmentStage {
@@ -58,8 +76,8 @@ float2 ellipseRotateVec2(float2 v, float angle, float radiusRatio /* A/B */) {
 }
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
-                                device const CustomSymbolIconDrawableUBO& drawable [[buffer(1)]],
-                                device const CustomSymbolIconParametersUBO& parameters [[buffer(2)]]) {
+                                device const CustomSymbolIconDrawableUBO& drawable [[buffer(idCustomSymbolDrawableUBO)]],
+                                device const CustomSymbolIconParametersUBO& parameters [[buffer(idCustomSymbolParametersUBO)]]) {
 
     const float2 extrude = glMod(float2(vertx.a_pos), 2.0) * 2.0 - 1.0;
     const float2 anchor = (parameters.anchor - float2(0.5, 0.5)) * 2.0;

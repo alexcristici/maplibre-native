@@ -263,7 +263,9 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::CustomSymbolIconDrawableUBO drawableUBO{/*matrix = */ util::cast<float>(matrix)};
+        const shaders::CustomSymbolIconDrawableUBO drawableUBO = {
+            /* .matrix = */ util::cast<float>(matrix)
+        };
 
         const auto pixelsToTileUnits = tileID.pixelsToTileUnits(
             1.0f, options.scaleWithMap ? tileID.canonical.z : parameters.state.getZoom());
@@ -274,17 +276,18 @@ public:
                                                        : std::array<float, 2>{parameters.pixelsToGLUnits[0] * factor,
                                                                               parameters.pixelsToGLUnits[1] * factor};
 
-        const shaders::CustomSymbolIconParametersUBO parametersUBO{
-            /*extrude_scale*/ {extrudeScale[0] * options.size.width, extrudeScale[1] * options.size.height},
-            /*anchor*/ options.anchor,
-            /*angle_degrees*/ options.angleDegrees,
-            /*scale_with_map*/ options.scaleWithMap,
-            /*pitch_with_map*/ options.pitchWithMap,
-            /*camera_to_center_distance*/ parameters.state.getCameraToCenterDistance(),
-            /*aspect_ratio*/ parameters.pixelsToGLUnits[0] / parameters.pixelsToGLUnits[1],
-            0,
-            0,
-            0};
+        const shaders::CustomSymbolIconParametersUBO parametersUBO = {
+            /* .extrude_scale = */ {extrudeScale[0] * options.size.width, extrudeScale[1] * options.size.height},
+            /* .anchor = */ options.anchor,
+            /* .angle_degrees = */ options.angleDegrees,
+            /* .scale_with_map = */ options.scaleWithMap,
+            /* .pitch_with_map = */ options.pitchWithMap,
+            /* .camera_to_center_distance = */ parameters.state.getCameraToCenterDistance(),
+            /* .aspect_ratio = */ parameters.pixelsToGLUnits[0] / parameters.pixelsToGLUnits[1],
+            /* .pad1 = */ 0,
+            /* .pad2 = */ 0,
+            /* .pad3 = */ 0
+        };
 
         // set UBOs
         auto& drawableUniforms = drawable.mutableUniformBuffers();
