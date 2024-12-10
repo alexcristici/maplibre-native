@@ -162,28 +162,32 @@ public:
         matrix::diffsplit(pMatrix, pMatrixDiff, projMatrix);
 
         const auto renderableSize = parameters.backend.getDefaultRenderable().getSize();
-        shaders::WideVectorUniformsUBO uniform{
-            /*mvpMatrix     */ mvpMatrix,
-            /*mvpMatrixDiff */ mvpMatrixDiff,
-            /*mvMatrix      */ mvMatrix,
-            /*mvMatrixDiff  */ mvMatrixDiff,
-            /*pMatrix       */ pMatrix,
-            /*pMatrixDiff   */ pMatrixDiff,
-            /*frameSize     */ {(float)renderableSize.width, (float)renderableSize.height}};
+        shaders::WideVectorUniformsUBO uniform = {
+            /* .mvpMatrix = */ mvpMatrix,
+            /* .mvpMatrixDiff = */ mvpMatrixDiff,
+            /* .mvMatrix = */ mvMatrix,
+            /* .mvMatrixDiff = */ mvMatrixDiff,
+            /* .pMatrix = */ pMatrix,
+            /* .pMatrixDiff = */ pMatrixDiff,
+            /* .frameSize = */ {(float)renderableSize.width, (float)renderableSize.height},
+            /* .pad1 = */ 0,
+            /* .pad2 = */ 0
+        };
 
-        shaders::WideVectorUniformWideVecUBO wideVec{
-            /*color         */ options.color,
-            /*w2            */ options.width,
-            /*offset        */ options.offset,
-            /*edge          */ 0.0f, // TODO: MLN does not provide a value. Analyze impact.
-            /*texRepeat     */ 0.0f, // N/A
-            /*texOffset     */ {},   // N/A
-            /*miterLimit    */ options.geometry.miterLimit,
-            /*join          */ static_cast<int32_t>(options.geometry.joinType),
-            /*cap           */ static_cast<int32_t>(options.geometry.beginCap), // TODO: MLN option for endCap to be
-                                                                                // implemented in the shader!
-            /*hasExp        */ false,                                           // N/A
-            /*interClipLimit*/ 0.0f                                             // N/A
+        shaders::WideVectorUniformWideVecUBO wideVec = {
+            /* .color = */ options.color,
+            /* .w2 = */ options.width,
+            /* .offset = */ options.offset,
+            /* .edge = */ 0.0f,         // TODO: MLN does not provide a value. Analyze impact.
+            /* .texRepeat = */ 0.0f,    // N/A
+            /* .texOffset = */ {},      // N/A
+            /* .miterLimit = */ options.geometry.miterLimit,
+            /* .join = */ static_cast<int32_t>(options.geometry.joinType),
+            /* .cap = */ static_cast<int32_t>(options.geometry.beginCap), // TODO: MLN option for endCap to be
+                                                                          // implemented in the shader!
+            /* .hasExp = */ false,                                        // N/A
+            /* .interClipLimit = */ 0.0f,                                 // N/A
+            /* .pad1 = */ 0
         };
 
         auto& drawableUniforms = drawable.mutableUniformBuffers();
