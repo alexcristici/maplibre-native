@@ -58,10 +58,14 @@ struct alignas(16) BackgroundPatternPropsUBO {
 };
 static_assert(sizeof(BackgroundPatternPropsUBO) == 4 * 16);
 
+#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+
 union BackgroundDrawableUnionUBO {
     BackgroundDrawableUBO backgroundDrawableUBO;
     BackgroundPatternDrawableUBO backgroundPatternDrawableUBO;
 };
+
+#endif
 
 } // namespace shaders
 } // namespace mbgl

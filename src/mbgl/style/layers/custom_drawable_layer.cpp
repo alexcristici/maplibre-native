@@ -410,6 +410,7 @@ bool CustomDrawableLayerHost::Interface::addPolyline(const GeometryCoordinates& 
 }
 
 bool CustomDrawableLayerHost::Interface::addFill(const GeometryCollection& geometry) {
+    return true;
     // build fill
     if (!updateBuilder(BuilderType::Fill, "custom-fill", fillShaderDefault())) return false;
 
