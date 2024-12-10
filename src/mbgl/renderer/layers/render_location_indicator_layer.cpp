@@ -46,7 +46,7 @@
 
 #include <mbgl/gfx/vertex_attribute.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
-#include <mbgl/shaders/common_ubo.hpp>
+#include <mbgl/shaders/location_indicator_ubo.hpp>
 #include <mbgl/gfx/drawable.hpp>
 #include <mbgl/gfx/drawable_builder.hpp>
 #include <mbgl/gfx/drawable_impl.hpp>

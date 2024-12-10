@@ -30,11 +30,6 @@ enum {
 };
 
 enum {
-    idCommonUBO = globalUBOCount,
-    commonDrawableUBOCount
-};
-
-enum {
     idCustomSymbolDrawableUBO = globalUBOCount,
     idCustomSymbolParametersUBO,
     customSymbolDrawableUBOCount
@@ -84,6 +79,11 @@ enum {
 };
 
 enum {
+    idLocationIndicatorDrawableUBO = globalUBOCount,
+    locationIndicatorDrawableUBOCount
+};
+
+enum {
     idRasterDrawableUBO = globalUBOCountWithIndex,
     rasterDrawableUBOCount
 };
@@ -104,7 +104,6 @@ static constexpr auto layerUBOStartId = std::max({static_cast<size_t>(background
                                                   static_cast<size_t>(circleDrawableUBOCount),
                                                   static_cast<size_t>(clippingMaskDrawableUBOCount),
                                                   static_cast<size_t>(collisionDrawableUBOCount),
-                                                  static_cast<size_t>(commonDrawableUBOCount),
                                                   static_cast<size_t>(customSymbolDrawableUBOCount),
                                                   static_cast<size_t>(debugDrawableUBOCount),
                                                   static_cast<size_t>(fillDrawableUBOCount),
@@ -114,6 +113,7 @@ static constexpr auto layerUBOStartId = std::max({static_cast<size_t>(background
                                                   static_cast<size_t>(hillshadeDrawableUBOCount),
                                                   static_cast<size_t>(hillshadePrepareDrawableUBOCount),
                                                   static_cast<size_t>(lineDrawableUBOCount),
+                                                  static_cast<size_t>(locationIndicatorDrawableUBOCount),
                                                   static_cast<size_t>(rasterDrawableUBOCount),
                                                   static_cast<size_t>(symbolDrawableUBOCount),
                                                   static_cast<size_t>(wideVectorDrawableUBOCount)});
@@ -144,10 +144,6 @@ enum {
 
 enum {
     collisionUBOCount = getLayerStartValue(collisionDrawableUBOCount)
-};
-
-enum {
-    commonUBOCount = getLayerStartValue(commonDrawableUBOCount)
 };
 
 enum {
@@ -194,6 +190,10 @@ enum {
 };
 
 enum {
+    locationIndicatorUBOCount = getLayerStartValue(locationIndicatorDrawableUBOCount)
+};
+
+enum {
     idRasterEvaluatedPropsUBO = getLayerStartValue(rasterDrawableUBOCount),
     rasterUBOCount
 };
@@ -213,7 +213,6 @@ static constexpr auto maxUBOCountPerShader = std::max({static_cast<size_t>(backg
                                                        static_cast<size_t>(circleUBOCount),
                                                        static_cast<size_t>(clippingMaskUBOCount),
                                                        static_cast<size_t>(collisionUBOCount),
-                                                       static_cast<size_t>(commonUBOCount),
                                                        static_cast<size_t>(customSymbolUBOCount),
                                                        static_cast<size_t>(debugUBOCount),
                                                        static_cast<size_t>(fillUBOCount),
@@ -223,6 +222,7 @@ static constexpr auto maxUBOCountPerShader = std::max({static_cast<size_t>(backg
                                                        static_cast<size_t>(hillshadeUBOCount),
                                                        static_cast<size_t>(hillshadePrepareUBOCount),
                                                        static_cast<size_t>(lineUBOCount),
+                                                       static_cast<size_t>(locationIndicatorUBOCount),
                                                        static_cast<size_t>(rasterUBOCount),
                                                        static_cast<size_t>(symbolUBOCount),
                                                        static_cast<size_t>(wideVectorUBOCount)});
