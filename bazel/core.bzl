@@ -1088,6 +1088,7 @@ MLN_DRAWABLES_MTL_SOURCE = [
     "src/mbgl/shaders/mtl/line.cpp",
     "src/mbgl/shaders/mtl/raster.cpp",
     "src/mbgl/shaders/mtl/symbol.cpp",
+    "src/mbgl/shaders/mtl/widevector.cpp",
     "src/mbgl/style/layers/mtl/custom_layer_render_parameters.cpp",
 ]
 

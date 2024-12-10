@@ -9,7 +9,9 @@ namespace shaders {
 struct alignas(16) ClipUBO {
     /*  0 */ std::array<float, 4 * 4> matrix;
     /* 64 */ std::uint32_t stencil_ref;
-    /* 68 */ std::uint32_t pad1, pad2, pad3;
+    /* 68 */ float pad1;
+    /* 72 */ float pad2;
+    /* 76 */ float pad3;
     /* 80 */
 };
 static_assert(sizeof(ClipUBO) == 5 * 16);
@@ -32,10 +34,12 @@ using namespace metal;
 struct alignas(16) ClipUBO {
     /*  0 */ float4x4 matrix;
     /* 64 */ uint32_t stencil_ref;
-    /* 68 */ uint32_t pad1, pad2, pad3;
+    /* 68 */ float pad1;
+    /* 72 */ float pad2;
+    /* 76 */ float pad3;
     /* 80 */
 };
-static_assert(sizeof(ClipUBO) == 5 * 16, "unexpected padding");
+static_assert(sizeof(ClipUBO) == 5 * 16, "wrong size");
 
 struct VertexStage {
     short2 position [[attribute(2)]];

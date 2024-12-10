@@ -1267,6 +1267,7 @@ if(MLN_WITH_METAL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/mtl/line.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/mtl/raster.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/mtl/symbol.cpp
+            ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/mtl/widevector.cpp
     )
 
     find_library(METAL_FRAMEWORK Metal)
