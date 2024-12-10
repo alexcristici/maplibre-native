@@ -25,7 +25,7 @@ enum {
 };
 
 enum {
-    idCollisionUBO = globalUBOCount,
+    idCollisionDrawableUBO = globalUBOCount,
     collisionDrawableUBOCount
 };
 

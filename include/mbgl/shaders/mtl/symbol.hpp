@@ -35,7 +35,7 @@ struct alignas(16) SymbolDrawableUBO {
     /* 252 */ float halo_blur_t;
     /* 256 */
 };
-static_assert(sizeof(SymbolDrawableUBO) == 16 * 16);
+static_assert(sizeof(SymbolDrawableUBO) == 16 * 16, "wrong size");
 
 struct alignas(16) SymbolTilePropsUBO {
     /*  0 */ /*bool*/ int is_text;
@@ -44,7 +44,7 @@ struct alignas(16) SymbolTilePropsUBO {
     /* 12 */ float padding;
     /* 16 */
 };
-static_assert(sizeof(SymbolTilePropsUBO) == 16);
+static_assert(sizeof(SymbolTilePropsUBO) == 16, "wrong size");
 
 /// Evaluated properties that do not depend on the tile
 struct alignas(16) SymbolEvaluatedPropsUBO {
@@ -62,7 +62,7 @@ struct alignas(16) SymbolEvaluatedPropsUBO {
     /* 92 */ float pad2;
     /* 96 */
 };
-static_assert(sizeof(SymbolEvaluatedPropsUBO) == 6 * 16);
+static_assert(sizeof(SymbolEvaluatedPropsUBO) == 6 * 16, "wrong size");
 
 enum {
     idSymbolDrawableUBO = globalUBOCountWithIndex,

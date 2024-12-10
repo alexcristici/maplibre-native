@@ -13,8 +13,7 @@
 #include <mbgl/shaders/mtl/background.hpp>
 #include <mbgl/shaders/mtl/circle.hpp>
 #include <mbgl/shaders/mtl/clipping_mask.hpp>
-#include <mbgl/shaders/mtl/collision_box.hpp>
-#include <mbgl/shaders/mtl/collision_circle.hpp>
+#include <mbgl/shaders/mtl/collision.hpp>
 #include <mbgl/shaders/mtl/debug.hpp>
 #include <mbgl/shaders/mtl/fill.hpp>
 #include <mbgl/shaders/mtl/fill_extrusion.hpp>
