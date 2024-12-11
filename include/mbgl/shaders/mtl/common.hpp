@@ -220,9 +220,8 @@ static_assert(sizeof(GlobalPaintParamsUBO) == 3 * 16, "wrong size");
 
 enum {
     idGlobalPaintParamsUBO,
+    idGlobalUBOIndex,
     globalUBOCount,
-    idGlobalUBOIndex = globalUBOCount,
-    globalUBOCountWithIndex,
 };
 
 )";

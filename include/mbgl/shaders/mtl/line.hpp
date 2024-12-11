@@ -163,7 +163,7 @@ union LineTilePropsUnionUBO {
 };
 
 enum {
-    idLineDrawableUBO = globalUBOCountWithIndex,
+    idLineDrawableUBO = globalUBOCount,
     idLineTilePropsUBO,
     idLineEvaluatedPropsUBO,
     idLineExpressionUBO,

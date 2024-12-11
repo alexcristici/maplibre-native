@@ -319,7 +319,6 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                 };
                 drawableUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
 #endif
-                drawable.setUBOIndex(0);
             };
 
         private:

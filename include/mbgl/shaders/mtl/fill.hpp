@@ -132,7 +132,7 @@ union FillTilePropsUnionUBO {
 };
 
 enum {
-    idFillDrawableUBO = globalUBOCountWithIndex,
+    idFillDrawableUBO = globalUBOCount,
     idFillTilePropsUBO,
     idFillEvaluatedPropsUBO,
     fillUBOCount

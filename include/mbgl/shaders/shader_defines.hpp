@@ -10,12 +10,12 @@ namespace shaders {
 // drawable UBOs
 
 enum {
-    idBackgroundDrawableUBO = globalUBOCountWithIndex,
+    idBackgroundDrawableUBO = globalUBOCount,
     backgroundDrawableUBOCount
 };
 
 enum {
-    idCircleDrawableUBO = globalUBOCountWithIndex,
+    idCircleDrawableUBO = globalUBOCount,
     circleDrawableUBOCount
 };
 
@@ -41,19 +41,19 @@ enum {
 };
 
 enum {
-    idFillDrawableUBO = globalUBOCountWithIndex,
+    idFillDrawableUBO = globalUBOCount,
     idFillTilePropsUBO,
     fillDrawableUBOCount
 };
 
 enum {
-    idFillExtrusionDrawableUBO = globalUBOCountWithIndex,
+    idFillExtrusionDrawableUBO = globalUBOCount,
     idFillExtrusionTilePropsUBO,
     fillExtrusionDrawableUBOCount
 };
 
 enum {
-    idHeatmapDrawableUBO = globalUBOCountWithIndex,
+    idHeatmapDrawableUBO = globalUBOCount,
     heatmapDrawableUBOCount
 };
 
@@ -62,7 +62,7 @@ enum {
 };
 
 enum {
-    idHillshadeDrawableUBO = globalUBOCountWithIndex,
+    idHillshadeDrawableUBO = globalUBOCount,
     idHillshadeTilePropsUBO,
     hillshadeDrawableUBOCount
 };
@@ -73,7 +73,7 @@ enum {
 };
 
 enum {
-    idLineDrawableUBO = globalUBOCountWithIndex,
+    idLineDrawableUBO = globalUBOCount,
     idLineTilePropsUBO,
     lineDrawableUBOCount
 };
@@ -84,12 +84,12 @@ enum {
 };
 
 enum {
-    idRasterDrawableUBO = globalUBOCountWithIndex,
+    idRasterDrawableUBO = globalUBOCount,
     rasterDrawableUBOCount
 };
 
 enum {
-    idSymbolDrawableUBO = globalUBOCountWithIndex,
+    idSymbolDrawableUBO = globalUBOCount,
     idSymbolTilePropsUBO,
     symbolDrawableUBOCount
 };

@@ -252,7 +252,7 @@ public:
     size_t getType() const { return type; }
 
     void setUBOIndex(uint32_t uboIndex_) { uboIndex = uboIndex_; }
-    int32_t getUBOIndex() const { return uboIndex; }
+    uint32_t getUBOIndex() const { return uboIndex; }
 
     /// Associate the drawable with a layer tweaker.  This is used to manage the lifetime of the tweaker.
     void setLayerTweaker(LayerTweakerPtr tweaker) { layerTweaker = std::move(tweaker); }
@@ -308,7 +308,7 @@ protected:
 
     std::size_t type = 0;
     std::optional<mbgl::Point<double>> origin;
-    int32_t uboIndex = -1;
+    uint32_t uboIndex = 0;
 };
 
 using DrawablePtr = std::shared_ptr<Drawable>;

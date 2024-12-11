@@ -66,7 +66,7 @@ union BackgroundDrawableUnionUBO {
 };
 
 enum {
-    idBackgroundDrawableUBO = globalUBOCountWithIndex,
+    idBackgroundDrawableUBO = globalUBOCount,
     idBackgroundPropsUBO,
     backgroundUBOCount
 };
