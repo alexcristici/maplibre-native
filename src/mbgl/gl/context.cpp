@@ -547,7 +547,7 @@ bool Context::emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr& buffer,
         buffer->update(data, size);
         return false;
     } else {
-        buffer = createUniformBuffer(data, size, persistent, false);
+        buffer = createUniformBuffer(data, size, persistent);
         return true;
     }
 }
@@ -626,7 +626,7 @@ gfx::UniqueDrawableBuilder Context::createDrawableBuilder(std::string name) {
     return std::make_unique<gl::DrawableGLBuilder>(std::move(name));
 }
 
-gfx::UniformBufferPtr Context::createUniformBuffer(const void* data, std::size_t size, bool /*persistent*/, bool /*ssbo*/) {
+gfx::UniformBufferPtr Context::createUniformBuffer(const void* data, std::size_t size, bool /*persistent*/) {
     MLN_TRACE_FUNC();
 
     return std::make_shared<gl::UniformBufferGL>(data, size, *uboAllocator);

@@ -127,8 +127,7 @@ public:
     /// @param persistent Performance hint, optimize for few or many uses
     virtual UniformBufferPtr createUniformBuffer(const void* data,
                                                  std::size_t size,
-                                                 bool persistent = false,
-                                                 bool ssbo = false) = 0;
+                                                 bool persistent = false) = 0;
 
     /// Get the generic shader with the specified name
     virtual gfx::ShaderProgramBasePtr getGenericShader(gfx::ShaderRegistry&, const std::string& name) = 0;
