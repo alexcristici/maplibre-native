@@ -31,7 +31,7 @@ void LocationIndicatorLayerTweaker::execute(LayerGroupBase& layerGroup, const Pa
                     /* .matrix = */ util::cast<float>(projectionCircle),
                     /* .color = */ props.evaluated.get<AccuracyRadiusColor>()
                 };
-                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context);
+                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context, true, true);
                 break;
             }
 
@@ -40,7 +40,7 @@ void LocationIndicatorLayerTweaker::execute(LayerGroupBase& layerGroup, const Pa
                     /* .matrix = */ util::cast<float>(projectionCircle),
                     /* .color = */ props.evaluated.get<AccuracyRadiusBorderColor>()
                 };
-                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context);
+                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context, true, true);
                 break;
             }
 
@@ -53,7 +53,7 @@ void LocationIndicatorLayerTweaker::execute(LayerGroupBase& layerGroup, const Pa
                     /* .matrix = */ util::cast<float>(projectionPuck),
                     /* .color = */ Color::black()
                 };
-                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context);
+                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context, true, true);
                 break;
             }
                 

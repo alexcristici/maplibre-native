@@ -69,8 +69,8 @@ void CollisionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParam
         };
 
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idCollisionDrawableUBO, &drawableUBO, context);
-        drawableUniforms.createOrUpdate(idCollisionTilePropsUBO, &tilePropsUBO, context);
+        drawableUniforms.createOrUpdate(idCollisionDrawableUBO, &drawableUBO, context, true, false);
+        drawableUniforms.createOrUpdate(idCollisionTilePropsUBO, &tilePropsUBO, context, true, true);
     });
 }
 

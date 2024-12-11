@@ -216,7 +216,7 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         auto updatedCount = tileLayerGroup->visitDrawables(renderPass, tileID, [&](gfx::Drawable& drawable) {
             // update existing drawable
             auto& drawableUniforms = drawable.mutableUniformBuffers();
-            drawableUniforms.createOrUpdate(idDebugUBO, &debugUBO, context);
+            drawableUniforms.createOrUpdate(idDebugUBO, &debugUBO, context, true, true);
         });
         return updatedCount;
     };
@@ -245,7 +245,7 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         for (auto& drawable : debugBuilder->clearDrawables()) {
             drawable->setTileID(tileID);
             auto& drawableUniforms = drawable->mutableUniformBuffers();
-            drawableUniforms.createOrUpdate(idDebugUBO, &debugUBO, context);
+            drawableUniforms.createOrUpdate(idDebugUBO, &debugUBO, context, true, true);
 
             tileLayerGroup->addDrawable(renderPass, tileID, std::move(drawable));
         }
@@ -300,10 +300,10 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                     /* .pad1 = */ 0
                 };
                 auto& drawableUniforms = drawable.mutableUniformBuffers();
-                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
+                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context, true, false);
 
 #if !MLN_RENDER_BACKEND_VULKAN
-                drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
+                drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context, true, true);
 
                 // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
                 assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
@@ -317,7 +317,7 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                     /* .width = */ nullptr,
                     /* .floorWidth = */ nullptr,
                 };
-                drawableUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
+                drawableUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context, true, true);
 #endif
             };
 

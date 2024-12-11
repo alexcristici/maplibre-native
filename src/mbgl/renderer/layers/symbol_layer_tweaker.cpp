@@ -88,7 +88,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         propertiesUpdated = false;
     }
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
-    layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
+    layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsUniformBuffer, false, true);
 
 #if MLN_UBO_CONSOLIDATION
     int i = 0;
@@ -197,8 +197,8 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         drawable.setUBOIndex(i++);
 #else
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idSymbolDrawableUBO, &drawableUBO, context);
-        drawableUniforms.createOrUpdate(idSymbolTilePropsUBO, &tilePropsUBO, context);
+        drawableUniforms.createOrUpdate(idSymbolDrawableUBO, &drawableUBO, context, true, false);
+        drawableUniforms.createOrUpdate(idSymbolTilePropsUBO, &tilePropsUBO, context, false, true);
 #endif
     });
 
@@ -217,8 +217,8 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         tilePropsUniformBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
     }
 
-    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer);
-    layerUniforms.set(idSymbolTilePropsUBO, tilePropsUniformBuffer);
+    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer, true, false);
+    layerUniforms.set(idSymbolTilePropsUBO, tilePropsUniformBuffer, false, true);
 #endif
 }
 

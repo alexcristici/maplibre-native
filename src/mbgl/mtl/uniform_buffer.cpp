@@ -1,5 +1,5 @@
 #include <mbgl/mtl/uniform_buffer.hpp>
-
+#include <mbgl/mtl/render_pass.hpp>
 #include <mbgl/mtl/context.hpp>
 #include <mbgl/util/logging.hpp>
 
@@ -36,6 +36,21 @@ void UniformBuffer::update(const void* data, std::size_t size_) {
     buffer.getContext().renderingStats().numUniformUpdates++;
     buffer.getContext().renderingStats().uniformUpdateBytes += size_;
     buffer.update(data, size_, /*offset=*/0);
+}
+
+void UniformBufferArray::bind(RenderPass& renderPass) const noexcept {
+    for (size_t id = 0; id < allocatedSize(); id++) {
+        const auto& uniformBuffer = get(id);
+        if (!uniformBuffer) continue;
+        const auto& buffer = static_cast<UniformBuffer&>(*uniformBuffer.get());
+        const auto& resource = buffer.getBufferResource();
+        if (buffer.getBindVertex()) {
+            renderPass.bindVertex(resource, 0, id);
+        }
+        if (buffer.getBindFragment()) {
+            renderPass.bindFragment(resource, 0, id);
+        }
+    }
 }
 
 } // namespace mtl

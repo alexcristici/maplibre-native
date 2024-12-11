@@ -148,12 +148,11 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         propertiesUpdated = false;
     }
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
-
-    layerUniforms.set(idLineEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
+    layerUniforms.set(idLineEvaluatedPropsUBO, evaluatedPropsUniformBuffer, true, true);
 
 #if MLN_RENDER_BACKEND_METAL
     // GPU Expressions
-    layerUniforms.set(idLineExpressionUBO, getExpressionBuffer());
+    layerUniforms.set(idLineExpressionUBO, getExpressionBuffer(), true, true);
 #endif // MLN_RENDER_BACKEND_METAL
 
 #if MLN_UBO_CONSOLIDATION
@@ -209,7 +208,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 };
                     
 #if !MLN_UBO_CONSOLIDATION
-                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
+                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context, true, false);
 #endif
                 
             } break;
@@ -233,7 +232,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 };
                     
 #if !MLN_UBO_CONSOLIDATION
-                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
+                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context, true, false);
 #endif
             } break;
 
@@ -273,8 +272,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 };
                     
 #if !MLN_UBO_CONSOLIDATION
-                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
-                drawableUniforms.createOrUpdate(idLineTilePropsUBO, &tilePropsUBO, context);
+                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context, true, false);
+                drawableUniforms.createOrUpdate(idLineTilePropsUBO, &tilePropsUBO, context, false, true);
 #endif
             } break;
 
@@ -336,8 +335,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     };
                     
 #if !MLN_UBO_CONSOLIDATION
-                    drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
-                    drawableUniforms.createOrUpdate(idLineTilePropsUBO, &tilePropsUBO, context);
+                    drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context, true, false);
+                    drawableUniforms.createOrUpdate(idLineTilePropsUBO, &tilePropsUBO, context, false, true);
 #endif
                 }
             } break;
@@ -368,8 +367,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         tilePropsUniformBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
     }
 
-    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer);
-    layerUniforms.set(idSymbolTilePropsUBO, tilePropsUniformBuffer);
+    layerUniforms.set(idLineDrawableUBO, drawableUniformBuffer, true, false);
+    layerUniforms.set(idLineTilePropsUBO, tilePropsUniformBuffer, false, true);
 #endif
 }
 

@@ -121,8 +121,8 @@ public:
             /* .pad1 = */ 0
         };
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
-        drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context, true, false);
+        drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context, true, true);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
         assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
@@ -191,8 +191,8 @@ public:
         };
 
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idWideVectorUniformsUBO, &uniform, parameters.context);
-        drawableUniforms.createOrUpdate(idWideVectorUniformWideVecUBO, &wideVec, parameters.context);
+        drawableUniforms.createOrUpdate(idWideVectorUniformsUBO, &uniform, parameters.context, true, false);
+        drawableUniforms.createOrUpdate(idWideVectorUniformWideVecUBO, &wideVec, parameters.context, true, false);
     };
 
 private:
@@ -238,8 +238,8 @@ public:
             /* .to_scale = */ 0.f
         };
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idFillDrawableUBO, &fillDrawableUBO, parameters.context);
-        drawableUniforms.createOrUpdate(idFillEvaluatedPropsUBO, &fillPropertiesUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idFillDrawableUBO, &fillDrawableUBO, parameters.context, true, false);
+        drawableUniforms.createOrUpdate(idFillEvaluatedPropsUBO, &fillPropertiesUBO, parameters.context, true, true);
     };
 
 private:
@@ -291,7 +291,7 @@ public:
         };
 
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idCustomSymbolDrawableUBO, &drawableUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idCustomSymbolDrawableUBO, &drawableUBO, parameters.context, true, false);
     };
 
 private:

@@ -65,7 +65,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
             /* .mix = */ crossfade.t,
             /* .opacity = */ evaluated.get<BackgroundOpacity>()
         };
-        layerUniforms.createOrUpdate(idBackgroundPropsUBO, &propsUBO, context);
+        layerUniforms.createOrUpdate(idBackgroundPropsUBO, &propsUBO, context, true, true);
     } else {
         const BackgroundPropsUBO propsUBO = {
             /* .color = */ evaluated.get<BackgroundColor>(),
@@ -74,7 +74,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
             /* .pad2 = */ 0,
             /* .pad3 = */ 0
         };
-        layerUniforms.createOrUpdate(idBackgroundPropsUBO, &propsUBO, context);
+        layerUniforms.createOrUpdate(idBackgroundPropsUBO, &propsUBO, context, false, true);
     }
 
 #if MLN_UBO_CONSOLIDATION
@@ -126,7 +126,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
                 /* .pad3 = */ 0
             };
 #if !MLN_UBO_CONSOLIDATION
-            drawableUniforms.createOrUpdate(idBackgroundDrawableUBO, &drawableUBO, context);
+            drawableUniforms.createOrUpdate(idBackgroundDrawableUBO, &drawableUBO, context, true, false);
 #endif
         } else {
             
@@ -138,7 +138,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
                 /* .matrix = */ util::cast<float>(matrix)
             };
 #if !MLN_UBO_CONSOLIDATION
-            drawableUniforms.createOrUpdate(idBackgroundDrawableUBO, &drawableUBO, context);
+            drawableUniforms.createOrUpdate(idBackgroundDrawableUBO, &drawableUBO, context, true, false);
 #endif
         }
             
@@ -155,7 +155,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
         drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
     }
 
-    layerUniforms.set(idSymbolDrawableUBO, drawableUniformBuffer);
+    layerUniforms.set(idBackgroundDrawableUBO, drawableUniformBuffer, true, false);
 #endif
 }
 

@@ -41,7 +41,7 @@ void HeatmapTextureLayerTweaker::execute(LayerGroupBase& layerGroup, const Paint
         /* .pad3 = */ 0
     };
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
-    layerUniforms.createOrUpdate(idHeatmapTexturePropsUBO, &propsUBO, parameters.context);
+    layerUniforms.createOrUpdate(idHeatmapTexturePropsUBO, &propsUBO, parameters.context, true, true);
 }
 
 } // namespace mbgl
