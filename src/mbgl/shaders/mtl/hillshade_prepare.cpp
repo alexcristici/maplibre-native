@@ -4,9 +4,10 @@
 namespace mbgl {
 namespace shaders {
 
-const std::array<UniformBlockInfo, 1>
+const std::array<UniformBlockInfo, 2>
     ShaderSource<BuiltIn::HillshadePrepareShader, gfx::Backend::Type::Metal>::uniforms = {
-        UniformBlockInfo{true, true, sizeof(HillshadePrepareDrawableUBO), idHillshadePrepareDrawableUBO},
+        UniformBlockInfo{true, false, sizeof(HillshadePrepareDrawableUBO), idHillshadePrepareDrawableUBO},
+        UniformBlockInfo{true, true, sizeof(HillshadePrepareTilePropsUBO), idHillshadePrepareTilePropsUBO},
 };
 const std::array<AttributeInfo, 2> ShaderSource<BuiltIn::HillshadePrepareShader,
                                                 gfx::Backend::Type::Metal>::attributes = {

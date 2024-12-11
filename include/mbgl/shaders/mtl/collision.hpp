@@ -11,15 +11,21 @@ namespace shaders {
 
 struct alignas(16) CollisionDrawableUBO {
     /*  0 */ float4x4 matrix;
-    /* 64 */ float2 extrude_scale;
-    /* 72 */ float overscale_factor;
-    /* 76 */ float pad1;
-    /* 80 */
+    /* 64 */
 };
-static_assert(sizeof(CollisionDrawableUBO) == 5 * 16, "wrong size");
+static_assert(sizeof(CollisionDrawableUBO) == 4 * 16, "wrong size");
+
+struct alignas(16) CollisionTilePropsUBO {
+    /*  0 */ float2 extrude_scale;
+    /*  8 */ float overscale_factor;
+    /* 12 */ float pad1;
+    /* 16 */
+};
+static_assert(sizeof(CollisionTilePropsUBO) == 16, "wrong size");
 
 enum {
     idCollisionDrawableUBO = globalUBOCount,
+    idCollisionTilePropsUBO,
     collisionUBOCount
 };
 
@@ -31,7 +37,7 @@ struct ShaderSource<BuiltIn::CollisionBoxShader, gfx::Backend::Type::Metal> {
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<UniformBlockInfo, 1> uniforms;
+    static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 5> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
@@ -54,7 +60,8 @@ struct FragmentStage {
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const CollisionDrawableUBO& drawable [[buffer(idCollisionDrawableUBO)]]) {
+                                device const CollisionDrawableUBO& drawable [[buffer(idCollisionDrawableUBO)]],
+                                device const CollisionTilePropsUBO& tileProps [[buffer(idCollisionTilePropsUBO)]]) {
 
     float4 projectedPoint = drawable.matrix * float4(float2(vertx.anchor_pos), 0, 1);
     float camera_to_anchor_distance = projectedPoint.w;
@@ -64,7 +71,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
         4.0);
 
     float4 position = drawable.matrix * float4(float2(vertx.pos), 0.0, 1.0);
-    position.xy += (float2(vertx.extrude) + vertx.shift) * drawable.extrude_scale * position.w * collision_perspective_ratio;
+    position.xy += (float2(vertx.extrude) + vertx.shift) * tileProps.extrude_scale * position.w * collision_perspective_ratio;
 
     float placed = float(vertx.placed.x);
     float notUsed = float(vertx.placed.y);
@@ -76,8 +83,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     };
 }
 
-half4 fragment fragmentMain(FragmentStage in [[stage_in]],
-                            device const CollisionDrawableUBO& drawable [[buffer(idCollisionDrawableUBO)]]) {
+half4 fragment fragmentMain(FragmentStage in [[stage_in]]) {
 
     float alpha = 0.5;
 
@@ -105,7 +111,7 @@ struct ShaderSource<BuiltIn::CollisionCircleShader, gfx::Backend::Type::Metal> {
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
     
-    static const std::array<UniformBlockInfo, 1> uniforms;
+    static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 4> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
@@ -130,7 +136,8 @@ struct FragmentStage {
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
-                                device const CollisionDrawableUBO& drawable [[buffer(idCollisionDrawableUBO)]]) {
+                                device const CollisionDrawableUBO& drawable [[buffer(idCollisionDrawableUBO)]],
+                                device const CollisionTilePropsUBO& tileProps [[buffer(idCollisionTilePropsUBO)]]) {
 
     float4 projectedPoint = drawable.matrix * float4(float2(vertx.anchor_pos), 0, 1);
     float camera_to_anchor_distance = projectedPoint.w;
@@ -142,14 +149,14 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     float4 position = drawable.matrix * float4(float2(vertx.pos), 0.0, 1.0);
 
     float padding_factor = 1.2; // Pad the vertices slightly to make room for anti-alias blur
-    position.xy += float2(vertx.extrude) * drawable.extrude_scale * padding_factor * position.w * collision_perspective_ratio;
+    position.xy += float2(vertx.extrude) * tileProps.extrude_scale * padding_factor * position.w * collision_perspective_ratio;
 
     float placed = float(vertx.placed.x);
     float notUsed = float(vertx.placed.y);
     float radius = abs(float(vertx.extrude.y)); // We don't pitch the circles, so both units of the extrusion vector are equal in magnitude to the radius
 
     float2 extrude = float2(vertx.extrude) * padding_factor;
-    float2 extrude_scale = drawable.extrude_scale * paintParams.camera_to_center_distance * collision_perspective_ratio;
+    float2 extrude_scale = tileProps.extrude_scale * paintParams.camera_to_center_distance * collision_perspective_ratio;
 
     return {
         .position       = position,
@@ -162,7 +169,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 }
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
-                            device const CollisionDrawableUBO& drawable [[buffer(idCollisionDrawableUBO)]]) {
+                            device const CollisionTilePropsUBO& tileProps [[buffer(idCollisionTilePropsUBO)]]) {
 
     float alpha = 0.5;
 
@@ -181,7 +188,7 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
 
     float extrude_scale_length = length(in.extrude_scale);
     float extrude_length = length(in.extrude) * extrude_scale_length;
-    float stroke_width = 15.0 * extrude_scale_length / drawable.overscale_factor;
+    float stroke_width = 15.0 * extrude_scale_length / tileProps.overscale_factor;
     float radius = in.radius * extrude_scale_length;
 
     float distance_to_edge = abs(extrude_length - radius);

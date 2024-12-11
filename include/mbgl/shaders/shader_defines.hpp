@@ -26,6 +26,7 @@ enum {
 
 enum {
     idCollisionDrawableUBO = globalUBOCount,
+    idCollisionTilePropsUBO,
     collisionDrawableUBOCount
 };
 
@@ -68,6 +69,7 @@ enum {
 
 enum {
     idHillshadePrepareDrawableUBO = globalUBOCount,
+    idHillshadePrepareTilePropsUBO,
     hillshadePrepareDrawableUBOCount
 };
 

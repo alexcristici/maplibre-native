@@ -51,14 +51,17 @@ void HillshadePrepareLayerTweaker::execute(LayerGroupBase& layerGroup, const Pai
         matrix::translate(matrix, matrix, 0, -util::EXTENT, 0);
 
         const HillshadePrepareDrawableUBO drawableUBO = {
-            /* .matrix = */ util::cast<float>(matrix),
+            /* .matrix = */ util::cast<float>(matrix)
+        };
+        const HillshadePrepareTilePropsUBO tilePropsUBO = {
             /* .unpack = */ getUnpackVector(drawableData.encoding),
             /* .dimension = */ {static_cast<float>(drawableData.stride), static_cast<float>(drawableData.stride)},
             /* .zoom = */ static_cast<float>(tileID.canonical.z),
-            /* .maxzoom = */ static_cast<float>(drawableData.maxzoom)};
+            /* .maxzoom = */ static_cast<float>(drawableData.maxzoom)
+        };
 
-        drawable.mutableUniformBuffers().createOrUpdate(
-            idHillshadePrepareDrawableUBO, &drawableUBO, parameters.context);
+        drawable.mutableUniformBuffers().createOrUpdate(idHillshadePrepareDrawableUBO, &drawableUBO, parameters.context);
+        drawable.mutableUniformBuffers().createOrUpdate(idHillshadePrepareTilePropsUBO, &tilePropsUBO, parameters.context);
     });
 }
 

@@ -11,16 +11,22 @@ namespace shaders {
 
 struct alignas(16) HillshadePrepareDrawableUBO {
     /*  0 */ float4x4 matrix;
-    /* 64 */ float4 unpack;
-    /* 80 */ float2 dimension;
-    /* 88 */ float zoom;
-    /* 92 */ float maxzoom;
-    /* 96 */
+    /* 64 */
 };
-static_assert(sizeof(HillshadePrepareDrawableUBO) == 6 * 16, "wrong size");
+static_assert(sizeof(HillshadePrepareDrawableUBO) == 4 * 16, "wrong size");
+
+struct alignas(16) HillshadePrepareTilePropsUBO {
+    /*  0 */ float4 unpack;
+    /* 16 */ float2 dimension;
+    /* 24 */ float zoom;
+    /* 28 */ float maxzoom;
+    /* 32 */
+};
+static_assert(sizeof(HillshadePrepareTilePropsUBO) == 2 * 16, "wrong size");
 
 enum {
     idHillshadePrepareDrawableUBO = globalUBOCount,
+    idHillshadePrepareTilePropsUBO,
     hillshadePrepareUBOCount
 };
 
@@ -32,7 +38,7 @@ struct ShaderSource<BuiltIn::HillshadePrepareShader, gfx::Backend::Type::Metal> 
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<UniformBlockInfo, 1> uniforms;
+    static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 2> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
@@ -49,12 +55,13 @@ struct FragmentStage {
 };
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
-                                device const HillshadePrepareDrawableUBO& drawable [[buffer(idHillshadePrepareDrawableUBO)]]) {
+                                device const HillshadePrepareDrawableUBO& drawable [[buffer(idHillshadePrepareDrawableUBO)]],
+                                device const HillshadePrepareTilePropsUBO& tileProps [[buffer(idHillshadePrepareTilePropsUBO)]]) {
 
     const float4 position = drawable.matrix * float4(float2(vertx.pos), 0, 1);
 
-    float2 epsilon = 1.0 / drawable.dimension;
-    float scale = (drawable.dimension.x - 2.0) / drawable.dimension.x;
+    float2 epsilon = 1.0 / tileProps.dimension;
+    float scale = (tileProps.dimension.x - 2.0) / tileProps.dimension.x;
     const float2 pos = (float2(vertx.texture_pos) / 8192.0) * scale + epsilon;
 
     return {
@@ -71,14 +78,14 @@ float getElevation(float2 coord, float bias, texture2d<float, access::sample> im
 }
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
-                            device const HillshadePrepareDrawableUBO& drawable [[buffer(idHillshadePrepareDrawableUBO)]],
+                            device const HillshadePrepareTilePropsUBO& tileProps [[buffer(idHillshadePrepareTilePropsUBO)]],
                             texture2d<float, access::sample> image [[texture(0)]],
                             sampler image_sampler [[sampler(0)]]) {
 #if defined(OVERDRAW_INSPECTOR)
     return half4(1.0);
 #endif
 
-    float2 epsilon = 1.0 / drawable.dimension;
+    float2 epsilon = 1.0 / tileProps.dimension;
 
     // queried pixels:
     // +-----------+
@@ -95,15 +102,15 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     // |   |   |   |
     // +-----------+
 
-    float a = getElevation(in.pos + float2(-epsilon.x, -epsilon.y), 0.0, image, image_sampler, drawable.unpack);
-    float b = getElevation(in.pos + float2(0, -epsilon.y), 0.0, image, image_sampler, drawable.unpack);
-    float c = getElevation(in.pos + float2(epsilon.x, -epsilon.y), 0.0, image, image_sampler, drawable.unpack);
-    float d = getElevation(in.pos + float2(-epsilon.x, 0), 0.0, image, image_sampler, drawable.unpack);
-  //float e = getElevation(in.pos, 0.0, image, image_sampler, drawable.unpack);
-    float f = getElevation(in.pos + float2(epsilon.x, 0), 0.0, image, image_sampler, drawable.unpack);
-    float g = getElevation(in.pos + float2(-epsilon.x, epsilon.y), 0.0, image, image_sampler, drawable.unpack);
-    float h = getElevation(in.pos + float2(0, epsilon.y), 0.0, image, image_sampler, drawable.unpack);
-    float i = getElevation(in.pos + float2(epsilon.x, epsilon.y), 0.0, image, image_sampler, drawable.unpack);
+    float a = getElevation(in.pos + float2(-epsilon.x, -epsilon.y), 0.0, image, image_sampler, tileProps.unpack);
+    float b = getElevation(in.pos + float2(0, -epsilon.y), 0.0, image, image_sampler, tileProps.unpack);
+    float c = getElevation(in.pos + float2(epsilon.x, -epsilon.y), 0.0, image, image_sampler, tileProps.unpack);
+    float d = getElevation(in.pos + float2(-epsilon.x, 0), 0.0, image, image_sampler, tileProps.unpack);
+  //float e = getElevation(in.pos, 0.0, image, image_sampler, tileProps.unpack);
+    float f = getElevation(in.pos + float2(epsilon.x, 0), 0.0, image, image_sampler, tileProps.unpack);
+    float g = getElevation(in.pos + float2(-epsilon.x, epsilon.y), 0.0, image, image_sampler, tileProps.unpack);
+    float h = getElevation(in.pos + float2(0, epsilon.y), 0.0, image, image_sampler, tileProps.unpack);
+    float i = getElevation(in.pos + float2(epsilon.x, epsilon.y), 0.0, image, image_sampler, tileProps.unpack);
 
     // here we divide the x and y slopes by 8 * pixel size
     // where pixel size (aka meters/pixel) is:
@@ -116,12 +123,12 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     // Here we use a=0.3 which works out to the expression below. see
     // nickidlugash's awesome breakdown for more info
     // https://github.com/mapbox/mapbox-gl-js/pull/5286#discussion_r148419556
-    float exaggeration = drawable.zoom < 2.0 ? 0.4 : drawable.zoom < 4.5 ? 0.35 : 0.3;
+    float exaggeration = tileProps.zoom < 2.0 ? 0.4 : tileProps.zoom < 4.5 ? 0.35 : 0.3;
 
     float2 deriv = float2(
         (c + f + f + i) - (a + d + d + g),
         (g + h + h + i) - (a + b + b + c)
-    ) /  pow(2.0, (drawable.zoom - drawable.maxzoom) * exaggeration + 19.2562 - drawable.zoom);
+    ) /  pow(2.0, (tileProps.zoom - tileProps.maxzoom) * exaggeration + 19.2562 - tileProps.zoom);
 
     float4 color = clamp(float4(
         deriv.x / 2.0 + 0.5,
