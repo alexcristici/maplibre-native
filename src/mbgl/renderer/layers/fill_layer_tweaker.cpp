@@ -57,7 +57,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
     const auto zoom = static_cast<float>(parameters.state.getZoom());
     const auto intZoom = parameters.state.getIntegerZoom();
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     int i = 0;
     std::vector<FillDrawableUnionUBO> drawableUBOVector(layerGroup.getDrawableCount());
     std::vector<FillTilePropsUnionUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
@@ -105,9 +105,9 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
         switch (static_cast<RenderFillLayer::FillVariant>(drawable.getType())) {
             case RenderFillLayer::FillVariant::Fill: {
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 drawableUBOVector[i].fillDrawableUBO = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -118,15 +118,15 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad2 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_OPENGL
+#if MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
 #endif
                 break;
             }
             case RenderFillLayer::FillVariant::FillOutline: {
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 drawableUBOVector[i].fillOutlineDrawableUBO = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillOutlineDrawableUBO drawableUBO = {
 #endif
                     /* .matrix=*/util::cast<float>(matrix),
@@ -137,15 +137,15 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad2 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_OPENGL
+#if MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
 #endif
                 break;
             }
             case RenderFillLayer::FillVariant::FillPattern: {
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 drawableUBOVector[i].fillPatternDrawableUBO = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillPatternDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -158,9 +158,9 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom))
                 };
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 tilePropsUBOVector[i].fillPatternTilePropsUBO = FillPatternTilePropsUBO {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillPatternTilePropsUBO tilePropsUBO = {
 #endif
                     /* .pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
@@ -170,16 +170,16 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad2 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_OPENGL
+#if MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
                 drawableUniforms.createOrUpdate(idFillTilePropsUBO, &tilePropsUBO, context);
 #endif
                 break;
             }
             case RenderFillLayer::FillVariant::FillOutlinePattern: {
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 drawableUBOVector[i].fillOutlinePatternDrawableUBO = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillOutlinePatternDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -192,9 +192,9 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom))
                 };
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 tilePropsUBOVector[i].fillOutlinePatternTilePropsUBO = FillOutlinePatternTilePropsUBO {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillOutlinePatternTilePropsUBO tilePropsUBO = {
 #endif
                     /* .pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
@@ -204,16 +204,16 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad2 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_OPENGL
+#if MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
                 drawableUniforms.createOrUpdate(idFillTilePropsUBO, &tilePropsUBO, context);
 #endif
                 break;
             }
             case RenderFillLayer::FillVariant::FillOutlineTriangulated: {
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
                 drawableUBOVector[i].fillOutlineTriangulatedDrawableUBO = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 const FillOutlineTriangulatedDrawableUBO drawableUBO = {
 #endif
                     /* .matrix = */ util::cast<float>(matrix),
@@ -223,7 +223,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     /* .pad3 = */ 0
                 };
                     
-#if MLN_RENDER_BACKEND_OPENGL
+#if MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
                 drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, context);
 #endif
                 break;
@@ -235,12 +235,12 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                 break;
             }
         }
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
         drawable.setUBOIndex(i++);
 #endif
     });
     
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     const size_t drawableUBOVectorSize = sizeof(FillDrawableUnionUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);

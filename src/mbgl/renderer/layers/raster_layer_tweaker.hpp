@@ -25,7 +25,7 @@ public:
 protected:
     gfx::UniformBufferPtr evaluatedPropsUniformBuffer = nullptr;
     
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     gfx::UniformBufferPtr drawableUniformBuffer;
 #endif
 };

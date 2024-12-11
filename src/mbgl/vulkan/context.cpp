@@ -77,12 +77,11 @@ void Context::initFrameResources() {
                               DescriptorPoolGrowable(globalDescriptorPoolSize, shaders::globalUBOCount));
 
     descriptorPoolMap.emplace(DescriptorSetType::Layer,
-                              DescriptorPoolGrowable(layerDescriptorPoolSize,
-                                                     shaders::maxUBOCountPerDrawable + shaders::maxUBOCountPerLayer));
+                              DescriptorPoolGrowable(layerDescriptorPoolSize, shaders::maxUBOCountPerLayer));
 
-    /*descriptorPoolMap.emplace(
+    descriptorPoolMap.emplace(
         DescriptorSetType::DrawableUniform,
-        DescriptorPoolGrowable(drawableUniformDescriptorPoolSize, shaders::maxUBOCountPerDrawable));*/
+        DescriptorPoolGrowable(drawableUniformDescriptorPoolSize, shaders::maxUBOCountPerDrawable));
 
     descriptorPoolMap.emplace(
         DescriptorSetType::DrawableImage,
@@ -115,12 +114,10 @@ void Context::initFrameResources() {
 
     buildUniformDescriptorSetLayout(
         globalUniformDescriptorSetLayout, shaders::globalUBOCount, "GlobalUniformDescriptorSetLayout");
-    buildUniformDescriptorSetLayout(layerUniformDescriptorSetLayout,
-                                    shaders::maxUBOCountPerDrawable + shaders::maxUBOCountPerLayer,
-                                    "LayerUniformDescriptorSetLayout",
-                                    shaders::maxUBOCountPerDrawable);
-    // buildUniformDescriptorSetLayout(
-    //     drawableUniformDescriptorSetLayout, shaders::maxUBOCountPerDrawable, "DrawableUniformDescriptorSetLayout");
+    buildUniformDescriptorSetLayout(
+        layerUniformDescriptorSetLayout, shaders::maxUBOCountPerLayer, "LayerUniformDescriptorSetLayout");
+    buildUniformDescriptorSetLayout(
+        drawableUniformDescriptorSetLayout, shaders::maxUBOCountPerDrawable, "DrawableUniformDescriptorSetLayout");
     buildImageDescriptorSetLayout();
 }
 
@@ -356,9 +353,8 @@ gfx::UniqueDrawableBuilder Context::createDrawableBuilder(std::string name) {
     return std::make_unique<DrawableBuilder>(std::move(name));
 }
 
-gfx::UniformBufferPtr Context::createUniformBuffer(const void* data, std::size_t size, bool persistent, bool ssbo) {
-    return std::make_shared<UniformBuffer>(createBuffer(
-        data, size, ssbo ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT : VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, persistent));
+gfx::UniformBufferPtr Context::createUniformBuffer(const void* data, std::size_t size, bool persistent) {
+    return std::make_shared<UniformBuffer>(createBuffer(data, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, persistent));
 }
 
 gfx::ShaderProgramBasePtr Context::getGenericShader(gfx::ShaderRegistry& shaders, const std::string& name) {
@@ -383,7 +379,7 @@ bool Context::emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr& buffer,
         buffer->update(data, size);
         return false;
     } else {
-        buffer = createUniformBuffer(data, size, persistent, false);
+        buffer = createUniformBuffer(data, size, persistent);
         return true;
     }
 }
@@ -574,13 +570,6 @@ const std::unique_ptr<BufferResource>& Context::getDummyUniformBuffer() {
     return dummyUniformBuffer;
 }
 
-const std::unique_ptr<BufferResource>& Context::getDummyStorageBuffer() {
-    if (!dummyStorageBuffer)
-        dummyStorageBuffer = std::make_unique<BufferResource>(
-            *this, nullptr, 16, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, false);
-    return dummyStorageBuffer;
-}
-
 const std::unique_ptr<Texture2D>& Context::getDummyTexture() {
     if (!dummyTexture2D) {
         const Size size(2, 2);
@@ -600,8 +589,7 @@ const std::unique_ptr<Texture2D>& Context::getDummyTexture() {
 
 void Context::buildUniformDescriptorSetLayout(vk::UniqueDescriptorSetLayout& layout,
                                               size_t uniformCount,
-                                              const std::string& name,
-                                              uint32_t ssboCount) {
+                                              const std::string& name) {
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
     const auto stageFlags = vk::ShaderStageFlags() | vk::ShaderStageFlagBits::eVertex |
                             vk::ShaderStageFlagBits::eFragment;
@@ -610,8 +598,7 @@ void Context::buildUniformDescriptorSetLayout(vk::UniqueDescriptorSetLayout& lay
         bindings.push_back(vk::DescriptorSetLayoutBinding()
                                .setBinding(i)
                                .setStageFlags(stageFlags)
-                               .setDescriptorType(i < ssboCount ? vk::DescriptorType::eStorageBuffer
-                                                                : vk::DescriptorType::eUniformBuffer)
+                               .setDescriptorType(vk::DescriptorType::eUniformBuffer)
                                .setDescriptorCount(1));
     }
 
@@ -645,8 +632,8 @@ const vk::DescriptorSetLayout& Context::getDescriptorSetLayout(DescriptorSetType
         case DescriptorSetType::Layer:
             return layerUniformDescriptorSetLayout.get();
 
-            // case DescriptorSetType::DrawableUniform:
-            //     return drawableUniformDescriptorSetLayout.get();
+        case DescriptorSetType::DrawableUniform:
+            return drawableUniformDescriptorSetLayout.get();
 
         case DescriptorSetType::DrawableImage:
             return drawableImageDescriptorSetLayout.get();
@@ -666,18 +653,15 @@ DescriptorPoolGrowable& Context::getDescriptorPool(DescriptorSetType type) {
 const vk::UniquePipelineLayout& Context::getGeneralPipelineLayout() {
     if (generalPipelineLayout) return generalPipelineLayout;
 
-    const auto stages = vk::ShaderStageFlags() | vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-    const auto pushConstant = vk::PushConstantRange().setSize(sizeof(int32_t)).setStageFlags(stages);
-
     const std::vector<vk::DescriptorSetLayout> layouts = {
         globalUniformDescriptorSetLayout.get(),
         layerUniformDescriptorSetLayout.get(),
-        // drawableUniformDescriptorSetLayout.get(),
+        drawableUniformDescriptorSetLayout.get(),
         drawableImageDescriptorSetLayout.get(),
     };
 
     generalPipelineLayout = backend.getDevice()->createPipelineLayoutUnique(
-        vk::PipelineLayoutCreateInfo().setPushConstantRanges(pushConstant).setSetLayouts(layouts));
+        vk::PipelineLayoutCreateInfo().setSetLayouts(layouts));
 
     backend.setDebugName(generalPipelineLayout.get(), "PipelineLayout_general");
 

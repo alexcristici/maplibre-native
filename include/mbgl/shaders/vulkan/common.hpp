@@ -69,8 +69,8 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper, const vec2 pixel_coord_lower,
 
 #define GLOBAL_SET_INDEX            0
 #define LAYER_SET_INDEX             1
-//#define DRAWABLE_UBO_SET_INDEX      2
-#define DRAWABLE_IMAGE_SET_INDEX    2
+#define DRAWABLE_UBO_SET_INDEX      2
+#define DRAWABLE_IMAGE_SET_INDEX    3
 
 layout(set = GLOBAL_SET_INDEX, binding = 0) uniform GlobalPaintParamsUBO {
     vec2 pattern_atlas_texsize;
@@ -107,8 +107,8 @@ void applySurfaceTransform() {
 
 #define GLOBAL_SET_INDEX            0
 #define LAYER_SET_INDEX             1
-//#define DRAWABLE_UBO_SET_INDEX      2
-#define DRAWABLE_IMAGE_SET_INDEX    2
+#define DRAWABLE_UBO_SET_INDEX      2
+#define DRAWABLE_IMAGE_SET_INDEX    3
 
 layout(set = GLOBAL_SET_INDEX, binding = 0) uniform GlobalPaintParamsUBO {
     vec2 pattern_atlas_texsize;

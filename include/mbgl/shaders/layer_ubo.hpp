@@ -51,7 +51,11 @@ static_assert(sizeof(GlobalPaintParamsUBO) == 3 * 16);
 
 enum {
     idGlobalPaintParamsUBO,
+#if MLN_RENDER_BACKEND_METAL
     idGlobalUBOIndex,
+#elif MLN_RENDER_BACKEND_VULKAN
+    idGlobalPlatformParamsUBO,
+#endif
     globalUBOCount,
 };
 

@@ -16,9 +16,7 @@ namespace vulkan {
 
 LayerGroup::LayerGroup(int32_t layerIndex_, std::size_t initialCapacity, std::string name_)
     : mbgl::LayerGroup(layerIndex_, initialCapacity, std::move(name_)),
-      uniformBuffers(DescriptorSetType::Layer,
-                     shaders::globalUBOCount,
-                     shaders::maxUBOCountPerDrawable + shaders::maxUBOCountPerLayer) {}
+      uniformBuffers(DescriptorSetType::Layer, shaders::layerUBOStartId, shaders::maxUBOCountPerLayer) {}
 
 void LayerGroup::upload(gfx::UploadPass& uploadPass) {
     if (!enabled) {
@@ -60,7 +58,7 @@ void LayerGroup::render(RenderOrchestrator&, PaintParameters& parameters) {
         }
 
         if (!bindUBOs) {
-            uniformBuffers.bindDescriptorSets(encoder, shaders::maxUBOCountPerDrawable);
+            uniformBuffers.bindDescriptorSets(encoder);
             bindUBOs = true;
         }
 

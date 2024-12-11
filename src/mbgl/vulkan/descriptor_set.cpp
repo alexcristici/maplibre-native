@@ -36,6 +36,10 @@ void DescriptorSet::createDescriptorPool(DescriptorPoolGrowable& growablePool) {
 
     const uint32_t maxSets = static_cast<uint32_t>(growablePool.maxSets *
                                                    std::pow(growablePool.growFactor, growablePool.pools.size()));
+    const vk::DescriptorPoolSize size = {type != DescriptorSetType::DrawableImage
+                                             ? vk::DescriptorType::eUniformBuffer
+                                             : vk::DescriptorType::eCombinedImageSampler,
+                                         maxSets * growablePool.descriptorsPerSet};
 
 #ifdef USE_DESCRIPTOR_POOL_RESET
     const auto poolFlags = vk::DescriptorPoolCreateFlags();
@@ -43,26 +47,9 @@ void DescriptorSet::createDescriptorPool(DescriptorPoolGrowable& growablePool) {
     const auto poolFlags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 #endif
 
-    if (type == DescriptorSetType::Layer) {
-        const std::vector<vk::DescriptorPoolSize> sizes = {
-            {vk::DescriptorType::eStorageBuffer, maxSets * growablePool.descriptorsPerSet},
-            {vk::DescriptorType::eUniformBuffer, maxSets * growablePool.descriptorsPerSet},
-        };
+    const auto descriptorPoolInfo = vk::DescriptorPoolCreateInfo(poolFlags).setPoolSizes(size).setMaxSets(maxSets);
 
-        const auto descriptorPoolInfo = vk::DescriptorPoolCreateInfo(poolFlags).setPoolSizes(sizes).setMaxSets(maxSets);
-
-        growablePool.pools.emplace_back(device->createDescriptorPoolUnique(descriptorPoolInfo), maxSets);
-    } else {
-        const vk::DescriptorPoolSize size = {type != DescriptorSetType::DrawableImage
-                                                 ? vk::DescriptorType::eUniformBuffer
-                                                 : vk::DescriptorType::eCombinedImageSampler,
-                                             maxSets * growablePool.descriptorsPerSet};
-
-        const auto descriptorPoolInfo = vk::DescriptorPoolCreateInfo(poolFlags).setPoolSizes(size).setMaxSets(maxSets);
-
-        growablePool.pools.emplace_back(device->createDescriptorPoolUnique(descriptorPoolInfo), maxSets);
-    }
-
+    growablePool.pools.emplace_back(device->createDescriptorPoolUnique(descriptorPoolInfo), maxSets);
     growablePool.currentPoolIndex = growablePool.pools.size() - 1;
 };
 
@@ -143,8 +130,7 @@ UniformDescriptorSet::UniformDescriptorSet(Context& context_, DescriptorSetType 
 
 void UniformDescriptorSet::update(const gfx::UniformBufferArray& uniforms,
                                   uint32_t uniformStartIndex,
-                                  uint32_t descriptorBindingCount,
-                                  uint32_t ssboCount) {
+                                  uint32_t descriptorBindingCount) {
     MLN_TRACE_FUNC();
 
     allocate();
@@ -166,9 +152,7 @@ void UniformDescriptorSet::update(const gfx::UniformBufferArray& uniforms,
                 .setOffset(bufferResource.getVulkanBufferOffset())
                 .setRange(bufferResource.getSizeInBytes());
         } else {
-            descriptorBufferInfo
-                .setBuffer(index < ssboCount ? context.getDummyStorageBuffer()->getVulkanBuffer()
-                                             : context.getDummyUniformBuffer()->getVulkanBuffer())
+            descriptorBufferInfo.setBuffer(context.getDummyUniformBuffer()->getVulkanBuffer())
                 .setOffset(0)
                 .setRange(VK_WHOLE_SIZE);
         }
@@ -176,8 +160,7 @@ void UniformDescriptorSet::update(const gfx::UniformBufferArray& uniforms,
         const auto writeDescriptorSet = vk::WriteDescriptorSet()
                                             .setBufferInfo(descriptorBufferInfo)
                                             .setDescriptorCount(1)
-                                            .setDescriptorType(index < ssboCount ? vk::DescriptorType::eStorageBuffer
-                                                                                 : vk::DescriptorType::eUniformBuffer)
+                                            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
                                             .setDstBinding(index)
                                             .setDstSet(descriptorSets[frameIndex]);
 

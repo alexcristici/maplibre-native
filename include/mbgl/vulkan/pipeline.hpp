@@ -16,7 +16,6 @@ public:
 
     // used to select the pipeline layout
     bool usePushConstants = false;
-    bool usePushConstantsIndex = false;
 
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
     vk::CullModeFlagBits cullMode = vk::CullModeFlagBits::eNone;

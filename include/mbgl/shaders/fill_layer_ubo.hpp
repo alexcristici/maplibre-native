@@ -114,7 +114,7 @@ struct alignas(16) FillEvaluatedPropsUBO {
 };
 static_assert(sizeof(FillEvaluatedPropsUBO) == 3 * 16);
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
 
 union FillDrawableUnionUBO {
     FillDrawableUBO fillDrawableUBO;

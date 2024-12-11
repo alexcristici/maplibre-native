@@ -66,7 +66,7 @@ void RasterLayerTweaker::execute([[maybe_unused]] LayerGroupBase& layerGroup,
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
     layerUniforms.set(idRasterEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     int i = 0;
     std::vector<RasterDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
 #endif
@@ -101,22 +101,22 @@ void RasterLayerTweaker::execute([[maybe_unused]] LayerGroupBase& layerGroup,
                                    !parameters.state.isChanging());
         }
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
         drawableUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
         const RasterDrawableUBO drawableUBO = {
 #endif
             /*.matrix = */ util::cast<float>(matrix)
         };
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
         drawable.setUBOIndex(i++);
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idRasterDrawableUBO, &drawableUBO, parameters.context);
 #endif
     });
         
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     const size_t drawableUBOVectorSize = sizeof(RasterDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);

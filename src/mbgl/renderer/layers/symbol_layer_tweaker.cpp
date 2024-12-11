@@ -90,7 +90,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
     layerUniforms.set(idSymbolEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     int i = 0;
     std::vector<SymbolDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
     std::vector<SymbolTilePropsUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
@@ -154,9 +154,9 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         const auto& sizeBinder = isText ? bucket->textSizeBinder : bucket->iconSizeBinder;
         const auto size = sizeBinder->evaluateForZoom(currentZoom);
         
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
         drawableUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
         const SymbolDrawableUBO drawableUBO = {
 #endif
             /* .matrix = */ util::cast<float>(matrix),
@@ -182,9 +182,9 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             /* .halo_blur_t = */ getInterpFactor<TextHaloBlur, IconHaloBlur, 0>(paintProperties, isText, zoom),
         };
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
         tilePropsUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
         const SymbolTilePropsUBO tilePropsUBO = {
 #endif
             /* .is_text = */ isText,
@@ -193,16 +193,16 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             /* .pad1 = */ 0,
         };
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
         drawable.setUBOIndex(i++);
-#elif MLN_RENDER_BACKEND_OPENGL
+#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idSymbolDrawableUBO, &drawableUBO, context);
         drawableUniforms.createOrUpdate(idSymbolTilePropsUBO, &tilePropsUBO, context);
 #endif
     });
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
     const size_t drawableUBOVectorSize = sizeof(SymbolDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);

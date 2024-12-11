@@ -56,7 +56,7 @@ public:
     void createOrUpdate(
         const size_t id, const void* data, std::size_t size, gfx::Context& context, bool persistent = false) override;
 
-    void bindDescriptorSets(CommandEncoder& encoder, uint32_t ssboCount = 0);
+    void bindDescriptorSets(CommandEncoder& encoder);
     void freeDescriptorSets() { descriptorSet.reset(); }
 
 private:
@@ -64,7 +64,7 @@ private:
         return std::make_unique<UniformBuffer>(static_cast<const UniformBuffer&>(buffer).clone());
     }
 
-    const DescriptorSetType descriptorSetType{DescriptorSetType::Layer};
+    const DescriptorSetType descriptorSetType{DescriptorSetType::DrawableUniform};
     const uint32_t descriptorStartIndex{0};
     const uint32_t descriptorBindingCount{0};
 

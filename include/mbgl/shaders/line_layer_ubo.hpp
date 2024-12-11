@@ -151,7 +151,7 @@ struct alignas(16) LineEvaluatedPropsUBO {
 };
 static_assert(sizeof(LineEvaluatedPropsUBO) == 3 * 16);
 
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+#if MLN_RENDER_BACKEND_METAL
 
 union LineDrawableUnionUBO {
     LineDrawableUBO lineDrawableUBO;

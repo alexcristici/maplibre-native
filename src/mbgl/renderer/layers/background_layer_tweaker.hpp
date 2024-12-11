@@ -27,8 +27,8 @@ public:
 
     void execute(LayerGroupBase&, const PaintParameters&) override;
 
-private:
-#if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
+protected:
+#if MLN_RENDER_BACKEND_METAL
     gfx::UniformBufferPtr drawableUniformBuffer;
 #endif
 };

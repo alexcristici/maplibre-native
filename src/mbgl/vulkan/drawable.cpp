@@ -250,15 +250,6 @@ void Drawable::draw(PaintParameters& parameters) const {
 
     auto& shaderImpl = static_cast<mbgl::vulkan::ShaderProgram&>(*shader);
 
-    if (uboIndex >= 0) {
-        commandBuffer->pushConstants(
-            context.getGeneralPipelineLayout().get(),
-            vk::ShaderStageFlags() | vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-            0,
-            sizeof(uboIndex),
-            &uboIndex);
-    }
-
     if (!bindAttributes(encoder)) return;
     if (!bindDescriptors(encoder)) return;
 
@@ -426,7 +417,7 @@ bool Drawable::bindDescriptors(CommandEncoder& encoder) const noexcept {
     if (!shader) return false;
 
     // bind uniforms
-    // impl->uniformBuffers.bindDescriptorSets(encoder);
+    impl->uniformBuffers.bindDescriptorSets(encoder);
 
     const auto& shaderImpl = static_cast<const mbgl::vulkan::ShaderProgram&>(*shader);
     if (shaderImpl.hasTextures()) {
