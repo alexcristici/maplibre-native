@@ -31,7 +31,7 @@ layout (std140) uniform SymbolDrawableUBO {
     highp vec2 u_texsize;
     highp vec2 u_texsize_icon;
 
-    bool u_is_text;
+    bool u_is_text_prop;
     bool u_rotate_symbol;
     bool u_pitch_with_map;
     bool u_is_size_zoom_constant;
@@ -73,11 +73,11 @@ out vec4 v_data1;
 #pragma mapbox: define lowp float halo_blur
 
 void main() {
-    highp vec4 u_fill_color = u_is_text ? u_text_fill_color : u_icon_fill_color;
-    highp vec4 u_halo_color = u_is_text ? u_text_halo_color : u_icon_halo_color;
-    highp float u_opacity = u_is_text ? u_text_opacity : u_icon_opacity;
-    highp float u_halo_width = u_is_text ? u_text_halo_width : u_icon_halo_width;
-    highp float u_halo_blur = u_is_text ? u_text_halo_blur : u_icon_halo_blur;
+    highp vec4 u_fill_color = u_is_text_prop ? u_text_fill_color : u_icon_fill_color;
+    highp vec4 u_halo_color = u_is_text_prop ? u_text_halo_color : u_icon_halo_color;
+    highp float u_opacity = u_is_text_prop ? u_text_opacity : u_icon_opacity;
+    highp float u_halo_width = u_is_text_prop ? u_text_halo_width : u_icon_halo_width;
+    highp float u_halo_blur = u_is_text_prop ? u_text_halo_blur : u_icon_halo_blur;
 
     #pragma mapbox: initialize highp vec4 fill_color
     #pragma mapbox: initialize highp vec4 halo_color
