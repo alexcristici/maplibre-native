@@ -13,7 +13,7 @@ struct alignas(16) SymbolDrawableUBO {
     /* 192 */ std::array<float, 2> texsize;
     /* 200 */ std::array<float, 2> texsize_icon;
     
-    /* 208 */ /*bool*/ int is_text;
+    /* 208 */ /*bool*/ int is_text_prop;
     /* 212 */ /*bool*/ int rotate_symbol;
     /* 216 */ /*bool*/ int pitch_with_map;
     /* 220 */ /*bool*/ int is_size_zoom_constant;

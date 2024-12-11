@@ -166,7 +166,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             /* .texsize = */ toArray(getTexSize(drawable, idSymbolImageTexture)),
             /* .texsize_icon = */ toArray(getTexSize(drawable, idSymbolImageIconTexture)),
 
-            /* .is_text = */ isText,
+            /* .is_text_prop = */ isText,
             /* .rotate_symbol = */ rotateInShader,
             /* .pitch_with_map = */ (symbolData.pitchAlignment == style::AlignmentType::Map),
             /* .is_size_zoom_constant = */ size.isZoomConstant,

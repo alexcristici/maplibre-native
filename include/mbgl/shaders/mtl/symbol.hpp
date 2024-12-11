@@ -17,7 +17,7 @@ struct alignas(16) SymbolDrawableUBO {
     /* 192 */ float2 texsize;
     /* 200 */ float2 texsize_icon;
     
-    /* 208 */ /*bool*/ int is_text;
+    /* 208 */ /*bool*/ int is_text_prop;
     /* 212 */ /*bool*/ int rotate_symbol;
     /* 216 */ /*bool*/ int pitch_with_map;
     /* 220 */ /*bool*/ int is_size_zoom_constant;
@@ -150,7 +150,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
     size *= perspective_ratio;
 
-    const float fontScale = drawable.is_text ? size / 24.0 : size;
+    const float fontScale = drawable.is_text_prop ? size / 24.0 : size;
 
     float symbol_rotation = 0.0;
     if (drawable.rotate_symbol) {
@@ -316,7 +316,7 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
     size *= perspective_ratio;
 
-    const float fontScale = drawable.is_text ? size / 24.0 : size;
+    const float fontScale = drawable.is_text_prop ? size / 24.0 : size;
 
     float symbol_rotation = 0.0;
     if (drawable.rotate_symbol) {
