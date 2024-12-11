@@ -92,7 +92,7 @@ public:
 
     void execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) override {
         auto& layerUniforms = layerGroup.mutableUniformBuffers();
-        layerUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
+        layerUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context, true, true);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
         assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
@@ -106,7 +106,7 @@ public:
             /* .width = */ nullptr,
             /* .floorWidth = */ nullptr,
         };
-        layerUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
+        layerUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context, true, true);
     }
 
 private:
