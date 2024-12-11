@@ -11,14 +11,15 @@ layout (std140) uniform GlobalPaintParamsUBO {
     highp float u_symbol_fade_change;
     highp float u_aspect_ratio;
     highp float u_pixel_ratio;
-    highp float global_pad1, global_pad2;
+    lowp float global_pad1;
+    lowp float global_pad2;
 };
 
-layout (std140) uniform CollisionUBO {
+layout (std140) uniform CollisionDrawableUBO {
     highp mat4 u_matrix;
     highp vec2 u_extrude_scale;
     highp float u_overscale_factor;
-    highp float pad1;
+    lowp float drawable_pad1;
 };
 
 out float v_placed;

@@ -14,8 +14,6 @@ enum class BuiltIn {
     CircleShader,
     CollisionBoxShader,
     CollisionCircleShader,
-    CommonShader,
-    CommonTexturedShader,
     DebugShader,
     FillShader,
     FillOutlineShader,

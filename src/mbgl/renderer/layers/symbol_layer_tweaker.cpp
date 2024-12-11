@@ -190,7 +190,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             /* .is_text = */ isText,
             /* .is_halo = */ symbolData.isHalo,
             /* .gamma_scale= */ gammaScale,
-            /* .padding = */ 0,
+            /* .pad1 = */ 0,
         };
 
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN

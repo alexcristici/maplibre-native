@@ -31,7 +31,6 @@ enum {
 
 enum {
     idCustomSymbolDrawableUBO = globalUBOCount,
-    idCustomSymbolParametersUBO,
     customSymbolDrawableUBOCount
 };
 
