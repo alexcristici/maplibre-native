@@ -64,6 +64,7 @@ const std::vector<TextureInfo> ShaderInfo<BuiltIn::CircleShader, gfx::Backend::T
 const std::vector<UniformBlockInfo> ShaderInfo<BuiltIn::CollisionBoxShader, gfx::Backend::Type::OpenGL>::uniformBlocks =
     {
         UniformBlockInfo{"CollisionDrawableUBO", idCollisionDrawableUBO},
+        UniformBlockInfo{"CollisionTilePropsUBO", idCollisionTilePropsUBO},
 };
 const std::vector<AttributeInfo> ShaderInfo<BuiltIn::CollisionBoxShader, gfx::Backend::Type::OpenGL>::attributes = {
     AttributeInfo{"a_pos", idCollisionPosVertexAttribute},
@@ -78,6 +79,7 @@ const std::vector<TextureInfo> ShaderInfo<BuiltIn::CollisionBoxShader, gfx::Back
 const std::vector<UniformBlockInfo>
     ShaderInfo<BuiltIn::CollisionCircleShader, gfx::Backend::Type::OpenGL>::uniformBlocks = {
         UniformBlockInfo{"CollisionDrawableUBO", idCollisionDrawableUBO},
+        UniformBlockInfo{"CollisionTilePropsUBO", idCollisionTilePropsUBO},
 };
 const std::vector<AttributeInfo> ShaderInfo<BuiltIn::CollisionCircleShader, gfx::Backend::Type::OpenGL>::attributes = {
     AttributeInfo{"a_pos", idCollisionPosVertexAttribute},
@@ -256,6 +258,7 @@ const std::vector<TextureInfo> ShaderInfo<BuiltIn::HeatmapTextureShader, gfx::Ba
 const std::vector<UniformBlockInfo>
     ShaderInfo<BuiltIn::HillshadePrepareShader, gfx::Backend::Type::OpenGL>::uniformBlocks = {
         UniformBlockInfo{"HillshadePrepareDrawableUBO", idHillshadePrepareDrawableUBO},
+        UniformBlockInfo{"HillshadePrepareTilePropsUBO", idHillshadePrepareTilePropsUBO},
 };
 const std::vector<AttributeInfo> ShaderInfo<BuiltIn::HillshadePrepareShader, gfx::Backend::Type::OpenGL>::attributes = {
     AttributeInfo{"a_pos", idHillshadePosVertexAttribute},

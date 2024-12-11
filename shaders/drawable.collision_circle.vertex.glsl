@@ -17,6 +17,9 @@ layout (std140) uniform GlobalPaintParamsUBO {
 
 layout (std140) uniform CollisionDrawableUBO {
     highp mat4 u_matrix;
+};
+
+layout (std140) uniform CollisionTilePropsUBO {
     highp vec2 u_extrude_scale;
     highp float u_overscale_factor;
     lowp float drawable_pad1;
