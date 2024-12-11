@@ -118,7 +118,7 @@ void CircleLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
     const size_t drawableUBOVectorSize = sizeof(CircleDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
-        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);
     } else {
         drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
     }

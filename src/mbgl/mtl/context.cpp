@@ -201,8 +201,7 @@ gfx::UniqueDrawableBuilder Context::createDrawableBuilder(std::string name) {
 
 gfx::UniformBufferPtr Context::createUniformBuffer(const void* data,
                                                    std::size_t size,
-                                                   bool persistent,
-                                                   [[maybe_unused]] bool ssbo) {
+                                                   bool persistent) {
     return std::make_shared<UniformBuffer>(
         createBuffer(data, size, gfx::BufferUsageType::StaticDraw, /*isIndexBuffer=*/false, persistent));
 }

@@ -155,14 +155,14 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
 #if MLN_RENDER_BACKEND_METAL || MLN_RENDER_BACKEND_VULKAN
     const size_t drawableUBOVectorSize = sizeof(FillExtrusionDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
-        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+        drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);
     } else {
         drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
     }
 
     const size_t tilePropsUBOVectorSize = sizeof(FillExtrusionTilePropsUBO) * tilePropsUBOVector.size();
     if (!tilePropsUniformBuffer || tilePropsUniformBuffer->getSize() < tilePropsUBOVectorSize) {
-        tilePropsUniformBuffer = context.createUniformBuffer(tilePropsUBOVector.data(), tilePropsUBOVectorSize, false, true);
+        tilePropsUniformBuffer = context.createUniformBuffer(tilePropsUBOVector.data(), tilePropsUBOVectorSize, false);
     } else {
         tilePropsUniformBuffer->update(tilePropsUBOVector.data(), tilePropsUBOVectorSize);
     }
