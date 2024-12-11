@@ -58,7 +58,7 @@ struct alignas(16) BackgroundPatternPropsUBO {
 };
 static_assert(sizeof(BackgroundPatternPropsUBO) == 4 * 16);
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
 
 union BackgroundDrawableUnionUBO {
     BackgroundDrawableUBO backgroundDrawableUBO;

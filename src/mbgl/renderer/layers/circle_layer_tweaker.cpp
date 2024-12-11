@@ -58,7 +58,7 @@ void CircleLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
     layerUniforms.set(idCircleEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     int i = 0;
     std::vector<CircleDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
 #endif
@@ -87,9 +87,9 @@ void CircleLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         const auto extrudeScale = pitchWithMap ? std::array<float, 2>{pixelsToTileUnits, pixelsToTileUnits}
                                                : parameters.pixelsToGLUnits;
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawableUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         const CircleDrawableUBO drawableUBO = {
 #endif
         
@@ -107,15 +107,15 @@ void CircleLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             /* .pad2 = */ 0,
             /* .pad3 = */ 0
         };
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawable.setUBOIndex(i++);
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idCircleDrawableUBO, &drawableUBO, context);
 #endif
     });
         
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     const size_t drawableUBOVectorSize = sizeof(CircleDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);

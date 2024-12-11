@@ -55,7 +55,7 @@ void HillshadeLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParam
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
     layerUniforms.set(idHillshadeEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     int i = 0;
     std::vector<HillshadeDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
     std::vector<HillshadeTilePropsUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
@@ -71,33 +71,33 @@ void HillshadeLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParam
         const auto matrix = getTileMatrix(
             tileID, parameters, {0.f, 0.f}, TranslateAnchorType::Viewport, false, false, drawable, true);
         
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawableUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         const HillshadeDrawableUBO drawableUBO = {
 #endif
             /* .matrix = */ util::cast<float>(matrix)
         };
             
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         tilePropsUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         const HillshadeTilePropsUBO tilePropsUBO = {
 #endif
             /* .latrange = */ getLatRange(tileID),
             /* .light = */ getLight(parameters, evaluated)
         };
             
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawable.setUBOIndex(i++);
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idHillshadeDrawableUBO, &drawableUBO, parameters.context);
         drawableUniforms.createOrUpdate(idHillshadeTilePropsUBO, &tilePropsUBO, parameters.context);
 #endif
     });
             
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     const size_t drawableUBOVectorSize = sizeof(HillshadeDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);

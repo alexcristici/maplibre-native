@@ -64,7 +64,7 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
     const auto defPattern = mbgl::Faded<expression::Image>{"", ""};
     const auto fillPatternValue = evaluated.get<FillExtrusionPattern>().constantOr(defPattern);
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     int i = 0;
     std::vector<FillExtrusionDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
     std::vector<FillExtrusionTilePropsUBO> tilePropsUBOVector(layerGroup.getDrawableCount());
@@ -112,9 +112,9 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
             binders->setPatternParameters(patternPosA, patternPosB, crossfade);
         }
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawableUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         const FillExtrusionDrawableUBO drawableUBO = {
 #endif
             /* .matrix = */ util::cast<float>(matrix),
@@ -131,9 +131,9 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
             /* .pad1 = */ 0
         };
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         tilePropsUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         const FillExtrusionTilePropsUBO tilePropsUBO = {
 #endif
             /* pattern_from = */ patternPosA ? util::cast<float>(patternPosA->tlbr()) : std::array<float, 4>{0},
@@ -143,16 +143,16 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
             /* .pad2 = */ 0
         };
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawable.setUBOIndex(i++);
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idFillExtrusionDrawableUBO, &drawableUBO, context);
         drawableUniforms.createOrUpdate(idFillExtrusionTilePropsUBO, &tilePropsUBO, context);
 #endif
     });
             
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     const size_t drawableUBOVectorSize = sizeof(FillExtrusionDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);

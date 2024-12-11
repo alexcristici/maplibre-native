@@ -46,7 +46,7 @@ void HeatmapLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamet
     auto& layerUniforms = layerGroup.mutableUniformBuffers();
     layerUniforms.set(idHeatmapEvaluatedPropsUBO, evaluatedPropsUniformBuffer);
 
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     int i = 0;
     std::vector<HeatmapDrawableUBO> drawableUBOVector(layerGroup.getDrawableCount());
 #endif
@@ -70,9 +70,9 @@ void HeatmapLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamet
         const auto matrix = getTileMatrix(
             tileID, parameters, {0.f, 0.f}, TranslateAnchorType::Viewport, nearClipped, inViewportPixelUnits, drawable);
         
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawableUBOVector[i] = {
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         const HeatmapDrawableUBO drawableUBO = {
 #endif
             /* .matrix = */ util::cast<float>(matrix),
@@ -82,15 +82,15 @@ void HeatmapLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamet
             /* .radius_t = */ std::get<0>(binders->get<HeatmapRadius>()->interpolationFactor(zoom)),
             /* .pad1 = */ 0
         };
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
         drawable.setUBOIndex(i++);
-#elif MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN
+#else
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idHeatmapDrawableUBO, &drawableUBO, context);
 #endif
     });
         
-#if MLN_RENDER_BACKEND_METAL
+#if MLN_UBO_CONSOLIDATION
     const size_t drawableUBOVectorSize = sizeof(HeatmapDrawableUBO) * drawableUBOVector.size();
     if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
         drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false);
