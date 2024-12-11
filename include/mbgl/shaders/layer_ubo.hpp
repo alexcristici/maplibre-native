@@ -54,7 +54,9 @@ enum {
 #if MLN_RENDER_BACKEND_VULKAN
     PlatformParamsUBO,
 #endif
-    globalUBOCount
+    globalUBOCount,
+    idGlobalUBOIndex = globalUBOCount,
+    globalUBOCountWithIndex,
 };
 
 } // namespace shaders

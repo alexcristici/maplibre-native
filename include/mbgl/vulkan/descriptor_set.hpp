@@ -13,7 +13,7 @@ class CommandEncoder;
 enum class DescriptorSetType : uint8_t {
     Global,
     Layer,
-    DrawableUniform,
+    // DrawableUniform,
     DrawableImage,
     Count,
 };
@@ -72,7 +72,10 @@ public:
     UniformDescriptorSet(Context& context_, DescriptorSetType type_);
     virtual ~UniformDescriptorSet() = default;
 
-    void update(const gfx::UniformBufferArray& uniforms, uint32_t uniformStartIndex, uint32_t descriptorBindingCount);
+    void update(const gfx::UniformBufferArray& uniforms,
+                uint32_t uniformStartIndex,
+                uint32_t descriptorBindingCount,
+                uint32_t ssboCount);
 };
 
 class ImageDescriptorSet : public DescriptorSet {
