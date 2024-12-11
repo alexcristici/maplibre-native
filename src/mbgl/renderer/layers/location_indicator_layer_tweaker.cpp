@@ -31,7 +31,7 @@ void LocationIndicatorLayerTweaker::execute(LayerGroupBase& layerGroup, const Pa
                     /* .matrix = */ util::cast<float>(projectionCircle),
                     /* .color = */ props.evaluated.get<AccuracyRadiusColor>()
                 };
-                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawable, params.context);
+                drawableUniforms.createOrUpdate(idLocationIndicatorDrawableUBO, &drawableUBO, params.context);
                 break;
             }
 
