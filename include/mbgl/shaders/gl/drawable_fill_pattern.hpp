@@ -16,8 +16,8 @@ struct ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::OpenGL> {
     highp float u_symbol_fade_change;
     highp float u_aspect_ratio;
     highp float u_pixel_ratio;
+    highp float u_map_zoom;
     lowp float global_pad1;
-    lowp float global_pad2;
 };
 
 layout (std140) uniform FillPatternDrawableUBO {
