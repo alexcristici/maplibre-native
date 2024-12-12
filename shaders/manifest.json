@@ -148,14 +148,14 @@
     },
     {
         "name": "LocationIndicatorShader",
-        "header": "drawable_location_indicator_vector",
+        "header": "drawable_location_indicator",
         "glsl_vert": "_empty.glsl",
         "glsl_frag": "_empty.glsl",
         "uses_ubos": true
     },
     {
         "name": "LocationIndicatorTexturedShader",
-        "header": "drawable_location_indicator_textured_vector",
+        "header": "drawable_location_indicator_textured",
         "glsl_vert": "_empty.glsl",
         "glsl_frag": "_empty.glsl",
         "uses_ubos": true
