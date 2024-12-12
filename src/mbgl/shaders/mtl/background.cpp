@@ -7,30 +7,33 @@ namespace shaders {
 //
 // Background
 
-const std::array<UniformBlockInfo, 2> ShaderSource<BuiltIn::BackgroundShader, gfx::Backend::Type::Metal>::uniforms = {
+using BackgroundShaderSource = ShaderSource<BuiltIn::BackgroundShader, gfx::Backend::Type::Metal>;
+
+const std::array<UniformBlockInfo, 2> BackgroundShaderSource::uniforms = {
     UniformBlockInfo{true, false, sizeof(BackgroundDrawableUBO), idBackgroundDrawableUBO},
     UniformBlockInfo{false, true, sizeof(BackgroundPropsUBO), idBackgroundPropsUBO},
 };
-const std::array<AttributeInfo, 1> ShaderSource<BuiltIn::BackgroundShader, gfx::Backend::Type::Metal>::attributes = {
+const std::array<AttributeInfo, 1> BackgroundShaderSource::attributes = {
     AttributeInfo{backgroundUBOCount + 0, gfx::AttributeDataType::Float3, idBackgroundPosVertexAttribute},
 };
-const std::array<TextureInfo, 0> ShaderSource<BuiltIn::BackgroundShader, gfx::Backend::Type::Metal>::textures = {};
+const std::array<TextureInfo, 0> BackgroundShaderSource::textures = {};
 
 //
 // Background pattern
 
-const std::array<UniformBlockInfo, 3>
-    ShaderSource<BuiltIn::BackgroundPatternShader, gfx::Backend::Type::Metal>::uniforms = {
+using BackgroundPatternShaderSource = ShaderSource<BuiltIn::BackgroundPatternShader, gfx::Backend::Type::Metal>;
+
+const std::array<UniformBlockInfo, 3>BackgroundPatternShaderSource::uniforms = {
         UniformBlockInfo{false, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
         UniformBlockInfo{true, false, sizeof(BackgroundPatternDrawableUBO), idBackgroundDrawableUBO},
         UniformBlockInfo{true, true, sizeof(BackgroundPatternPropsUBO), idBackgroundPropsUBO},
 };
-const std::array<AttributeInfo, 1>
-    ShaderSource<BuiltIn::BackgroundPatternShader, gfx::Backend::Type::Metal>::attributes = {
+const std::array<AttributeInfo, 1> BackgroundPatternShaderSource::attributes = {
         AttributeInfo{backgroundUBOCount + 0, gfx::AttributeDataType::Float3, idBackgroundPosVertexAttribute},
 };
-const std::array<TextureInfo, 1> ShaderSource<BuiltIn::BackgroundPatternShader, gfx::Backend::Type::Metal>::textures = {
-    TextureInfo{0, idBackgroundImageTexture}};
+const std::array<TextureInfo, 1> BackgroundPatternShaderSource::textures = {
+    TextureInfo{0, idBackgroundImageTexture}
+};
 
 } // namespace shaders
 } // namespace mbgl
