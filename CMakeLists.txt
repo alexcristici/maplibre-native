@@ -1312,6 +1312,7 @@ if(MLN_WITH_VULKAN)
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/circle.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/clipping_mask.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/collision.hpp
+            ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/custom_symbol_icon.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/fill.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/fill_extrusion.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/vulkan/heatmap.hpp
@@ -1351,6 +1352,7 @@ if(MLN_WITH_VULKAN)
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/circle.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/clipping_mask.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/collision.cpp
+            ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/custom_symbol_icon.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/debug.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/fill.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/vulkan/fill_extrusion.cpp
