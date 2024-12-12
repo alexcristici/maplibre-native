@@ -201,7 +201,7 @@ struct alignas(16) GPUExpression {
 
     float4 getColor(size_t index) device const { return decode_color(stops.colors[index]); }
 };
-static_assert(sizeof(GPUExpression) == 32 + (4 + 8) * maxExprStops, "wrong alignment");
+static_assert(sizeof(GPUExpression) == 32 + (4 + 8) * maxExprStops, "wrong size");
 static_assert(sizeof(GPUExpression) % 16 == 0, "wrong alignment");
 
 struct alignas(16) GlobalPaintParamsUBO {
@@ -212,7 +212,7 @@ struct alignas(16) GlobalPaintParamsUBO {
     /* 28 */ float symbol_fade_change;
     /* 32 */ float aspect_ratio;
     /* 36 */ float pixel_ratio;
-    /* 40 */ float zoom;
+    /* 40 */ float map_zoom;
     /* 44 */ float pad1;
     /* 48 */
 };

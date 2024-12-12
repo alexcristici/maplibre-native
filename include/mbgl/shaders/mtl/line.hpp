@@ -236,21 +236,21 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
-    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.zoom) : props.gapwidth) / 2;
+    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.map_zoom) : props.gapwidth) / 2;
 #else
     const auto gapwidth = unpack_mix_float(vertx.gapwidth, drawable.gapwidth_t) / 2;
 #endif
 
 #if defined(HAS_UNIFORM_u_offset)
     const auto exprOffset = (props.expressionMask & LineExpressionMask::Offset);
-    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.zoom) : props.offset) * -1;
+    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.map_zoom) : props.offset) * -1;
 #else
     const auto offset   = unpack_mix_float(vertx.offset, drawable.offset_t) * -1;
 #endif
 
 #if defined(HAS_UNIFORM_u_width)
     const auto exprWidth = (props.expressionMask & LineExpressionMask::Width);
-    const auto width    = exprWidth ? expr.width.eval(paintParams.zoom) : props.width;
+    const auto width    = exprWidth ? expr.width.eval(paintParams.map_zoom) : props.width;
 #else
     const auto width    = unpack_mix_float(vertx.width, drawable.width_t);
 #endif
@@ -319,21 +319,21 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_color)
     const auto exprColor = (props.expressionMask & LineExpressionMask::Color);
-    const auto color     = exprColor ? expr.color.evalColor(paintParams.zoom) : props.color;
+    const auto color     = exprColor ? expr.color.evalColor(paintParams.map_zoom) : props.color;
 #else
     const float4 color = in.color;
 #endif
 
 #if defined(HAS_UNIFORM_u_blur)
     const auto exprBlur = (props.expressionMask & LineExpressionMask::Blur);
-    const float blur = exprBlur ? expr.blur.eval(paintParams.zoom) : props.blur;
+    const float blur = exprBlur ? expr.blur.eval(paintParams.map_zoom) : props.blur;
 #else
     const float blur = in.blur;
 #endif
 
 #if defined(HAS_UNIFORM_u_opacity)
     const auto exprOpacity = (props.expressionMask & LineExpressionMask::Opacity);
-    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.zoom) : props.opacity;
+    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.map_zoom) : props.opacity;
 #else
     const float opacity = in.opacity;
 #endif
@@ -590,21 +590,21 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
-    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.zoom) : props.gapwidth) / 2;
+    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.map_zoom) : props.gapwidth) / 2;
 #else
     const auto gapwidth = unpack_mix_float(vertx.gapwidth, drawable.gapwidth_t) / 2;
 #endif
 
 #if defined(HAS_UNIFORM_u_offset)
     const auto exprOffset = (props.expressionMask & LineExpressionMask::Offset);
-    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.zoom) : props.offset) * -1;
+    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.map_zoom) : props.offset) * -1;
 #else
     const auto offset   = unpack_mix_float(vertx.offset, drawable.offset_t) * -1;
 #endif
 
 #if defined(HAS_UNIFORM_u_width)
     const auto exprWidth = (props.expressionMask & LineExpressionMask::Width);
-    const auto width    = exprWidth ? expr.width.eval(paintParams.zoom) : props.width;
+    const auto width    = exprWidth ? expr.width.eval(paintParams.map_zoom) : props.width;
 #else
     const auto width    = unpack_mix_float(vertx.width, drawable.width_t);
 #endif
@@ -686,14 +686,14 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_blur)
     const auto exprBlur = (props.expressionMask & LineExpressionMask::Blur);
-    const float blur = exprBlur ? expr.blur.eval(paintParams.zoom) : props.blur;
+    const float blur = exprBlur ? expr.blur.eval(paintParams.map_zoom) : props.blur;
 #else
     const float blur = in.blur;
 #endif
 
 #if defined(HAS_UNIFORM_u_opacity)
     const auto exprOpacity = (props.expressionMask & LineExpressionMask::Opacity);
-    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.zoom) : props.opacity;
+    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.map_zoom) : props.opacity;
 #else
     const float opacity = in.opacity;
 #endif
@@ -827,28 +827,28 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
-    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.zoom) : props.gapwidth) / 2.0;
+    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.map_zoom) : props.gapwidth) / 2.0;
 #else
     const auto gapwidth = unpack_mix_float(vertx.gapwidth, drawable.gapwidth_t) / 2.0;
 #endif
 
 #if defined(HAS_UNIFORM_u_offset)
     const auto exprOffset = (props.expressionMask & LineExpressionMask::Offset);
-    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.zoom) : props.offset) * -1.0;
+    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.map_zoom) : props.offset) * -1.0;
 #else
     const auto offset   = unpack_mix_float(vertx.offset, drawable.offset_t) * -1.0;
 #endif
 
 #if defined(HAS_UNIFORM_u_width)
     const auto exprWidth = (props.expressionMask & LineExpressionMask::Width);
-    const auto width    = exprWidth ? expr.width.eval(paintParams.zoom) : props.width;
+    const auto width    = exprWidth ? expr.width.eval(paintParams.map_zoom) : props.width;
 #else
     const auto width    = unpack_mix_float(vertx.width, drawable.width_t);
 #endif
 
 #if defined(HAS_UNIFORM_u_floorwidth)
     const auto exprFloorWidth = (props.expressionMask & LineExpressionMask::FloorWidth);
-    const auto floorwidth = exprFloorWidth ? expr.floorwidth.eval(paintParams.zoom) : props.floorwidth;
+    const auto floorwidth = exprFloorWidth ? expr.floorwidth.eval(paintParams.map_zoom) : props.floorwidth;
 #else
     const auto floorwidth = unpack_mix_float(vertx.floorwidth, drawable.floorwidth_t);
 #endif
@@ -931,28 +931,28 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_color)
     const auto exprColor = (props.expressionMask & LineExpressionMask::Color);
-    const auto color     = exprColor ? expr.color.evalColor(paintParams.zoom) : props.color;
+    const auto color     = exprColor ? expr.color.evalColor(paintParams.map_zoom) : props.color;
 #else
     const float4 color = in.color;
 #endif
 
 #if defined(HAS_UNIFORM_u_blur)
     const auto exprBlur = (props.expressionMask & LineExpressionMask::Blur);
-    const float blur = exprBlur ? expr.blur.eval(paintParams.zoom) : props.blur;
+    const float blur = exprBlur ? expr.blur.eval(paintParams.map_zoom) : props.blur;
 #else
     const float blur = in.blur;
 #endif
 
 #if defined(HAS_UNIFORM_u_opacity)
     const auto exprOpacity = (props.expressionMask & LineExpressionMask::Opacity);
-    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.zoom) : props.opacity;
+    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.map_zoom) : props.opacity;
 #else
     const float opacity = in.opacity;
 #endif
 
 #if defined(HAS_UNIFORM_u_floorwidth)
     const auto exprFloorWidth = (props.expressionMask & LineExpressionMask::FloorWidth);
-    const auto floorwidth = exprFloorWidth ? expr.floorwidth.eval(paintParams.zoom) : props.floorwidth;
+    const auto floorwidth = exprFloorWidth ? expr.floorwidth.eval(paintParams.map_zoom) : props.floorwidth;
 #else
     const auto floorwidth = in.floorwidth;
 #endif
