@@ -131,7 +131,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 #endif
                     /* .matrix=*/util::cast<float>(matrix),
   
-                    /* .color_t = */ std::get<0>(binders->get<FillOutlineColor>()->interpolationFactor(zoom)),
+                    /* .outline_color_t = */ std::get<0>(binders->get<FillOutlineColor>()->interpolationFactor(zoom)),
                     /* .opacity_t = */ std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
                     /* .pad1 = */ 0,
                     /* .pad2 = */ 0
