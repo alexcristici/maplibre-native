@@ -38,7 +38,6 @@ layout(location = 2) in vec2 in_radius;
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform HeatmapDrawableUBO {
     mat4 matrix;
     float extrude_scale;
-    float pad1;
     // Interpolations
     float weight_t;
     float radius_t;
