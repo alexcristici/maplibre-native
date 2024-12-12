@@ -301,7 +301,6 @@ void RenderFillLayer::update(gfx::ShaderRegistry& shaders,
                              const std::shared_ptr<UpdateParameters>&,
                              const RenderTree&,
                              UniqueChangeRequestVec& changes) {
-
     if (!renderTiles || renderTiles->empty()) {
         removeAllDrawables();
         return;
