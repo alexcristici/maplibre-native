@@ -80,19 +80,19 @@ layout(set = GLOBAL_SET_INDEX, binding = 0) uniform GlobalPaintParamsUBO {
     float symbol_fade_change;
     float aspect_ratio;
     float pixel_ratio;
-    float zoom;
+    float map_zoom;
     float pad1;
-} global;
+} paintParams;
 
 #ifdef USE_SURFACE_TRANSFORM
-layout(set = GLOBAL_SET_INDEX, binding = 1) uniform PlatformParamsUBO {
+layout(set = GLOBAL_SET_INDEX, binding = 1) uniform GlobalPlatformParamsUBO {
     mat2 rotation;
-} platform;
+} platformParams;
 #endif
 
 void applySurfaceTransform() {
 #ifdef USE_SURFACE_TRANSFORM
-    gl_Position.xy = platform.rotation * gl_Position.xy;
+    gl_Position.xy = platformParams.rotation * gl_Position.xy;
 #endif
 
     gl_Position.y *= -1.0;
@@ -118,9 +118,9 @@ layout(set = GLOBAL_SET_INDEX, binding = 0) uniform GlobalPaintParamsUBO {
     float symbol_fade_change;
     float aspect_ratio;
     float pixel_ratio;
-    float zoom;
+    float map_zoom;
     float pad1;
-} global;
+} paintParams;
 
 )";
 };

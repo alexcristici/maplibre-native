@@ -12,9 +12,9 @@ const std::array<UniformBlockInfo, 2> HeatmapShaderSource::uniforms = {
     UniformBlockInfo{true, true, sizeof(HeatmapEvaluatedPropsUBO), idHeatmapEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 3> HeatmapShaderSource::attributes = {
-    AttributeInfo{heatmapUBOCount + 0, gfx::AttributeDataType::Short2, idHeatmapPosVertexAttribute},
-    AttributeInfo{heatmapUBOCount + 1, gfx::AttributeDataType::Float2, idHeatmapWeightVertexAttribute},
-    AttributeInfo{heatmapUBOCount + 2, gfx::AttributeDataType::Float2, idHeatmapRadiusVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idHeatmapPosVertexAttribute},
+    AttributeInfo{1, gfx::AttributeDataType::Float2, idHeatmapWeightVertexAttribute},
+    AttributeInfo{2, gfx::AttributeDataType::Float2, idHeatmapRadiusVertexAttribute},
 };
 const std::array<TextureInfo, 0> HeatmapShaderSource::textures = {};
 

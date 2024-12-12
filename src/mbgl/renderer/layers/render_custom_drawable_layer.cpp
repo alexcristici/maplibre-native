@@ -64,7 +64,9 @@ void RenderCustomDrawableLayer::update(gfx::ShaderRegistry& shaders,
                                        const TransformState& state,
                                        const std::shared_ptr<UpdateParameters>& updateParameters,
                                        const RenderTree& renderTree,
-                                       UniqueChangeRequestVec& changes) {
+                                       UniqueChangeRequestVec& changes) {    
+    return;
+    
     // check if host changed and update
     bool hostChanged = (host != impl(baseImpl).host);
     if (hostChanged) {

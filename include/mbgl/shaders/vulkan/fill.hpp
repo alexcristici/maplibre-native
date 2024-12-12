@@ -29,12 +29,12 @@ layout(location = 2) in vec2 in_opacity;
 
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillDrawableUBO {
     mat4 matrix;
-} drawable;
-
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillInterpolateUBO {
+    // Interpolations
     float color_t;
     float opacity_t;
-} interp;
+    float pad1;
+    float pad2;
+} drawable;
 
 #if !defined(HAS_UNIFORM_u_color)
 layout(location = 0) out vec4 frag_color;
@@ -47,11 +47,11 @@ layout(location = 1) out lowp float frag_opacity;
 void main() {
 
 #if !defined(HAS_UNIFORM_u_color)
-    frag_color = vec4(unpack_mix_color(in_color, interp.color_t));
+    frag_color = vec4(unpack_mix_color(in_color, drawable.color_t));
 #endif
 
 #if !defined(HAS_UNIFORM_u_opacity)
-    frag_opacity = unpack_mix_float(in_opacity, interp.opacity_t);
+    frag_opacity = unpack_mix_float(in_opacity, drawable.opacity_t);
 #endif
 
     gl_Position = drawable.matrix * vec4(in_position, 0.0, 1.0);
@@ -120,14 +120,14 @@ layout(location = 1) in vec4 in_color;
 layout(location = 2) in vec2 in_opacity;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlineDrawableUBO {
     mat4 matrix;
-} drawable;
-
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillInterpolateUBO {
-    float color_t;
+    // Interpolations
+    float outline_color_t;
     float opacity_t;
-} interp;
+    float pad1;
+    float pad2;
+} drawable;
 
 #if !defined(HAS_UNIFORM_u_outline_color)
 layout(location = 0) out vec4 frag_color;
@@ -142,17 +142,17 @@ layout(location = 2) out vec2 frag_position;
 void main() {
 
 #if !defined(HAS_UNIFORM_u_outline_color)
-    frag_color = vec4(unpack_mix_color(in_color, interp.color_t));
+    frag_color = vec4(unpack_mix_color(in_color, drawable.outline_color_t));
 #endif
 
 #if !defined(HAS_UNIFORM_u_opacity)
-    frag_opacity = unpack_mix_float(in_opacity, interp.opacity_t);
+    frag_opacity = unpack_mix_float(in_opacity, drawable.opacity_t);
 #endif
 
     gl_Position = drawable.matrix * vec4(in_position, 0.0, 1.0);
     applySurfaceTransform();
 
-    frag_position = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * global.world_size;
+    frag_position = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * paintParams.world_size;
 }
 )";
 
@@ -234,21 +234,20 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillPatternDrawableUBO
     mat4 matrix;
     vec2 pixel_coord_upper;
     vec2 pixel_coord_lower;
-    vec2 texsize;
     float tile_ratio;
-    float pad;
+    // Interpolations
+    float pattern_from_t;
+    float pattern_to_t;
+    float opacity_t;
 } drawable;
 
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillPatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
-} tile;
-
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 2) uniform FillPatternInterpolateUBO {
-    float pattern_from_t;
-    float pattern_to_t;
-    float opacity_t;
-} interp;
+    vec2 texsize;
+    float pad1;
+    float pad2;
+} tileProps;
 
 layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
     vec4 color;
@@ -277,19 +276,19 @@ layout(location = 4) out lowp float frag_opacity;
 void main() {
 
 #if defined(HAS_UNIFORM_u_pattern_from)
-    const vec4 frag_pattern_from = tile.pattern_from;
+    const vec4 frag_pattern_from = tileProps.pattern_from;
 #else
     frag_pattern_from = in_pattern_from;
 #endif
 
 #if defined(HAS_UNIFORM_u_pattern_to)
-    const vec4 frag_pattern_to = tile.pattern_to;
+    const vec4 frag_pattern_to = tileProps.pattern_to;
 #else
     frag_pattern_to = in_pattern_to;
 #endif
 
 #if !defined(HAS_UNIFORM_u_opacity)
-    frag_opacity = unpack_mix_float(in_opacity, interp.opacity_t);
+    frag_opacity = unpack_mix_float(in_opacity, drawable.opacity_t);
 #endif
 
     const vec2 pattern_tl_a = frag_pattern_from.xy; 
@@ -297,7 +296,7 @@ void main() {
     const vec2 pattern_tl_b = frag_pattern_to.xy; 
     const vec2 pattern_br_b = frag_pattern_to.zw;
 
-    const float pixelRatio = global.pixel_ratio;
+    const float pixelRatio = paintParams.pixel_ratio;
     const float tileZoomRatio = drawable.tile_ratio;
     const float fromScale = props.from_scale;
     const float toScale = props.to_scale;
@@ -332,19 +331,13 @@ layout(location = 4) in lowp float frag_opacity;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillPatternDrawableUBO {
-    mat4 matrix;
-    vec2 pixel_coord_upper;
-    vec2 pixel_coord_lower;
-    vec2 texsize;
-    float tile_ratio;
-    float pad;
-} drawable;
-
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillPatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
-} tile;
+    vec2 texsize;
+    float pad1;
+    float pad2;
+} tileProps;
 
 layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
     vec4 color;
@@ -365,13 +358,13 @@ void main() {
 #endif
 
 #if defined(HAS_UNIFORM_u_pattern_from)
-    const vec4 pattern_from = tile.pattern_from;
+    const vec4 pattern_from = tileProps.pattern_from;
 #else
     const vec4 pattern_from = frag_pattern_from;
 #endif
 
 #if defined(HAS_UNIFORM_u_pattern_to)
-    const vec4 pattern_to = tile.pattern_to;
+    const vec4 pattern_to = tileProps.pattern_to;
 #else
     const vec4 pattern_to = frag_pattern_to;
 #endif
@@ -388,11 +381,11 @@ void main() {
     const vec2 pattern_br_b = pattern_to.zw;
 
     const vec2 imagecoord = mod(frag_pos_a, 1.0);
-    const vec2 pos = mix(pattern_tl_a / drawable.texsize, pattern_br_a / drawable.texsize, imagecoord);
+    const vec2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
     const vec4 color1 = texture(image0_sampler, pos);
 
     const vec2 imagecoord_b = mod(frag_pos_b, 1.0);
-    const vec2 pos2 = mix(pattern_tl_b / drawable.texsize, pattern_br_b / drawable.texsize, imagecoord_b);
+    const vec2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
     const vec4 color2 = texture(image0_sampler, pos2);
 
     out_color = mix(color1, color2, props.fade) * opacity;
@@ -429,21 +422,20 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlinePatternDraw
     mat4 matrix;
     vec2 pixel_coord_upper;
     vec2 pixel_coord_lower;
-    vec2 texsize;
     float tile_ratio;
-    float pad;
+    // Interpolations
+    float pattern_from_t;
+    float pattern_to_t;
+    float opacity_t;
 } drawable;
 
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillOutlinePatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
-} tile;
-
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 2) uniform FillOutlinePatternInterpolateUBO {
-    float pattern_from_t;
-    float pattern_to_t;
-    float opacity_t;
-} interp;
+    vec2 texsize;
+    float pad1;
+    float pad2;
+} tileProps;
 
 layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
     vec4 color;
@@ -473,19 +465,19 @@ layout(location = 5) out lowp float frag_opacity;
 void main() {
 
 #if defined(HAS_UNIFORM_u_pattern_from)
-    const vec4 frag_pattern_from = tile.pattern_from;
+    const vec4 frag_pattern_from = tileProps.pattern_from;
 #else
     frag_pattern_from = in_pattern_from;
 #endif
 
 #if defined(HAS_UNIFORM_u_pattern_to)
-    const vec4 frag_pattern_to = tile.pattern_to;
+    const vec4 frag_pattern_to = tileProps.pattern_to;
 #else
     frag_pattern_to = in_pattern_to;
 #endif
 
 #if !defined(HAS_UNIFORM_u_opacity)
-    frag_opacity = unpack_mix_float(in_opacity, interp.opacity_t);
+    frag_opacity = unpack_mix_float(in_opacity, drawable.opacity_t);
 #endif
 
     const vec2 pattern_tl_a = frag_pattern_from.xy; 
@@ -493,7 +485,7 @@ void main() {
     const vec2 pattern_tl_b = frag_pattern_to.xy; 
     const vec2 pattern_br_b = frag_pattern_to.zw;
 
-    const float pixelRatio = global.pixel_ratio;
+    const float pixelRatio = paintParams.pixel_ratio;
     const float tileZoomRatio = drawable.tile_ratio;
     const float fromScale = props.from_scale;
     const float toScale = props.to_scale;
@@ -507,7 +499,7 @@ void main() {
 
     frag_pos_a = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, position2),
     frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, position2),
-    frag_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * global.world_size;
+    frag_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * paintParams.world_size;
 }
 )";
 
@@ -531,19 +523,13 @@ layout(location = 5) in lowp float frag_opacity;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlinePatternDrawableUBO {
-    mat4 matrix;
-    vec2 pixel_coord_upper;
-    vec2 pixel_coord_lower;
-    vec2 texsize;
-    float tile_ratio;
-    float pad;
-} drawable;
-
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillOutlinePatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
-} tile;
+    vec2 texsize;
+    float pad1;
+    float pad2;
+} tileProps;
 
 layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
     vec4 color;
@@ -564,13 +550,13 @@ void main() {
 #endif
 
 #if defined(HAS_UNIFORM_u_pattern_from)
-    const vec4 pattern_from = tile.pattern_from;
+    const vec4 pattern_from = tileProps.pattern_from;
 #else
     const vec4 pattern_from = frag_pattern_from;
 #endif
 
 #if defined(HAS_UNIFORM_u_pattern_to)
-    const vec4 pattern_to = tile.pattern_to;
+    const vec4 pattern_to = tileProps.pattern_to;
 #else
     const vec4 pattern_to = frag_pattern_to;
 #endif
@@ -619,7 +605,9 @@ layout(location = 1) in uvec4 in_data;
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlineTriangulatedDrawableUBO {
     mat4 matrix;
     float ratio;
-    float pad1, pad2, pad3;
+    float pad1,
+    float pad2
+    float pad3;
 } drawable;
 
 layout(location = 0) out float frag_width2;
@@ -657,7 +645,7 @@ void main() {
 
     // calculate how much the perspective view squishes or stretches the extrude
     float extrude_length_without_perspective = length(dist);
-    float extrude_length_with_perspective = length(projected_extrude.xy / gl_Position.w * global.units_to_pixels);
+    float extrude_length_with_perspective = length(projected_extrude.xy / gl_Position.w * paintParams.units_to_pixels);
 
     frag_width2 = outset;
     frag_gamma_scale = extrude_length_without_perspective / extrude_length_with_perspective;

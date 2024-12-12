@@ -11,7 +11,7 @@ const std::array<UniformBlockInfo, 1> DebugShaderSource::uniforms = {
     UniformBlockInfo{true, true, sizeof(DebugUBO), idDebugUBO},
 };
 const std::array<AttributeInfo, 1> DebugShaderSource::attributes = {
-    AttributeInfo{debugUBOCount + 0, gfx::AttributeDataType::Short2, idDebugPosVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idDebugPosVertexAttribute},
 };
 const std::array<TextureInfo, 1> DebugShaderSource::textures = {
     TextureInfo{0, idDebugOverlayTexture},

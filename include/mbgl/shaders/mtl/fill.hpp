@@ -177,8 +177,7 @@ struct FragmentStage {
 
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
-                                device const FillDrawableUnionUBO* drawableVector [[buffer(idFillDrawableUBO)]],
-                                device const FillEvaluatedPropsUBO& props [[buffer(idFillEvaluatedPropsUBO)]]) {
+                                device const FillDrawableUnionUBO* drawableVector [[buffer(idFillDrawableUBO)]]) {
 
     device const FillDrawableUBO& drawable = drawableVector[uboIndex].fillDrawableUBO;
 
@@ -248,8 +247,7 @@ struct FragmentStage {
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
                                 device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
-                                device const FillDrawableUnionUBO* drawableVector [[buffer(idFillDrawableUBO)]],
-                                device const FillEvaluatedPropsUBO& props [[buffer(idFillEvaluatedPropsUBO)]]) {
+                                device const FillDrawableUnionUBO* drawableVector [[buffer(idFillDrawableUBO)]]) {
 
     device const FillOutlineDrawableUBO& drawable = drawableVector[uboIndex].fillOutlineDrawableUBO;
 
@@ -619,8 +617,7 @@ struct FragmentStage {
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
                                 device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
-                                device const FillDrawableUnionUBO* drawableVector [[buffer(idFillDrawableUBO)]],
-                                device const FillEvaluatedPropsUBO& props [[buffer(idFillEvaluatedPropsUBO)]]) {
+                                device const FillDrawableUnionUBO* drawableVector [[buffer(idFillDrawableUBO)]]) {
 
     device const FillOutlineTriangulatedDrawableUBO& drawable = drawableVector[uboIndex].fillOutlineTriangulatedDrawableUBO;
 

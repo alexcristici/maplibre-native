@@ -15,7 +15,7 @@ const std::array<UniformBlockInfo, 2> BackgroundShaderSource::uniforms = {
     UniformBlockInfo{false, true, sizeof(BackgroundPropsUBO), idBackgroundPropsUBO},
 };
 const std::array<AttributeInfo, 1> BackgroundShaderSource::attributes = {
-    AttributeInfo{backgroundUBOCount + 0, gfx::AttributeDataType::Float3, idBackgroundPosVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Float3, idBackgroundPosVertexAttribute},
 };
 const std::array<TextureInfo, 0> BackgroundShaderSource::textures = {};
 
@@ -30,7 +30,7 @@ const std::array<UniformBlockInfo, 3>BackgroundPatternShaderSource::uniforms = {
         UniformBlockInfo{true, true, sizeof(BackgroundPatternPropsUBO), idBackgroundPropsUBO},
 };
 const std::array<AttributeInfo, 1> BackgroundPatternShaderSource::attributes = {
-        AttributeInfo{backgroundUBOCount + 0, gfx::AttributeDataType::Float3, idBackgroundPosVertexAttribute},
+        AttributeInfo{0, gfx::AttributeDataType::Float3, idBackgroundPosVertexAttribute},
 };
 const std::array<TextureInfo, 1> BackgroundPatternShaderSource::textures = {
     TextureInfo{0, idBackgroundImageTexture}

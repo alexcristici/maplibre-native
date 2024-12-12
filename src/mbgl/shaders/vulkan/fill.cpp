@@ -12,12 +12,12 @@ using FillShaderSource = ShaderSource<BuiltIn::FillShader, gfx::Backend::Type::V
 
 const std::array<UniformBlockInfo, 2> FillShaderSource::uniforms = {
     UniformBlockInfo{true, false, sizeof(FillDrawableUBO), idFillDrawableUBO},
-    UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
+    UniformBlockInfo{false, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 3> FillShaderSource::attributes = {
-    AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
-    AttributeInfo{fillUBOCount + 1, gfx::AttributeDataType::Float4, idFillColorVertexAttribute},
-    AttributeInfo{fillUBOCount + 2, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
+    AttributeInfo{1, gfx::AttributeDataType::Float4, idFillColorVertexAttribute},
+    AttributeInfo{2, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
 };
 const std::array<TextureInfo, 0> FillShaderSource::textures = {};
 
@@ -29,12 +29,12 @@ using FillOutlineShaderSource = ShaderSource<BuiltIn::FillOutlineShader, gfx::Ba
 const std::array<UniformBlockInfo, 3> FillOutlineShaderSource::uniforms = {
     UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(FillOutlineDrawableUBO), idFillDrawableUBO},
-    UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
+    UniformBlockInfo{false, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 3> FillOutlineShaderSource::attributes = {
-    AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
-    AttributeInfo{fillUBOCount + 1, gfx::AttributeDataType::Float4, idFillOutlineColorVertexAttribute},
-    AttributeInfo{fillUBOCount + 2, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
+    AttributeInfo{1, gfx::AttributeDataType::Float4, idFillOutlineColorVertexAttribute},
+    AttributeInfo{2, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
 };
 const std::array<TextureInfo, 0> FillOutlineShaderSource::textures = {};
 
@@ -50,10 +50,10 @@ const std::array<UniformBlockInfo, 4> FillPatternShaderSource::uniforms = {
     UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 4> FillPatternShaderSource::attributes = {
-    AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
-    AttributeInfo{fillUBOCount + 1, gfx::AttributeDataType::UShort4, idFillPatternFromVertexAttribute},
-    AttributeInfo{fillUBOCount + 2, gfx::AttributeDataType::UShort4, idFillPatternToVertexAttribute},
-    AttributeInfo{fillUBOCount + 3, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
+    AttributeInfo{1, gfx::AttributeDataType::UShort4, idFillPatternFromVertexAttribute},
+    AttributeInfo{2, gfx::AttributeDataType::UShort4, idFillPatternToVertexAttribute},
+    AttributeInfo{3, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
 };
 const std::array<TextureInfo, 1> FillPatternShaderSource::textures = {
     TextureInfo{0, idFillImageTexture},
@@ -71,10 +71,10 @@ const std::array<UniformBlockInfo, 4> FillOutlinePatternShaderSource::uniforms =
         UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 4> FillOutlinePatternShaderSource::attributes = {
-        AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
-        AttributeInfo{fillUBOCount + 1, gfx::AttributeDataType::UShort4, idFillPatternFromVertexAttribute},
-        AttributeInfo{fillUBOCount + 2, gfx::AttributeDataType::UShort4, idFillPatternToVertexAttribute},
-        AttributeInfo{fillUBOCount + 3, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
+        AttributeInfo{0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
+        AttributeInfo{1, gfx::AttributeDataType::UShort4, idFillPatternFromVertexAttribute},
+        AttributeInfo{2, gfx::AttributeDataType::UShort4, idFillPatternToVertexAttribute},
+        AttributeInfo{3, gfx::AttributeDataType::Float2, idFillOpacityVertexAttribute},
 };
 const std::array<TextureInfo, 1> FillOutlinePatternShaderSource::textures = {
         TextureInfo{0, idFillImageTexture},
@@ -88,11 +88,11 @@ using FillOutlineTriangulatedShaderSource = ShaderSource<BuiltIn::FillOutlineTri
 const std::array<UniformBlockInfo, 3> FillOutlineTriangulatedShaderSource::uniforms = {
         UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
         UniformBlockInfo{true, false, sizeof(FillOutlineTriangulatedDrawableUBO), idFillDrawableUBO},
-        UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
+        UniformBlockInfo{false, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 2> FillOutlineTriangulatedShaderSource::attributes = {
-        AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idLinePosNormalVertexAttribute},
-        AttributeInfo{fillUBOCount + 1, gfx::AttributeDataType::UByte4, idLineDataVertexAttribute},
+        AttributeInfo{0, gfx::AttributeDataType::Short2, idLinePosNormalVertexAttribute},
+        AttributeInfo{1, gfx::AttributeDataType::UByte4, idLineDataVertexAttribute},
 };
 const std::array<TextureInfo, 0> FillOutlineTriangulatedShaderSource::textures = {};
 

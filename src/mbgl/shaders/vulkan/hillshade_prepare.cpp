@@ -12,8 +12,8 @@ const std::array<UniformBlockInfo, 2> HillshadePrepareShaderSource::uniforms = {
         UniformBlockInfo{true, true, sizeof(HillshadePrepareTilePropsUBO), idHillshadePrepareTilePropsUBO},
 };
 const std::array<AttributeInfo, 2> HillshadePrepareShaderSource::attributes = {
-    AttributeInfo{hillshadePrepareUBOCount + 0, gfx::AttributeDataType::Short2, idHillshadePosVertexAttribute},
-    AttributeInfo{hillshadePrepareUBOCount + 1, gfx::AttributeDataType::Short2, idHillshadeTexturePosVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idHillshadePosVertexAttribute},
+    AttributeInfo{1, gfx::AttributeDataType::Short2, idHillshadeTexturePosVertexAttribute},
 };
 const std::array<TextureInfo, 1> HillshadePrepareShaderSource::textures = {
     TextureInfo{0, idHillshadeImageTexture},

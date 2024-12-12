@@ -12,8 +12,8 @@ const std::array<UniformBlockInfo, 2> RasterShaderSource::uniforms = {
     UniformBlockInfo{true, true, sizeof(RasterEvaluatedPropsUBO), idRasterEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 2> RasterShaderSource::attributes = {
-    AttributeInfo{rasterUBOCount + 0, gfx::AttributeDataType::Short2, idRasterPosVertexAttribute},
-    AttributeInfo{rasterUBOCount + 1, gfx::AttributeDataType::Short2, idRasterTexturePosVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idRasterPosVertexAttribute},
+    AttributeInfo{1, gfx::AttributeDataType::Short2, idRasterTexturePosVertexAttribute},
 };
 const std::array<TextureInfo, 2> RasterShaderSource::textures = {
     TextureInfo{0, idRasterImage0Texture},

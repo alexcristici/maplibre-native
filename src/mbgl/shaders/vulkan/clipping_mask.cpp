@@ -5,11 +5,9 @@ namespace shaders {
 
 using ClippingMaskShaderSource = ShaderSource<BuiltIn::ClippingMaskProgram, gfx::Backend::Type::Vulkan>;
 
-const std::array<UniformBlockInfo, 1> ClippingMaskShaderSource::uniforms = {
-    UniformBlockInfo{true, false, sizeof(ClipUBO), idClippingMaskUBO},
-};
+const std::array<UniformBlockInfo, 0> ClippingMaskShaderSource::uniforms = {};
 const std::array<AttributeInfo, 1> ClippingMaskShaderSource::attributes = {
-    AttributeInfo{clippingMaskUBOCount + 0, gfx::AttributeDataType::Float3, idClippingMaskPosVertexAttribute},
+    AttributeInfo{0, gfx::AttributeDataType::Short2, idClippingMaskPosVertexAttribute},
 };
 const std::array<TextureInfo, 0> ClippingMaskShaderSource::textures = {};
 

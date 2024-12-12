@@ -306,6 +306,8 @@ void RenderHillshadeLayer::update(gfx::ShaderRegistry& shaders,
                                   const std::shared_ptr<UpdateParameters>&,
                                   [[maybe_unused]] const RenderTree& renderTree,
                                   UniqueChangeRequestVec& changes) {
+    return;
+
     if (!renderTiles || renderTiles->empty()) {
         removeAllDrawables();
         return;

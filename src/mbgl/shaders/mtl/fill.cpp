@@ -11,7 +11,7 @@ using FillShaderSource = ShaderSource<BuiltIn::FillShader, gfx::Backend::Type::M
 
 const std::array<UniformBlockInfo, 2> FillShaderSource::uniforms = {
     UniformBlockInfo{true, false, sizeof(FillDrawableUBO), idFillDrawableUBO},
-    UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
+    UniformBlockInfo{false, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 3> FillShaderSource::attributes = {
     AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
@@ -28,7 +28,7 @@ using FillOutlineShaderSource = ShaderSource<BuiltIn::FillOutlineShader, gfx::Ba
 const std::array<UniformBlockInfo, 3> FillOutlineShaderSource::uniforms = {
     UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(FillOutlineDrawableUBO), idFillDrawableUBO},
-    UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
+    UniformBlockInfo{false, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 3> FillOutlineShaderSource::attributes = {
     AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idFillPosVertexAttribute},
@@ -87,7 +87,7 @@ using FillOutlineTriangulatedShaderSource = ShaderSource<BuiltIn::FillOutlineTri
 const std::array<UniformBlockInfo, 3> FillOutlineTriangulatedShaderSource::uniforms = {
         UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
         UniformBlockInfo{true, false, sizeof(FillOutlineTriangulatedDrawableUBO), idFillDrawableUBO},
-        UniformBlockInfo{true, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
+        UniformBlockInfo{false, true, sizeof(FillEvaluatedPropsUBO), idFillEvaluatedPropsUBO},
 };
 const std::array<AttributeInfo, 2> FillOutlineTriangulatedShaderSource::attributes = {
         AttributeInfo{fillUBOCount + 0, gfx::AttributeDataType::Short2, idLinePosNormalVertexAttribute},
