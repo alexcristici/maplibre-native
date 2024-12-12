@@ -22,11 +22,14 @@ layout(location = 1) in ivec2 in_texture_position;
 
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform HillshadePrepareDrawableUBO {
     mat4 matrix;
+} drawable;
+
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform HillshadePrepareTilePropsUBO {
     vec4 unpack;
     vec2 dimension;
     float zoom;
     float maxzoom;
-} drawable;
+} tileProps;
 
 layout(location = 0) out vec2 frag_position;
 
@@ -35,8 +38,8 @@ void main() {
     gl_Position = drawable.matrix * vec4(in_position, 0.0, 1.0);
     applySurfaceTransform();
 
-    const vec2 epsilon = vec2(1.0) / drawable.dimension;
-    const float scale = (drawable.dimension.x - 2.0) / drawable.dimension.x;
+    const vec2 epsilon = vec2(1.0) / tileProps.dimension;
+    const float scale = (tileProps.dimension.x - 2.0) / tileProps.dimension.x;
     frag_position = in_texture_position / 8192.0 * scale + epsilon;
 }
 )";
@@ -46,13 +49,12 @@ void main() {
 layout(location = 0) in vec2 frag_position;
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform HillshadePrepareDrawableUBO {
-    mat4 matrix;
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform HillshadePrepareTilePropsUBO {
     vec4 unpack;
     vec2 dimension;
     float zoom;
     float maxzoom;
-} drawable;
+} tileProps;
 
 layout(set = DRAWABLE_IMAGE_SET_INDEX, binding = 0) uniform sampler2D image_sampler;
 
@@ -70,7 +72,7 @@ void main() {
     return;
 #endif
 
-    const vec2 epsilon = 1.0 / drawable.dimension;
+    const vec2 epsilon = 1.0 / tileProps.dimension;
 
     // queried pixels:
     // +-----------+
@@ -87,15 +89,15 @@ void main() {
     // |   |   |   |
     // +-----------+
 
-    float a = getElevation(frag_position + vec2(-epsilon.x, -epsilon.y), 0.0, image_sampler, drawable.unpack);
-    float b = getElevation(frag_position + vec2(0, -epsilon.y), 0.0, image_sampler, drawable.unpack);
-    float c = getElevation(frag_position + vec2(epsilon.x, -epsilon.y), 0.0, image_sampler, drawable.unpack);
-    float d = getElevation(frag_position + vec2(-epsilon.x, 0), 0.0, image_sampler, drawable.unpack);
-  //float e = getElevation(frag_position, 0.0, image_sampler, drawable.unpack);
-    float f = getElevation(frag_position + vec2(epsilon.x, 0), 0.0, image_sampler, drawable.unpack);
-    float g = getElevation(frag_position + vec2(-epsilon.x, epsilon.y), 0.0, image_sampler, drawable.unpack);
-    float h = getElevation(frag_position + vec2(0, epsilon.y), 0.0, image_sampler, drawable.unpack);
-    float i = getElevation(frag_position + vec2(epsilon.x, epsilon.y), 0.0, image_sampler, drawable.unpack);
+    float a = getElevation(frag_position + vec2(-epsilon.x, -epsilon.y), 0.0, image_sampler, tileProps.unpack);
+    float b = getElevation(frag_position + vec2(0, -epsilon.y), 0.0, image_sampler, tileProps.unpack);
+    float c = getElevation(frag_position + vec2(epsilon.x, -epsilon.y), 0.0, image_sampler, tileProps.unpack);
+    float d = getElevation(frag_position + vec2(-epsilon.x, 0), 0.0, image_sampler, tileProps.unpack);
+  //float e = getElevation(frag_position, 0.0, image_sampler, tileProps.unpack);
+    float f = getElevation(frag_position + vec2(epsilon.x, 0), 0.0, image_sampler, tileProps.unpack);
+    float g = getElevation(frag_position + vec2(-epsilon.x, epsilon.y), 0.0, image_sampler, tileProps.unpack);
+    float h = getElevation(frag_position + vec2(0, epsilon.y), 0.0, image_sampler, tileProps.unpack);
+    float i = getElevation(frag_position + vec2(epsilon.x, epsilon.y), 0.0, image_sampler, tileProps.unpack);
 
     // here we divide the x and y slopes by 8 * pixel size
     // where pixel size (aka meters/pixel) is:
@@ -108,12 +110,12 @@ void main() {
     // Here we use a=0.3 which works out to the expression below. see
     // nickidlugash's awesome breakdown for more info
     // https://github.com/mapbox/mapbox-gl-js/pull/5286#discussion_r148419556
-    float exaggeration = drawable.zoom < 2.0 ? 0.4 : drawable.zoom < 4.5 ? 0.35 : 0.3;
+    float exaggeration = tileProps.zoom < 2.0 ? 0.4 : tileProps.zoom < 4.5 ? 0.35 : 0.3;
 
     vec2 deriv = vec2(
         (c + f + f + i) - (a + d + d + g),
         (g + h + h + i) - (a + b + b + c)
-    ) /  pow(2.0, (drawable.zoom - drawable.maxzoom) * exaggeration + 19.2562 - drawable.zoom);
+    ) /  pow(2.0, (tileProps.zoom - tileProps.maxzoom) * exaggeration + 19.2562 - tileProps.zoom);
 
     out_color = clamp(vec4(
         deriv.x / 2.0 + 0.5,

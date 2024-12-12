@@ -18,13 +18,13 @@ struct ShaderSource<BuiltIn::LocationIndicatorShader, gfx::Backend::Type::Vulkan
     static constexpr auto vertex = R"(
 layout(location = 0) in vec2 in_position;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform CommonUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LocationIndicatorDrawableUBO {
     mat4 matrix;
     vec4 color;
-} ubo;
+} drawable;
 
 void main() {
-    gl_Position = ubo.matrix * vec4(in_position, 0, 1);
+    gl_Position = drawable.matrix * vec4(in_position, 0, 1);
     applySurfaceTransform();
 }
 )";
@@ -32,13 +32,13 @@ void main() {
     static constexpr auto fragment = R"(
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform CommonUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LocationIndicatorDrawableUBO {
     mat4 matrix;
     vec4 color;
-} ubo;
+} drawable;
 
 void main() {
-    out_color = ubo.color;
+    out_color = drawable.color;
 }
 )";
 };
@@ -56,15 +56,15 @@ struct ShaderSource<BuiltIn::LocationIndicatorTexturedShader, gfx::Backend::Type
 layout(location = 0) in vec2 in_position;
 layout(location = 1) in vec2 in_texcoord;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform CommonUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LocationIndicatorDrawableUBO {
     mat4 matrix;
     vec4 color;
-} ubo;
+} drawable;
 
 layout(location = 0) out vec2 frag_uv;
 
 void main() {
-    gl_Position = ubo.matrix * vec4(in_position, 0, 1);
+    gl_Position = drawable.matrix * vec4(in_position, 0, 1);
     applySurfaceTransform();
 
     frag_uv = in_texcoord;

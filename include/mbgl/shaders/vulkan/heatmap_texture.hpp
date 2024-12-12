@@ -22,14 +22,16 @@ layout(location = 0) in ivec2 in_position;
 layout(set = LAYER_SET_INDEX, binding = 0) uniform HeatmapTexturePropsUBO {
     mat4 matrix;
     float opacity;
-    float pad1, pad2, pad3;
+    float pad1;
+    float pad2;
+    float pad3;
 } props;
 
 layout(location = 0) out vec2 frag_position;
 
 void main() {
 
-    gl_Position = props.matrix * vec4(in_position * global.world_size, 0, 1);
+    gl_Position = props.matrix * vec4(in_position * paintParams.world_size, 0, 1);
     applySurfaceTransform();
 
     frag_position = in_position;
@@ -44,7 +46,9 @@ layout(location = 0) out vec4 out_color;
 layout(set = LAYER_SET_INDEX, binding = 0) uniform HeatmapTexturePropsUBO {
     mat4 matrix;
     float opacity;
-    float pad1, pad2, pad3;
+    float pad1;
+    float pad2;
+    float pad3;
 } props;
 
 layout(set = DRAWABLE_IMAGE_SET_INDEX, binding = 0) uniform sampler2D image_sampler;

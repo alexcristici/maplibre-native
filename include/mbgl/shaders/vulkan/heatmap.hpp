@@ -39,14 +39,11 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform HeatmapDrawableUBO {
     mat4 matrix;
     float extrude_scale;
     float pad1;
-    vec2 pad2;
-} drawable;
-
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform HeatmapInterpolateUBO {
+    // Interpolations
     float weight_t;
     float radius_t;
-    vec2 pad1;
-} interp;
+    float pad1;
+} drawable;
 
 layout(set = LAYER_SET_INDEX, binding = 0) uniform HeatmapEvaluatedPropsUBO {
     float weight;
@@ -63,13 +60,13 @@ void main() {
 #if defined(HAS_UNIFORM_u_weight)
     const float weight = props.weight;
 #else
-    const float weight = unpack_mix_float(in_weight, interp.weight_t);
+    const float weight = unpack_mix_float(in_weight, drawable.weight_t);
 #endif
 
 #if defined(HAS_UNIFORM_u_radius)
     const float radius = props.radius;
 #else
-    const float radius = unpack_mix_float(in_radius, interp.radius_t);
+    const float radius = unpack_mix_float(in_radius, drawable.radius_t);
 #endif
 
     // unencode the extrusion vector that we snuck into the a_pos vector

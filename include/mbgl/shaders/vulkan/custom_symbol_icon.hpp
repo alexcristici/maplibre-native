@@ -22,9 +22,6 @@ layout(location = 1) in vec2 in_tex;
 
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform CustomSymbolIconDrawableUBO {
     mat4 matrix;
-} drawable;
-
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform CustomSymbolIconParametersUBO {
     vec2 extrude_scale;
     vec2 anchor;
     float angle_degrees;
@@ -32,8 +29,10 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform CustomSymbolIconParame
     bool pitch_with_map;
     float camera_to_center_distance;
     float aspect_ratio;
-    float pad0, pad1, pad3;
-} parameters;
+    float pad1;
+    float pad2;
+    float pad3;
+} drawable;
 
 layout(location = 0) out vec2 frag_tex;
 
@@ -52,25 +51,25 @@ vec2 ellipseRotateVec2(vec2 v, float angle, float radiusRatio /* A/B */) {
 
 void main() {
     const vec2 extrude = mod(in_position, 2.0) * 2.0 - 1.0;
-    const vec2 anchor = (parameters.anchor - vec2(0.5, 0.5)) * 2.0;
+    const vec2 anchor = (drawable.anchor - vec2(0.5, 0.5)) * 2.0;
     const vec2 center = floor(in_position * 0.5);
-    const float angle = radians(-parameters.angle_degrees);
+    const float angle = radians(-drawable.angle_degrees);
     vec2 corner = extrude - anchor;
 
     vec4 position;
-    if (parameters.pitch_with_map) {
-        if (parameters.scale_with_map) {
-            corner *= parameters.extrude_scale;
+    if (drawable.pitch_with_map) {
+        if (drawable.scale_with_map) {
+            corner *= drawable.extrude_scale;
         } else {
             vec4 projected_center = drawable.matrix * vec4(center, 0, 1);
-            corner *= parameters.extrude_scale * (projected_center.w / parameters.camera_to_center_distance);
+            corner *= drawable.extrude_scale * (projected_center.w / drawable.camera_to_center_distance);
         }
         corner = center + rotateVec2(corner, angle);
         position = drawable.matrix * vec4(corner, 0, 1);
     } else {
         position = drawable.matrix * vec4(center, 0, 1);
-        const float factor = parameters.scale_with_map ? parameters.camera_to_center_distance : position.w;
-        position.xy += ellipseRotateVec2(corner * parameters.extrude_scale * factor, angle, parameters.aspect_ratio);
+        const float factor = drawable.scale_with_map ? drawable.camera_to_center_distance : position.w;
+        position.xy += ellipseRotateVec2(corner * drawable.extrude_scale * factor, angle, drawable.aspect_ratio);
     }
 
     gl_Position = position;

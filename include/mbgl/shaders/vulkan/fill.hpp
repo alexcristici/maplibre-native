@@ -573,11 +573,11 @@ void main() {
     const vec2 pattern_br_b = pattern_to.zw;
 
     const vec2 imagecoord = mod(frag_pos_a, 1.0);
-    const vec2 pos = mix(pattern_tl_a / drawable.texsize, pattern_br_a / drawable.texsize, imagecoord);
+    const vec2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
     const vec4 color1 = texture(image0_sampler, pos);
 
     const vec2 imagecoord_b = mod(frag_pos_b, 1.0);
-    const vec2 pos2 = mix(pattern_tl_b / drawable.texsize, pattern_br_b / drawable.texsize, imagecoord_b);
+    const vec2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
     const vec4 color2 = texture(image0_sampler, pos2);
 
     const float dist = length(frag_pos - gl_FragCoord.xy);

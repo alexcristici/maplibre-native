@@ -24,7 +24,7 @@ const std::array<TextureInfo, 0> LocationIndicatorShaderSource::textures = {};
 using LocationIndicatorShaderTexturedSource = ShaderSource<BuiltIn::LocationIndicatorTexturedShader, gfx::Backend::Type::Vulkan>;
 
 const std::array<UniformBlockInfo, 1> LocationIndicatorShaderTexturedSource::uniforms = {
-        UniformBlockInfo{true, true, sizeof(LocationIndicatorDrawableUBO), idLocationIndicatorDrawableUBO},
+        UniformBlockInfo{true, false, sizeof(LocationIndicatorDrawableUBO), idLocationIndicatorDrawableUBO},
 };
 const std::array<AttributeInfo, 2> LocationIndicatorShaderTexturedSource::attributes = {
         AttributeInfo{0, gfx::AttributeDataType::Float2, idCommonPosVertexAttribute},

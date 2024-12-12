@@ -22,8 +22,6 @@ layout(location = 1) in ivec2 in_texture_position;
 
 layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform HillshadeDrawableUBO {
     mat4 matrix;
-    vec2 latrange;
-    vec2 light;
 } drawable;
 
 layout(location = 0) out vec2 frag_position;
@@ -43,11 +41,10 @@ void main() {
 layout(location = 0) in vec2 frag_position;
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform HillshadeDrawableUBO {
-    mat4 matrix;
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform HillshadeTilePropsUBO {
     vec2 latrange;
     vec2 light;
-} drawable;
+} tileProps;
 
 layout(set = LAYER_SET_INDEX, binding = 0) uniform HillshadeEvaluatedPropsUBO {
     vec4 highlight;
@@ -70,16 +67,16 @@ void main() {
 
     // We divide the slope by a scale factor based on the cosin of the pixel's approximate latitude
     // to account for mercator projection distortion. see #4807 for details
-    float scaleFactor = cos(radians((drawable.latrange[0] - drawable.latrange[1]) * frag_position.y + drawable.latrange[1]));
+    float scaleFactor = cos(radians((tileProps.latrange[0] - tileProps.latrange[1]) * frag_position.y + tileProps.latrange[1]));
     // We also multiply the slope by an arbitrary z-factor of 1.25
     float slope = atan(1.25 * length(deriv) / scaleFactor);
     float aspect = deriv.x != 0.0 ? atan(deriv.y, -deriv.x) : M_PI / 2.0 * (deriv.y > 0.0 ? 1.0 : -1.0);
 
-    float intensity = drawable.light.x;
+    float intensity = tileProps.light.x;
     // We add PI to make this property match the global light object, which adds PI/2 to the light's azimuthal
     // position property to account for 0deg corresponding to north/the top of the viewport in the style spec
     // and the original shader was written to accept (-illuminationDirection - 90) as the azimuthal.
-    float azimuth = drawable.light.y + M_PI;
+    float azimuth = tileProps.light.y + M_PI;
 
     // We scale the slope exponentially based on intensity, using a calculation similar to
     // the exponential interpolation function in the style spec:

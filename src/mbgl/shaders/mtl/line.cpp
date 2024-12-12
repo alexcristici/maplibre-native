@@ -33,7 +33,7 @@ const std::array<TextureInfo, 0> LineShaderSource::textures = {};
 using LineGradientShaderSource = ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>;
 
 const std::array<UniformBlockInfo, 3> LineGradientShaderSource::uniforms = {
-    UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
+    UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineGradientDrawableUBO), idLineDrawableUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
 };

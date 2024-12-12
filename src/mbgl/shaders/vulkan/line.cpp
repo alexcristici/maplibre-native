@@ -10,11 +10,10 @@ namespace shaders {
 
 using LineShaderSource = ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Vulkan>;
 
-const std::array<UniformBlockInfo, 4> LineShaderSource::uniforms = {
-    UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
+const std::array<UniformBlockInfo, 3> LineShaderSource::uniforms = {
+    UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineDrawableUBO), idLineDrawableUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
-    UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
 };
 const std::array<AttributeInfo, 8> LineShaderSource::attributes = {
     AttributeInfo{0, gfx::AttributeDataType::Short2, idLinePosNormalVertexAttribute},
@@ -34,7 +33,7 @@ const std::array<TextureInfo, 0> LineShaderSource::textures = {};
 using LineGradientShaderSource = ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Vulkan>;
 
 const std::array<UniformBlockInfo, 3> LineGradientShaderSource::uniforms = {
-    UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
+    UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineGradientDrawableUBO), idLineDrawableUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
 };
@@ -56,12 +55,11 @@ const std::array<TextureInfo, 1> LineGradientShaderSource::textures = {
 
 using LinePatternShaderSource = ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Vulkan>;
 
-const std::array<UniformBlockInfo, 5> LinePatternShaderSource::uniforms = {
-    UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
+const std::array<UniformBlockInfo, 4> LinePatternShaderSource::uniforms = {
+    UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LinePatternDrawableUBO), idLineDrawableUBO},
     UniformBlockInfo{false, true, sizeof(LinePatternTilePropsUBO), idLineTilePropsUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
-    UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
 };
 const std::array<AttributeInfo, 9> LinePatternShaderSource::attributes = {
     AttributeInfo{0, gfx::AttributeDataType::Short2, idLinePosNormalVertexAttribute},
@@ -83,12 +81,11 @@ const std::array<TextureInfo, 1> LinePatternShaderSource::textures = {
 
 using LineSDFShaderSource = ShaderSource<BuiltIn::LineSDFShader, gfx::Backend::Type::Vulkan>;
 
-const std::array<UniformBlockInfo, 5> LineSDFShaderSource::uniforms = {
-    UniformBlockInfo{true, true, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
+const std::array<UniformBlockInfo, 4> LineSDFShaderSource::uniforms = {
+    UniformBlockInfo{true, false, sizeof(GlobalPaintParamsUBO), idGlobalPaintParamsUBO},
     UniformBlockInfo{true, false, sizeof(LineSDFDrawableUBO), idLineDrawableUBO},
     UniformBlockInfo{false, true, sizeof(LineSDFTilePropsUBO), idLineTilePropsUBO},
     UniformBlockInfo{true, true, sizeof(LineEvaluatedPropsUBO), idLineEvaluatedPropsUBO},
-    UniformBlockInfo{true, true, sizeof(LineExpressionUBO), idLineExpressionUBO},
 };
 const std::array<AttributeInfo, 9> LineSDFShaderSource::attributes = {
     AttributeInfo{0, gfx::AttributeDataType::Short2, idLinePosNormalVertexAttribute},

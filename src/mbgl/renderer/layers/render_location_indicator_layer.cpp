@@ -1043,8 +1043,6 @@ void RenderLocationIndicatorLayer::update(gfx::ShaderRegistry& shaders,
                                           const std::shared_ptr<UpdateParameters>&,
                                           const RenderTree&,
                                           UniqueChangeRequestVec& changes) {
-    return;
-
     const auto drawPasses = RenderPass::Translucent;
 
     // If the result is transparent or missing, just remove any existing drawables and stop
