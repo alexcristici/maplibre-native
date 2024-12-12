@@ -13,7 +13,7 @@ struct ShaderSource<BuiltIn::BackgroundShader, gfx::Backend::Type::Vulkan> {
     static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 1> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
-    static constexpr std::array<TextureInfo, 0> textures{};
+    static const std::array<TextureInfo, 0> textures;
 
     static constexpr auto vertex = R"(
 

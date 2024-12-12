@@ -10,7 +10,7 @@ template <>
 struct ShaderSource<BuiltIn::SymbolIconShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "SymbolIconShader";
 
-    static const std::array<UniformBlockInfo, 5> uniforms;
+    static const std::array<UniformBlockInfo, 4> uniforms;
     static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
@@ -189,7 +189,7 @@ template <>
 struct ShaderSource<BuiltIn::SymbolSDFIconShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "SymbolSDFIconShader";
 
-    static const std::array<UniformBlockInfo, 5> uniforms;
+    static const std::array<UniformBlockInfo, 4> uniforms;
     static const std::array<AttributeInfo, 10> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
@@ -486,7 +486,7 @@ template <>
 struct ShaderSource<BuiltIn::SymbolTextAndIconShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "SymbolTextAndIconShader";
 
-    static const std::array<UniformBlockInfo, 5> uniforms;
+    static const std::array<UniformBlockInfo, 4> uniforms;
     static const std::array<AttributeInfo, 9> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 2> textures;

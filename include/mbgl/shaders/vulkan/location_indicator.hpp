@@ -126,13 +126,13 @@ layout(set = GLOBAL_SET_INDEX, binding = 0) uniform GlobalPaintParamsUBO {
 };
 
 template <>
-struct ShaderSource<BuiltIn::CommonShader, gfx::Backend::Type::Vulkan> {
-    static constexpr const char* name = "CommonShader";
+struct ShaderSource<BuiltIn::LocationIndicatorShader, gfx::Backend::Type::Vulkan> {
+    static constexpr const char* name = "LocationIndicatorShader";
 
     static const std::array<UniformBlockInfo, 1> uniforms;
     static const std::array<AttributeInfo, 1> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
-    static constexpr std::array<TextureInfo, 0> textures{};
+    static const std::array<TextureInfo, 0> textures;
 
     static constexpr auto vertex = R"(
 layout(location = 0) in vec2 in_position;
@@ -163,8 +163,8 @@ void main() {
 };
 
 template <>
-struct ShaderSource<BuiltIn::CommonTexturedShader, gfx::Backend::Type::Vulkan> {
-    static constexpr const char* name = "CommonTexturedShader";
+struct ShaderSource<BuiltIn::LocationIndicatorTexturedShader, gfx::Backend::Type::Vulkan> {
+    static constexpr const char* name = "LocationIndicatorTexturedShader";
 
     static const std::array<UniformBlockInfo, 1> uniforms;
     static const std::array<AttributeInfo, 2> attributes;
