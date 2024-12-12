@@ -31,6 +31,8 @@ enum class BuiltIn {
     LineGradientShader,
     LinePatternShader,
     LineSDFShader,
+    LocationIndicatorShader,
+    LocationIndicatorTexturedShader,
     RasterShader,
     SymbolIconShader,
     SymbolSDFIconShader,

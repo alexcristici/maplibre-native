@@ -14,8 +14,11 @@
 #include <mbgl/shaders/vulkan/collision.hpp>
 #include <mbgl/shaders/vulkan/debug.hpp>
 #include <mbgl/shaders/vulkan/fill.hpp>
+#include <mbgl/shaders/vulkan/fill_extrusion.hpp>
 #include <mbgl/shaders/vulkan/heatmap.hpp>
+#include <mbgl/shaders/vulkan/heatmap_texture.hpp>
 #include <mbgl/shaders/vulkan/hillshade.hpp>
+#include <mbgl/shaders/vulkan/hillshade_prepare.hpp>
 #include <mbgl/shaders/vulkan/line.hpp>
 #include <mbgl/shaders/vulkan/location_indicator.hpp>
 #include <mbgl/shaders/vulkan/raster.hpp>
