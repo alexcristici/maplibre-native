@@ -11,9 +11,11 @@ namespace shaders {
     R"(
 
 enum {
-    idWideVectorUniformsUBO = globalUBOCount,
-    idWideVectorUniformWideVecUBO,
-    wideVectorUBOCount
+    idWideVectorUniformsUBO = idDrawableReservedVertexOnlyUBO,
+    idWideVectorUniformWideVecUBO = drawableReservedUBOCount,
+    wideVectorDrawableUBOCount,
+    
+    wideVectorUBOCount = wideVectorDrawableUBOCount
 };
 
 )"

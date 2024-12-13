@@ -33,8 +33,10 @@ struct alignas(16) ClipUBO {
 static_assert(sizeof(ClipUBO) == 5 * 16, "wrong size");
 
 enum {
-    idClippingMaskUBO = globalUBOCount,
-    clippingMaskUBOCount
+    idClippingMaskUBO = idDrawableReservedVertexOnlyUBO,
+    clippingMaskDrawableUBOCount = drawableReservedUBOCount,
+    
+    clippingMaskUBOCount = clippingMaskDrawableUBOCount
 };
 
 )"

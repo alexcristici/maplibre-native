@@ -46,8 +46,10 @@ struct alignas(16) CircleEvaluatedPropsUBO {
 static_assert(sizeof(CircleEvaluatedPropsUBO) == 4 * 16, "wrong size");
 
 enum {
-    idCircleDrawableUBO = globalUBOCount,
-    idCircleEvaluatedPropsUBO,
+    idCircleDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    circleDrawableUBOCount = drawableReservedUBOCount,
+    
+    idCircleEvaluatedPropsUBO = circleDrawableUBOCount,
     circleUBOCount
 };
 

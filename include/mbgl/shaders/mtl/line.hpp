@@ -164,9 +164,11 @@ union LineTilePropsUnionUBO {
 };
 
 enum {
-    idLineDrawableUBO = globalUBOCount,
-    idLineTilePropsUBO,
-    idLineEvaluatedPropsUBO,
+    idLineDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idLineTilePropsUBO = idDrawableReservedFragmentOnlyUBO,
+    lineDrawableUBOCount = drawableReservedUBOCount,
+    
+    idLineEvaluatedPropsUBO = lineDrawableUBOCount,
     idLineExpressionUBO,
     lineUBOCount
 };

@@ -67,8 +67,10 @@ union BackgroundDrawableUnionUBO {
 };
 
 enum {
-    idBackgroundDrawableUBO = globalUBOCount,
-    idBackgroundPropsUBO,
+    idBackgroundDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    backgroundDrawableUBOCount = drawableReservedUBOCount,
+    
+    idBackgroundPropsUBO = backgroundDrawableUBOCount,
     backgroundUBOCount
 };
 

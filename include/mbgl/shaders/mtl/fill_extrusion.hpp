@@ -56,9 +56,11 @@ struct alignas(16) FillExtrusionPropsUBO {
 static_assert(sizeof(FillExtrusionPropsUBO) == 5 * 16, "wrong size");
 
 enum {
-    idFillExtrusionDrawableUBO = globalUBOCount,
-    idFillExtrusionTilePropsUBO,
-    idFillExtrusionPropsUBO,
+    idFillExtrusionDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idFillExtrusionTilePropsUBO = drawableReservedUBOCount,
+    fillExtrusionDrawableUBOCount,
+    
+    idFillExtrusionPropsUBO = fillExtrusionDrawableUBOCount,
     fillExtrusionUBOCount
 };
 

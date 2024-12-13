@@ -27,8 +27,10 @@ struct alignas(16) CustomSymbolIconDrawableUBO {
 static_assert(sizeof(CustomSymbolIconParametersUBO) == 7 * 16, "wrong size");
 
 enum {
-    idCustomSymbolDrawableUBO = globalUBOCount,
-    customSymbolUBOCount
+    idCustomSymbolDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    customSymbolDrawableUBOCount = drawableReservedUBOCount,
+
+    customSymbolUBOCount = customSymbolDrawableUBOCount
 };
 
 )"
