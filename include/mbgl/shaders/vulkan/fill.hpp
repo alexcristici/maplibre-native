@@ -6,6 +6,15 @@
 namespace mbgl {
 namespace shaders {
 
+#define FILL_SHADER_COMMON \
+    R"(
+
+#define idFillDrawableUBO           idDrawableReservedVertexOnlyUBO
+#define idFillTilePropsUBO          drawableReservedUBOCount
+#define idFillEvaluatedPropsUBO     layerUBOStartId
+
+)"
+
 template <>
 struct ShaderSource<BuiltIn::FillShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "FillShader";
@@ -15,7 +24,7 @@ struct ShaderSource<BuiltIn::FillShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_position;
 
@@ -27,7 +36,7 @@ layout(location = 1) in vec4 in_color;
 layout(location = 2) in vec2 in_opacity;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillDrawableUBO) uniform FillDrawableUBO {
     mat4 matrix;
     // Interpolations
     float color_t;
@@ -59,7 +68,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = FILL_SHADER_COMMON R"(
 
 #if !defined(HAS_UNIFORM_u_color)
 layout(location = 0) in vec4 frag_color;
@@ -71,7 +80,7 @@ layout(location = 1) in lowp float frag_opacity;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;
@@ -108,7 +117,7 @@ struct ShaderSource<BuiltIn::FillOutlineShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_position;
 
@@ -120,7 +129,7 @@ layout(location = 1) in vec4 in_color;
 layout(location = 2) in vec2 in_opacity;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlineDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillDrawableUBO) uniform FillOutlineDrawableUBO {
     mat4 matrix;
     // Interpolations
     float outline_color_t;
@@ -156,7 +165,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = FILL_SHADER_COMMON R"(
 
 #if !defined(HAS_UNIFORM_u_outline_color)
 layout(location = 0) in vec4 frag_color;
@@ -170,7 +179,7 @@ layout(location = 2) in vec2 frag_position;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;
@@ -214,7 +223,7 @@ struct ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_position;
 
@@ -230,7 +239,7 @@ layout(location = 2) in mediump uvec4 in_pattern_to;
 layout(location = 3) in vec2 in_opacity;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillPatternDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillDrawableUBO) uniform FillPatternDrawableUBO {
     mat4 matrix;
     vec2 pixel_coord_upper;
     vec2 pixel_coord_lower;
@@ -241,7 +250,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillPatternDrawableUBO
     float opacity_t;
 } drawable;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillPatternTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillTilePropsUBO) uniform FillPatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
     vec2 texsize;
@@ -249,7 +258,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillPatternTilePropsUB
     float pad2;
 } tileProps;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;
@@ -312,7 +321,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in vec2 frag_pos_a;
 layout(location = 1) in vec2 frag_pos_b;
@@ -331,7 +340,7 @@ layout(location = 4) in lowp float frag_opacity;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillPatternTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillTilePropsUBO) uniform FillPatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
     vec2 texsize;
@@ -339,7 +348,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillPatternTilePropsUB
     float pad2;
 } tileProps;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;
@@ -402,7 +411,7 @@ struct ShaderSource<BuiltIn::FillOutlinePatternShader, gfx::Backend::Type::Vulka
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_position;
 
@@ -418,7 +427,7 @@ layout(location = 2) in mediump uvec4 in_pattern_to;
 layout(location = 3) in vec2 in_opacity;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlinePatternDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillDrawableUBO) uniform FillOutlinePatternDrawableUBO {
     mat4 matrix;
     vec2 pixel_coord_upper;
     vec2 pixel_coord_lower;
@@ -429,7 +438,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlinePatternDraw
     float opacity_t;
 } drawable;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillOutlinePatternTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillTilePropsUBO) uniform FillOutlinePatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
     vec2 texsize;
@@ -437,7 +446,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillOutlinePatternTile
     float pad2;
 } tileProps;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;
@@ -503,7 +512,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in vec2 frag_pos_a;
 layout(location = 1) in vec2 frag_pos_b;
@@ -523,7 +532,7 @@ layout(location = 5) in lowp float frag_opacity;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillOutlinePatternTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillTilePropsUBO) uniform FillOutlinePatternTilePropsUBO {
     vec4 pattern_from;
     vec4 pattern_to;
     vec2 texsize;
@@ -531,7 +540,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform FillOutlinePatternTile
     float pad2;
 } tileProps;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;
@@ -597,12 +606,12 @@ struct ShaderSource<BuiltIn::FillOutlineTriangulatedShader, gfx::Backend::Type::
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_pos_normal;
 layout(location = 1) in uvec4 in_data;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform FillOutlineTriangulatedDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idFillDrawableUBO) uniform FillOutlineTriangulatedDrawableUBO {
     mat4 matrix;
     float ratio;
     float pad1,
@@ -652,7 +661,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = FILL_SHADER_COMMON R"(
 
 layout(location = 0) in float frag_width2;
 layout(location = 1) in vec2 frag_normal;
@@ -660,7 +669,7 @@ layout(location = 2) in float frag_gamma_scale;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform FillEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idFillEvaluatedPropsUBO) uniform FillEvaluatedPropsUBO {
     vec4 color;
     vec4 outline_color;
     float opacity;

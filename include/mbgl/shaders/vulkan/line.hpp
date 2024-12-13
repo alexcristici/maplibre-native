@@ -6,6 +6,15 @@
 namespace mbgl {
 namespace shaders {
 
+#define LINE_SHADER_COMMON \
+    R"(
+
+#define idLineDrawableUBO           idDrawableReservedVertexOnlyUBO
+#define idLineTilePropsUBO          idDrawableReservedFragmentOnlyUBO
+#define idLineEvaluatedPropsUBO     layerUBOStartId
+
+)"
+
 template <>
 struct ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "LineShader";
@@ -15,7 +24,7 @@ struct ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_pos_normal;
 layout(location = 1) in uvec4 in_data;
@@ -44,7 +53,7 @@ layout(location = 6) in vec2 in_offset;
 layout(location = 7) in vec2 in_width;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LineDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idLineDrawableUBO) uniform LineDrawableUBO {
     mat4 matrix;
     mediump float ratio;
     // Interpolations
@@ -57,7 +66,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LineDrawableUBO {
     float pad1;
 } drawable;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -163,7 +172,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in lowp vec2 frag_normal;
 layout(location = 1) in lowp vec2 frag_width2;
@@ -183,7 +192,7 @@ layout(location = 5) in lowp float frag_opacity;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -243,7 +252,7 @@ struct ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_pos_normal;
 layout(location = 1) in uvec4 in_data;
@@ -268,7 +277,7 @@ layout(location = 5) in vec2 in_offset;
 layout(location = 6) in vec2 in_width;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LineGradientDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idLineDrawableUBO) uniform LineGradientDrawableUBO {
     mat4 matrix;
     mediump float ratio;
     // Interpolations
@@ -281,7 +290,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LineGradientDrawableUB
     float pad2;
 } drawable;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -381,7 +390,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in lowp vec2 frag_normal;
 layout(location = 1) in lowp vec2 frag_width2;
@@ -400,7 +409,7 @@ layout(set = DRAWABLE_IMAGE_SET_INDEX, binding = 0) uniform sampler2D image0_sam
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -458,7 +467,7 @@ struct ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_pos_normal;
 layout(location = 1) in uvec4 in_data;
@@ -491,7 +500,7 @@ layout(location = 7) in uvec4 in_pattern_from;
 layout(location = 8) in uvec4 in_pattern_to;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LinePatternDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idLineDrawableUBO) uniform LinePatternDrawableUBO {
     mat4 matrix;
     float ratio;
     // Interpolations
@@ -504,7 +513,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LinePatternDrawableUBO
     float pattern_to_t;
 } drawable;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -621,7 +630,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in lowp vec2 frag_normal;
 layout(location = 1) in lowp vec2 frag_width2;
@@ -646,7 +655,7 @@ layout(location = 7) in mediump vec4 frag_pattern_to;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform LinePatternTilePropertiesUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idLineTilePropsUBO) uniform LinePatternTilePropertiesUBO {
     vec4 pattern_from;
     vec4 pattern_to;
     vec4 scale;
@@ -655,7 +664,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform LinePatternTilePropert
     float pad1;
 } tileProps;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -754,7 +763,7 @@ struct ShaderSource<BuiltIn::LineSDFShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_pos_normal;
 layout(location = 1) in uvec4 in_data;
@@ -787,7 +796,7 @@ layout(location = 7) in vec2 in_width;
 layout(location = 8) in vec2 in_floorwidth;
 #endif
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LineSDFDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idLineDrawableUBO) uniform LineSDFDrawableUBO {
     mat4 matrix;
     vec2 patternscale_a;
     vec2 patternscale_b;
@@ -806,7 +815,7 @@ layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform LineSDFDrawableUBO {
     float pad2;
 } drawable;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;
@@ -930,7 +939,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = LINE_SHADER_COMMON R"(
 
 layout(location = 0) in lowp vec2 frag_normal;
 layout(location = 1) in lowp vec2 frag_width2;
@@ -956,14 +965,14 @@ layout(location = 8) in mediump float frag_floorwidth;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform LineSDFInterpolationUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idLineTilePropsUBO) uniform LineSDFInterpolationUBO {
     float sdfgamma;
     float mix;
     float pad1;
     float pad2;
 } tileProps;
 
-layout(set = LAYER_SET_INDEX, binding = 0) uniform LineEvaluatedPropsUBO {
+layout(set = LAYER_SET_INDEX, binding = idLineEvaluatedPropsUBO) uniform LineEvaluatedPropsUBO {
     vec4 color;
     float blur;
     float opacity;

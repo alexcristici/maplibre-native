@@ -6,6 +6,14 @@
 namespace mbgl {
 namespace shaders {
 
+#define COLLISION_SHADER_COMMON \
+    R"(
+
+#define idCollisionDrawableUBO      idDrawableReservedVertexOnlyUBO
+#define idCollisionTilePropsUBO     drawableReservedUBOCount
+
+)"
+
 template <>
 struct ShaderSource<BuiltIn::CollisionBoxShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "CollisionBoxShader";
@@ -15,7 +23,7 @@ struct ShaderSource<BuiltIn::CollisionBoxShader, gfx::Backend::Type::Vulkan> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = COLLISION_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_position;
 layout(location = 1) in ivec2 in_anchor_position;
@@ -23,11 +31,11 @@ layout(location = 2) in ivec2 in_extrude;
 layout(location = 3) in uvec2 in_placed;
 layout(location = 4) in vec2 in_shift;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform CollisionDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idCollisionDrawableUBO) uniform CollisionDrawableUBO {
     mat4 matrix;
 } drawable;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform CollisionTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idCollisionTilePropsUBO) uniform CollisionTilePropsUBO {
     vec2 extrude_scale;
     float overscale_factor;
     float pad1;
@@ -54,7 +62,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = COLLISION_SHADER_COMMON R"(
 
 layout(location = 0) in float frag_placed;
 layout(location = 1) in float frag_notUsed;
@@ -92,18 +100,18 @@ struct ShaderSource<BuiltIn::CollisionCircleShader, gfx::Backend::Type::Vulkan> 
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto vertex = R"(
+    static constexpr auto vertex = COLLISION_SHADER_COMMON R"(
 
 layout(location = 0) in ivec2 in_position;
 layout(location = 1) in ivec2 in_anchor_position;
 layout(location = 2) in ivec2 in_extrude;
 layout(location = 3) in uvec2 in_placed;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 0) uniform CollisionDrawableUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idCollisionDrawableUBO) uniform CollisionDrawableUBO {
     mat4 matrix;
 } drawable;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform CollisionTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idCollisionTilePropsUBO) uniform CollisionTilePropsUBO {
     vec2 extrude_scale;
     float overscale_factor;
     float pad1;
@@ -137,7 +145,7 @@ void main() {
 }
 )";
 
-    static constexpr auto fragment = R"(
+    static constexpr auto fragment = COLLISION_SHADER_COMMON R"(
 
 layout(location = 0) in float frag_placed;
 layout(location = 1) in float frag_notUsed;
@@ -147,7 +155,7 @@ layout(location = 4) in vec2 frag_extrude_scale;
 
 layout(location = 0) out vec4 out_color;
 
-layout(set = DRAWABLE_UBO_SET_INDEX, binding = 1) uniform CollisionTilePropsUBO {
+layout(set = DRAWABLE_UBO_SET_INDEX, binding = idCollisionTilePropsUBO) uniform CollisionTilePropsUBO {
     vec2 extrude_scale;
     float overscale_factor;
     float pad1;
