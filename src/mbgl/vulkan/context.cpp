@@ -445,8 +445,7 @@ void Context::bindGlobalUniformBuffers(gfx::RenderPass& renderPass) const noexce
         const shaders::GlobalPlatformParamsUBO platformUBO = {
             /* .rotation0 = */ {cosf(surfaceRotation), -sinf(surfaceRotation)},
             /* .rotation1 = */ {sinf(surfaceRotation), cosf(surfaceRotation)}};
-        context.globalUniformBuffers.createOrUpdate(
-            shaders::idGlobalPlatformParamsUBO, &platformUBO, sizeof(platformUBO), context, true, true);
+        context.globalUniformBuffers.createOrUpdate(shaders::idGlobalPlatformParamsUBO, &platformUBO, sizeof(platformUBO), context);
     }
 
     context.globalUniformBuffers.bindDescriptorSets(renderPassImpl.getEncoder());
