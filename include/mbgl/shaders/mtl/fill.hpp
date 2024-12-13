@@ -10,6 +10,13 @@ namespace shaders {
 #define FILL_SHADER_COMMON \
     R"(
 
+enum {
+    idFillDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idFillTilePropsUBO = drawableReservedUBOCount,
+    idFillEvaluatedPropsUBO,
+    fillUBOCount
+};
+
 //
 // Fill
 
@@ -130,15 +137,6 @@ union FillDrawableUnionUBO {
 union FillTilePropsUnionUBO {
     FillPatternTilePropsUBO fillPatternTilePropsUBO;
     FillOutlinePatternTilePropsUBO fillOutlinePatternTilePropsUBO;
-};
-
-enum {
-    idFillDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    idFillTilePropsUBO = drawableReservedUBOCount,
-    fillDrawableUBOCount,
-    
-    idFillEvaluatedPropsUBO = fillDrawableUBOCount,
-    fillUBOCount
 };
 
 )"

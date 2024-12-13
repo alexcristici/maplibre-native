@@ -10,6 +10,12 @@ namespace shaders {
 #define RASTER_SHADER_PRELUDE \
     R"(
 
+enum {
+    idRasterDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idRasterEvaluatedPropsUBO = drawableReservedUBOCount,
+    rasterUBOCount
+};
+
 struct alignas(16) RasterDrawableUBO {
     /*  0 */ float4x4 matrix;
     /* 64 */
@@ -33,14 +39,6 @@ struct alignas(16) RasterEvaluatedPropsUBO {
     /* 64 */
 };
 static_assert(sizeof(RasterEvaluatedPropsUBO) == 4 * 16, "wrong size");
-
-enum {
-    idRasterDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    rasterDrawableUBOCount = drawableReservedUBOCount,
-    
-    idRasterEvaluatedPropsUBO = rasterDrawableUBOCount,
-    rasterUBOCount
-};
 
 )"
 

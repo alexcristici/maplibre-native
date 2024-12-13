@@ -13,9 +13,7 @@ namespace shaders {
 enum {
     idWideVectorUniformsUBO = idDrawableReservedVertexOnlyUBO,
     idWideVectorUniformWideVecUBO = drawableReservedUBOCount,
-    wideVectorDrawableUBOCount,
-    
-    wideVectorUBOCount = wideVectorDrawableUBOCount
+    wideVectorUBOCount
 };
 
 )"

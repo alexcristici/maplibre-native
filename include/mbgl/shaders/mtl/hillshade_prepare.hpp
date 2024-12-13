@@ -10,6 +10,12 @@ namespace shaders {
 #define HILLSHADE_PREPARE_SHADER_PRELUDE \
     R"(
 
+enum {
+    idHillshadePrepareDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idHillshadePrepareTilePropsUBO = drawableReservedUBOCount,
+    hillshadePrepareUBOCount
+};
+
 struct alignas(16) HillshadePrepareDrawableUBO {
     /*  0 */ float4x4 matrix;
     /* 64 */
@@ -24,14 +30,6 @@ struct alignas(16) HillshadePrepareTilePropsUBO {
     /* 32 */
 };
 static_assert(sizeof(HillshadePrepareTilePropsUBO) == 2 * 16, "wrong size");
-
-enum {
-    idHillshadePrepareDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    idHillshadePrepareTilePropsUBO = drawableReservedUBOCount,
-    hillshadePrepareDrawableUBOCount,
-    
-    hillshadePrepareUBOCount = hillshadePrepareDrawableUBOCount
-};
 
 )"
 

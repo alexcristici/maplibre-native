@@ -10,6 +10,13 @@ namespace shaders {
 #define SYMBOL_SHADER_COMMON \
     R"(
 
+enum {
+    idSymbolDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idSymbolTilePropsUBO = idDrawableReservedFragmentOnlyUBO,
+    idSymbolEvaluatedPropsUBO = drawableReservedUBOCount,
+    symbolUBOCount
+};
+
 struct alignas(16) SymbolDrawableUBO {
     /*   0 */ float4x4 matrix;
     /*  64 */ float4x4 label_plane_matrix;
@@ -63,15 +70,6 @@ struct alignas(16) SymbolEvaluatedPropsUBO {
     /* 96 */
 };
 static_assert(sizeof(SymbolEvaluatedPropsUBO) == 6 * 16, "wrong size");
-
-enum {
-    idSymbolDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    idSymbolTilePropsUBO = idDrawableReservedFragmentOnlyUBO,
-    symbolDrawableUBOCount = drawableReservedUBOCount,
-    
-    idSymbolEvaluatedPropsUBO = symbolDrawableUBOCount,
-    symbolUBOCount
-};
 
 )"
 

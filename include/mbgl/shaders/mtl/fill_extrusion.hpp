@@ -10,6 +10,13 @@ namespace shaders {
 #define FILL_EXTRUSION_SHADER_COMMON \
     R"(
 
+enum {
+    idFillExtrusionDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idFillExtrusionTilePropsUBO = drawableReservedUBOCount,
+    idFillExtrusionPropsUBO,
+    fillExtrusionUBOCount
+};
+
 struct alignas(16) FillExtrusionDrawableUBO {
     /*   0 */ float4x4 matrix;
     /*  64 */ float2 pixel_coord_upper;
@@ -54,15 +61,6 @@ struct alignas(16) FillExtrusionPropsUBO {
     /* 80 */
 };
 static_assert(sizeof(FillExtrusionPropsUBO) == 5 * 16, "wrong size");
-
-enum {
-    idFillExtrusionDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    idFillExtrusionTilePropsUBO = drawableReservedUBOCount,
-    fillExtrusionDrawableUBOCount,
-    
-    idFillExtrusionPropsUBO = fillExtrusionDrawableUBOCount,
-    fillExtrusionUBOCount
-};
 
 )"
 

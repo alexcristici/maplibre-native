@@ -10,6 +10,12 @@ namespace shaders {
 #define COLLISION_SHADER_COMMON \
     R"(
 
+enum {
+    idCollisionDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idCollisionTilePropsUBO = drawableReservedUBOCount,
+    collisionUBOCount
+};
+
 struct alignas(16) CollisionDrawableUBO {
     /*  0 */ float4x4 matrix;
     /* 64 */
@@ -23,14 +29,6 @@ struct alignas(16) CollisionTilePropsUBO {
     /* 16 */
 };
 static_assert(sizeof(CollisionTilePropsUBO) == 16, "wrong size");
-
-enum {
-    idCollisionDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    idCollisionTilePropsUBO = drawableReservedUBOCount,
-    collisionDrawableUBOCount,
-    
-    collisionUBOCount = collisionDrawableUBOCount
-};
 
 )"
 

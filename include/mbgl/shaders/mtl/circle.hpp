@@ -10,6 +10,12 @@ namespace shaders {
 #define CIRCLE_SHADER_PRELUDE \
     R"(
 
+enum {
+    idCircleDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idCircleEvaluatedPropsUBO = drawableReservedUBOCount,
+    circleUBOCount
+};
+
 struct alignas(16) CircleDrawableUBO {
     /*   0 */ float4x4 matrix;
     /*  64 */ float2 extrude_scale;
@@ -44,14 +50,6 @@ struct alignas(16) CircleEvaluatedPropsUBO {
     /* 64 */
 };
 static_assert(sizeof(CircleEvaluatedPropsUBO) == 4 * 16, "wrong size");
-
-enum {
-    idCircleDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    circleDrawableUBOCount = drawableReservedUBOCount,
-    
-    idCircleEvaluatedPropsUBO = circleDrawableUBOCount,
-    circleUBOCount
-};
 
 )"
 

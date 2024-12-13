@@ -10,6 +10,12 @@ namespace shaders {
 #define BACKGROUND_SHADER_COMMON \
     R"(
 
+enum {
+    idBackgroundDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idBackgroundPropsUBO = drawableReservedUBOCount,
+    backgroundUBOCount
+};
+
 //
 // Background
 
@@ -64,14 +70,6 @@ static_assert(sizeof(BackgroundPatternPropsUBO) == 4 * 16, "wrong size");
 union BackgroundDrawableUnionUBO {
     BackgroundDrawableUBO backgroundDrawableUBO;
     BackgroundPatternDrawableUBO backgroundPatternDrawableUBO;
-};
-
-enum {
-    idBackgroundDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    backgroundDrawableUBOCount = drawableReservedUBOCount,
-    
-    idBackgroundPropsUBO = backgroundDrawableUBOCount,
-    backgroundUBOCount
 };
 
 )"

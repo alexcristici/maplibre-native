@@ -10,6 +10,11 @@ namespace shaders {
 #define DEBUG_SHADER_PRELUDE \
     R"(
 
+enum {
+    idDebugUBO = drawableReservedUBOCount,
+    debugUBOCount
+};
+
 struct alignas(16) DebugUBO {
     /*  0 */ float4x4 matrix;
     /* 64 */ float4 color;
@@ -20,13 +25,6 @@ struct alignas(16) DebugUBO {
     /* 96 */
 };
 static_assert(sizeof(DebugUBO) == 6 * 16, "wrong size");
-
-enum {
-    idDebugUBO = drawableReservedUBOCount,
-    debugDrawableUBOCount,
-    
-    debugUBOCount = debugDrawableUBOCount
-};
 
 )"
 

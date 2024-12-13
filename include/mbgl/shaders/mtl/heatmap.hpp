@@ -10,6 +10,12 @@ namespace shaders {
 #define HEATMAP_SHADER_PRELUDE \
     R"(
 
+enum {
+    idHeatmapDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idHeatmapEvaluatedPropsUBO = drawableReservedUBOCount,
+    heatmapUBOCount
+};
+
 struct alignas(16) HeatmapDrawableUBO {
     /*  0 */ float4x4 matrix;
     /* 64 */ float extrude_scale;
@@ -31,14 +37,6 @@ struct alignas(16) HeatmapEvaluatedPropsUBO {
     /* 16 */
 };
 static_assert(sizeof(HeatmapEvaluatedPropsUBO) == 16, "wrong size");
-
-enum {
-    idHeatmapDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    heatmapDrawableUBOCount = drawableReservedUBOCount,
-    
-    idHeatmapEvaluatedPropsUBO = heatmapDrawableUBOCount,
-    heatmapUBOCount
-};
 
 )"
 

@@ -10,6 +10,14 @@ namespace shaders {
 #define LINE_SHADER_COMMON \
     R"(
 
+enum {
+    idLineDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    idLineTilePropsUBO = idDrawableReservedFragmentOnlyUBO,
+    idLineEvaluatedPropsUBO = drawableReservedUBOCount,
+    idLineExpressionUBO,
+    lineUBOCount
+};
+
 //
 // Line
 
@@ -161,16 +169,6 @@ union LineDrawableUnionUBO {
 union LineTilePropsUnionUBO {
     LinePatternTilePropsUBO linePatternTilePropsUBO;
     LineSDFTilePropsUBO lineSDFTilePropsUBO;
-};
-
-enum {
-    idLineDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    idLineTilePropsUBO = idDrawableReservedFragmentOnlyUBO,
-    lineDrawableUBOCount = drawableReservedUBOCount,
-    
-    idLineEvaluatedPropsUBO = lineDrawableUBOCount,
-    idLineExpressionUBO,
-    lineUBOCount
 };
 
 )"

@@ -10,6 +10,11 @@ namespace shaders {
 #define CUSTOM_SYMBOL_ICON_SHADER_PRELUDE \
     R"(
 
+enum {
+    idCustomSymbolDrawableUBO = idDrawableReservedVertexOnlyUBO,
+    customSymbolUBOCount = drawableReservedUBOCount
+};
+
 struct alignas(16) CustomSymbolIconDrawableUBO {
     /*   0 */ float4x4 matrix;
     /*  64 */ float2 extrude_scale;
@@ -25,13 +30,6 @@ struct alignas(16) CustomSymbolIconDrawableUBO {
     /* 112 */
 };
 static_assert(sizeof(CustomSymbolIconParametersUBO) == 7 * 16, "wrong size");
-
-enum {
-    idCustomSymbolDrawableUBO = idDrawableReservedVertexOnlyUBO,
-    customSymbolDrawableUBOCount = drawableReservedUBOCount,
-
-    customSymbolUBOCount = customSymbolDrawableUBOCount
-};
 
 )"
 
