@@ -18,7 +18,6 @@ template <>
 struct ShaderSource<BuiltIn::WideVectorShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "WideVectorShader";
 
-    static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 3> attributes;
     static const std::array<AttributeInfo, 4> instanceAttributes;
     static const std::array<TextureInfo, 0> textures;

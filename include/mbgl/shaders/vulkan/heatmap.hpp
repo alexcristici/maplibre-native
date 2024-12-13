@@ -18,7 +18,6 @@ template <>
 struct ShaderSource<BuiltIn::HeatmapShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "HeatmapShader";
 
-    static const std::array<UniformBlockInfo, 2> uniforms;
     static const std::array<AttributeInfo, 3> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;

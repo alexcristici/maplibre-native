@@ -17,7 +17,6 @@ template <>
 struct ShaderSource<BuiltIn::LocationIndicatorShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "LocationIndicatorShader";
 
-    static const std::array<UniformBlockInfo, 1> uniforms;
     static const std::array<AttributeInfo, 1> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
@@ -54,7 +53,6 @@ template <>
 struct ShaderSource<BuiltIn::LocationIndicatorTexturedShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "LocationIndicatorTexturedShader";
 
-    static const std::array<UniformBlockInfo, 1> uniforms;
     static const std::array<AttributeInfo, 2> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;

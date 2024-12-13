@@ -19,7 +19,6 @@ template <>
 struct ShaderSource<BuiltIn::HillshadeShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "HillshadeShader";
 
-    static const std::array<UniformBlockInfo, 3> uniforms;
     static const std::array<AttributeInfo, 2> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
