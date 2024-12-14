@@ -56,7 +56,6 @@ void TileSourceRenderItem::render(PaintParameters& parameters) const {
 
 #if MLN_DRAWABLE_RENDERER
 
-#if MLN_RENDER_BACKEND_VULKAN
 class PolylineLayerImpl : public Layer::Impl {
 public:
     PolylineLayerImpl()
@@ -107,12 +106,67 @@ public:
             /* .floorWidth = */ nullptr,
         };
         layerUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
+
+#if MLN_UBO_CONSOLIDATION
+        int i = 0;
+        std::vector<LineDrawableUnionUBO> drawableUBOVector(layerGroup.getDrawableCount());
+#endif
+        visitLayerGroupDrawables(layerGroup, [&](gfx::Drawable& drawable) {
+            if (!drawable.getTileID().has_value()) {
+                return;
+            }
+
+            const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+            const auto zoom = parameters.state.getZoom();
+            mat4 tileMatrix;
+            parameters.state.matrixFor(/*out*/ tileMatrix, tileID);
+
+            const auto matrix = LayerTweaker::getTileMatrix(
+                tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
+
+#if MLN_UBO_CONSOLIDATION
+            drawableUBOVector[i].lineDrawableUBO = {
+#else
+            const shaders::LineDrawableUBO drawableUBO = {
+#endif
+                /* .matrix = */ util::cast<float>(matrix),
+                /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
+
+                /* .color_t = */ 0.f,
+                /* .blur_t = */ 0.f,
+                /* .opacity_t = */ 0.f,
+                /* .gapwidth_t = */ 0.f,
+                /* .offset_t = */ 0.f,
+                /* .width_t = */ 0.f,
+                /* .pad1 = */ 0};
+
+#if MLN_UBO_CONSOLIDATION
+            drawable.setUBOIndex(i++);
+#else
+            auto& drawableUniforms = drawable.mutableUniformBuffers();
+            drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
+#endif
+        });
+
+#if MLN_UBO_CONSOLIDATION
+        auto& context = parameters.context;
+        const size_t drawableUBOVectorSize = sizeof(LineDrawableUnionUBO) * drawableUBOVector.size();
+        if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
+            drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
+        } else {
+            drawableUniformBuffer->update(drawableUBOVector.data(), drawableUBOVectorSize);
+        }
+        layerUniforms.set(idLineDrawableUBO, drawableUniformBuffer);
+#endif
     }
 
 private:
     shaders::LineEvaluatedPropsUBO linePropertiesUBO;
-};
+
+#if MLN_UBO_CONSOLIDATION
+    gfx::UniformBufferPtr drawableUniformBuffer;
 #endif
+};
 
 void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGroups,
                                                 PaintParameters& parameters) const {
@@ -264,64 +318,6 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
 
     // function to add polylines drawable
     const auto addPolylineDrawable = [&](TileLayerGroup* tileLayerGroup, const RenderTile& tile) {
-        class PolylineDrawableTweaker : public gfx::DrawableTweaker {
-        public:
-            PolylineDrawableTweaker(const shaders::LineEvaluatedPropsUBO& properties)
-                : linePropertiesUBO(properties) {}
-            ~PolylineDrawableTweaker() override = default;
-
-            void init(gfx::Drawable&) override {}
-
-            void execute(gfx::Drawable& drawable, const PaintParameters& parameters) override {
-                if (!drawable.getTileID().has_value()) {
-                    return;
-                }
-
-                const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
-                const auto zoom = parameters.state.getZoom();
-                mat4 tileMatrix;
-                parameters.state.matrixFor(/*out*/ tileMatrix, tileID);
-
-                const auto matrix = LayerTweaker::getTileMatrix(
-                    tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
-
-                const shaders::LineDrawableUBO drawableUBO = {
-                    /* .matrix = */ util::cast<float>(matrix),
-                    /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
-
-                    /* .color_t = */ 0.f,
-                    /* .blur_t = */ 0.f,
-                    /* .opacity_t = */ 0.f,
-                    /* .gapwidth_t = */ 0.f,
-                    /* .offset_t = */ 0.f,
-                    /* .width_t = */ 0.f,
-                    /* .pad1 = */ 0};
-                auto& drawableUniforms = drawable.mutableUniformBuffers();
-                drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
-
-#if !MLN_RENDER_BACKEND_VULKAN
-                drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
-
-                // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
-                assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
-
-                const LineExpressionUBO exprUBO = {
-                    /* .color = */ nullptr,
-                    /* .blur = */ nullptr,
-                    /* .opacity = */ nullptr,
-                    /* .gapwidth = */ nullptr,
-                    /* .offset = */ nullptr,
-                    /* .width = */ nullptr,
-                    /* .floorWidth = */ nullptr,
-                };
-                drawableUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
-#endif
-            };
-
-        private:
-            shaders::LineEvaluatedPropsUBO linePropertiesUBO;
-        };
-
         GeometryCoordinates coords{{0, 0}, {util::EXTENT, 0}, {util::EXTENT, util::EXTENT}, {0, util::EXTENT}, {0, 0}};
         gfx::PolylineGeneratorOptions options;
         options.type = FeatureType::Polygon;
@@ -332,22 +328,16 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         }
         polylineBuilder->addPolyline(coords, options);
 
-#if MLN_RENDER_BACKEND_VULKAN
         if (!layerTweaker) {
             layerTweaker = std::make_shared<PolylineLayerTweaker>(linePropertiesUBO);
             layerTweaker->execute(*tileLayerGroup, parameters);
             tileLayerGroup->addLayerTweaker(layerTweaker);
         }
-#endif
-
-        // create line tweaker;
-        auto tweaker = std::make_shared<PolylineDrawableTweaker>(linePropertiesUBO);
 
         // finish
         polylineBuilder->flush(context);
         for (auto& drawable : polylineBuilder->clearDrawables()) {
             drawable->setTileID(tile.getOverscaledTileID());
-            drawable->addTweaker(tweaker);
             tileLayerGroup->addDrawable(renderPass, tile.getOverscaledTileID(), std::move(drawable));
         }
     };

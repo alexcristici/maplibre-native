@@ -119,7 +119,7 @@ public:
                                                       /* .width_t = */ 0.f,
                                                       /* .pad1 = */ 0};
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context, true);
         drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
