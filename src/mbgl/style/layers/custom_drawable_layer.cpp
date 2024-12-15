@@ -90,7 +90,7 @@ const LayerTypeInfo* CustomDrawableLayer::Impl::staticTypeInfo() noexcept {
 class LineDrawableTweaker : public gfx::DrawableTweaker {
 public:
     LineDrawableTweaker(const shaders::LineEvaluatedPropsUBO& properties)
-        : linePropertiesUBO(properties) {}
+        : propsUBO(properties) {}
     ~LineDrawableTweaker() override = default;
 
     void init(gfx::Drawable&) override {}
@@ -108,7 +108,12 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::LineDrawableUnionUBO drawableUBO = {.lineDrawableUBO {
+#if MLN_UBO_CONSOLIDATION
+        shaders::LineDrawableUnionUBO drawableUBO;
+        drawableUBO.lineDrawableUBO = {
+#else
+        const shaders::LineDrawableUBO drawableUBO = {
+#endif
             /* .matrix = */ util::cast<float>(matrix),
             /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
             
@@ -119,13 +124,13 @@ public:
             /* .offset_t = */ 0.f,
             /* .width_t = */ 0.f,
             /* .pad1 = */ 0
-        }};
+        };
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context, true);
-        drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &propsUBO, parameters.context);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
-        assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
+        assert(propsUBO.expressionMask == LineExpressionMask::None);
         
         const LineExpressionUBO exprUBO = {
             /* .color = */ nullptr,
@@ -140,7 +145,7 @@ public:
     };
 
 private:
-    shaders::LineEvaluatedPropsUBO linePropertiesUBO;
+    shaders::LineEvaluatedPropsUBO propsUBO;
 };
 
 class WideVectorDrawableTweaker : public gfx::DrawableTweaker {
@@ -229,24 +234,31 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::FillDrawableUnionUBO fillDrawableUBO = {.fillDrawableUBO {
+#if MLN_UBO_CONSOLIDATION
+        shaders::FillDrawableUnionUBO drawableUBO;
+        drawableUBO.fillDrawableUBO = {
+#else
+        const shaders::FillDrawableUBO drawableUBO = {
+#endif
             /* .matrix = */ util::cast<float>(matrix),
             
             /* .color_t = */ 0.f,
             /* .opacity_t = */ 0.f,
             /* .pad1 = */ 0,
             /* .pad2 = */ 0
-        }};
+        };
 
-        const shaders::FillEvaluatedPropsUBO fillPropertiesUBO = {/* .color = */ color,
-                                                                  /* .outline_color = */ Color::white(),
-                                                                  /* .opacity = */ opacity,
-                                                                  /* .fade = */ 0.f,
-                                                                  /* .from_scale = */ 0.f,
-                                                                  /* .to_scale = */ 0.f};
+        const shaders::FillEvaluatedPropsUBO propsUBO = {
+            /* .color = */ color,
+            /* .outline_color = */ Color::white(),
+            /* .opacity = */ opacity,
+            /* .fade = */ 0.f,
+            /* .from_scale = */ 0.f,
+            /* .to_scale = */ 0.f
+        };
         auto& drawableUniforms = drawable.mutableUniformBuffers();
-        drawableUniforms.createOrUpdate(idFillDrawableUBO, &fillDrawableUBO, parameters.context);
-        drawableUniforms.createOrUpdate(idFillEvaluatedPropsUBO, &fillPropertiesUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idFillDrawableUBO, &drawableUBO, parameters.context);
+        drawableUniforms.createOrUpdate(idFillEvaluatedPropsUBO, &propsUBO, parameters.context);
     };
 
 private:

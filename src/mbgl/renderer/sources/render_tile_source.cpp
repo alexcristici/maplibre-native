@@ -88,15 +88,15 @@ class PolylineLayerTweaker : public LayerTweaker {
 public:
     PolylineLayerTweaker(const shaders::LineEvaluatedPropsUBO& properties)
         : LayerTweaker("debug-polyline", makeMutable<PolylineLayerProperties>()),
-          linePropertiesUBO(properties) {}
+          propsUBO(properties) {}
 
     void execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) override {
         auto& context = parameters.context;
         auto& layerUniforms = layerGroup.mutableUniformBuffers();
-        layerUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, context);
+        layerUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &propsUBO, context);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
-        assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
+        assert(propsUBO.expressionMask == LineExpressionMask::None);
 
         const LineExpressionUBO exprUBO = {
             /* .color = */ nullptr,
@@ -162,7 +162,7 @@ public:
     }
 
 private:
-    shaders::LineEvaluatedPropsUBO linePropertiesUBO;
+    shaders::LineEvaluatedPropsUBO propsUBO;
 
 #if MLN_UBO_CONSOLIDATION
     gfx::UniformBufferPtr drawableUniformBuffer;
