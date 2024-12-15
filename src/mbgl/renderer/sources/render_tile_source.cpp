@@ -90,8 +90,9 @@ public:
           linePropertiesUBO(properties) {}
 
     void execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) override {
+        auto& context = parameters.context;
         auto& layerUniforms = layerGroup.mutableUniformBuffers();
-        layerUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
+        layerUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, context);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
         assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
@@ -105,8 +106,8 @@ public:
             /* .width = */ nullptr,
             /* .floorWidth = */ nullptr,
         };
-        layerUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
-
+        layerUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, context);
+        
 #if MLN_UBO_CONSOLIDATION
         int i = 0;
         std::vector<LineDrawableUnionUBO> drawableUBOVector(layerGroup.getDrawableCount());
@@ -144,12 +145,11 @@ public:
             drawable.setUBOIndex(i++);
 #else
             auto& drawableUniforms = drawable.mutableUniformBuffers();
-            drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context);
+            drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, context);
 #endif
         });
 
 #if MLN_UBO_CONSOLIDATION
-        auto& context = parameters.context;
         const size_t drawableUBOVectorSize = sizeof(LineDrawableUnionUBO) * drawableUBOVector.size();
         if (!drawableUniformBuffer || drawableUniformBuffer->getSize() < drawableUBOVectorSize) {
             drawableUniformBuffer = context.createUniformBuffer(drawableUBOVector.data(), drawableUBOVectorSize, false, true);
@@ -328,17 +328,16 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
         }
         polylineBuilder->addPolyline(coords, options);
 
-        if (!layerTweaker) {
-            layerTweaker = std::make_shared<PolylineLayerTweaker>(linePropertiesUBO);
-            layerTweaker->execute(*tileLayerGroup, parameters);
-            tileLayerGroup->addLayerTweaker(layerTweaker);
-        }
-
         // finish
         polylineBuilder->flush(context);
         for (auto& drawable : polylineBuilder->clearDrawables()) {
             drawable->setTileID(tile.getOverscaledTileID());
             tileLayerGroup->addDrawable(renderPass, tile.getOverscaledTileID(), std::move(drawable));
+        }
+        
+        if (!layerTweaker) {
+            layerTweaker = std::make_shared<PolylineLayerTweaker>(linePropertiesUBO);
+            tileLayerGroup->addLayerTweaker(layerTweaker);
         }
     };
 #endif
@@ -428,10 +427,12 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                                        /* .pad1 = */ 0,
                                        /* .pad2 = */ 0,
                                        /* .pad3 = */ 0};
-            if (0 == updateDrawables(tileLayerGroup, tileID, debugUBO) && tile.getNeedsRendering()) {
 #if MLN_ENABLE_POLYLINE_DRAWABLES
+            if (0 == tileLayerGroup->getDrawableCount(renderPass, tileID) && tile.getNeedsRendering()) {
                 addPolylineDrawable(tileLayerGroup, tile);
+            }
 #else
+            if (0 == updateDrawables(tileLayerGroup, tileID, debugUBO) && tile.getNeedsRendering()) {
                 addDrawable(tileLayerGroup,
                             tileID,
                             debugUBO,
@@ -439,8 +440,8 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
                             vertices,
                             indexes,
                             segments);
-#endif
             }
+#endif
         }
     } else {
         // if tile borders are not required, erase layer group
