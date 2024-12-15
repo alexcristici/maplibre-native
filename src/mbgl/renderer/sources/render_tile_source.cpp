@@ -56,6 +56,7 @@ void TileSourceRenderItem::render(PaintParameters& parameters) const {
 
 #if MLN_DRAWABLE_RENDERER
 
+#if MLN_ENABLE_POLYLINE_DRAWABLES
 class PolylineLayerImpl : public Layer::Impl {
 public:
     PolylineLayerImpl()
@@ -167,6 +168,7 @@ private:
     gfx::UniformBufferPtr drawableUniformBuffer;
 #endif
 };
+#endif
 
 void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGroups,
                                                 PaintParameters& parameters) const {
@@ -421,17 +423,19 @@ void TileSourceRenderItem::updateDebugDrawables(DebugLayerGroupMap& debugLayerGr
             const auto& debugBucket = tile.debugBucket;
             if (!debugBucket) continue;
 
-            const DebugUBO debugUBO = {/* .matrix = */ util::cast<float>(tile.matrix),
-                                       /* .color = */ Color::red(),
-                                       /* .overlay_scale = */ 1.0f,
-                                       /* .pad1 = */ 0,
-                                       /* .pad2 = */ 0,
-                                       /* .pad3 = */ 0};
 #if MLN_ENABLE_POLYLINE_DRAWABLES
             if (0 == tileLayerGroup->getDrawableCount(renderPass, tileID) && tile.getNeedsRendering()) {
                 addPolylineDrawable(tileLayerGroup, tile);
             }
 #else
+            const DebugUBO debugUBO = {
+                    /* .matrix = */ util::cast<float>(tile.matrix),
+                    /* .color = */ Color::red(),
+                    /* .overlay_scale = */ 1.0f,
+                    /* .pad1 = */ 0,
+                    /* .pad2 = */ 0,
+                    /* .pad3 = */ 0};
+
             if (0 == updateDrawables(tileLayerGroup, tileID, debugUBO) && tile.getNeedsRendering()) {
                 addDrawable(tileLayerGroup,
                             tileID,
