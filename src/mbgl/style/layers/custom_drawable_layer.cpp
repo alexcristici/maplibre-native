@@ -108,22 +108,35 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::LineDrawableUBO drawableUBO = {/* .matrix = */ util::cast<float>(matrix),
-                                                      /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
-
-                                                      /* .color_t = */ 0.f,
-                                                      /* .blur_t = */ 0.f,
-                                                      /* .opacity_t = */ 0.f,
-                                                      /* .gapwidth_t = */ 0.f,
-                                                      /* .offset_t = */ 0.f,
-                                                      /* .width_t = */ 0.f,
-                                                      /* .pad1 = */ 0};
+        const shaders::LineDrawableUnionUBO drawableUBO = {.lineDrawableUBO {
+            /* .matrix = */ util::cast<float>(matrix),
+            /* .ratio = */ 1.0f / tileID.pixelsToTileUnits(1.0f, zoom),
+            
+            /* .color_t = */ 0.f,
+            /* .blur_t = */ 0.f,
+            /* .opacity_t = */ 0.f,
+            /* .gapwidth_t = */ 0.f,
+            /* .offset_t = */ 0.f,
+            /* .width_t = */ 0.f,
+            /* .pad1 = */ 0
+        }};
         auto& drawableUniforms = drawable.mutableUniformBuffers();
         drawableUniforms.createOrUpdate(idLineDrawableUBO, &drawableUBO, parameters.context, true);
         drawableUniforms.createOrUpdate(idLineEvaluatedPropsUBO, &linePropertiesUBO, parameters.context);
 
         // We would need to set up `idLineExpressionUBO` if the expression mask isn't empty
         assert(linePropertiesUBO.expressionMask == LineExpressionMask::None);
+        
+        const LineExpressionUBO exprUBO = {
+            /* .color = */ nullptr,
+            /* .blur = */ nullptr,
+            /* .opacity = */ nullptr,
+            /* .gapwidth = */ nullptr,
+            /* .offset = */ nullptr,
+            /* .width = */ nullptr,
+            /* .floorWidth = */ nullptr,
+        };
+        drawableUniforms.createOrUpdate(idLineExpressionUBO, &exprUBO, parameters.context);
     };
 
 private:
@@ -216,12 +229,14 @@ public:
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
-        const shaders::FillDrawableUBO fillDrawableUBO = {/* .matrix = */ util::cast<float>(matrix),
-
-                                                          /* .color_t = */ 0.f,
-                                                          /* .opacity_t = */ 0.f,
-                                                          /* .pad1 = */ 0,
-                                                          /* .pad2 = */ 0};
+        const shaders::FillDrawableUnionUBO fillDrawableUBO = {.fillDrawableUBO {
+            /* .matrix = */ util::cast<float>(matrix),
+            
+            /* .color_t = */ 0.f,
+            /* .opacity_t = */ 0.f,
+            /* .pad1 = */ 0,
+            /* .pad2 = */ 0
+        }};
 
         const shaders::FillEvaluatedPropsUBO fillPropertiesUBO = {/* .color = */ color,
                                                                   /* .outline_color = */ Color::white(),
@@ -396,7 +411,6 @@ bool CustomDrawableLayerHost::Interface::addPolyline(const GeometryCoordinates& 
 }
 
 bool CustomDrawableLayerHost::Interface::addFill(const GeometryCollection& geometry) {
-    return true;
     // build fill
     if (!updateBuilder(BuilderType::Fill, "custom-fill", fillShaderDefault())) return false;
 
@@ -492,7 +506,7 @@ bool CustomDrawableLayerHost::Interface::addSymbol(const GeometryCoordinate& poi
         builder->setTexture(symbolOptions.texture, idCustomSymbolImageTexture);
     }
 
-    // create fill tweaker
+    // create symbol tweaker
     auto tweaker = std::make_shared<SymbolDrawableTweaker>(symbolOptions);
     builder->addTweaker(tweaker);
 
