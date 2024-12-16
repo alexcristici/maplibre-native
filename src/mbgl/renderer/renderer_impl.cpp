@@ -18,6 +18,8 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 #include <mbgl/util/instrumentation.hpp>
+#include <mbgl/renderer/buckets/symbol_bucket.hpp>
+#include <mbgl/renderer/buckets/fill_bucket.hpp>
 
 #if MLN_DRAWABLE_RENDERER
 #include <mbgl/gfx/drawable_tweaker.hpp>
@@ -563,6 +565,31 @@ void Renderer::Impl::render(const RenderTree& renderTree,
 
     frameCount += 1;
     MLN_END_FRAME();
+    
+    size_t symbolBucketsMem = 0;
+    for(size_t i = 0; i < SymbolBucket::list.size(); i++) {
+        symbolBucketsMem += SymbolBucket::list[i]->getMemSize();
+    }
+    
+    size_t fillBucketsMem = 0;
+    for(size_t i = 0; i < FillBucket::list.size(); i++) {
+        fillBucketsMem += FillBucket::list[i]->getMemSize();
+    }
+    
+    std::stringstream ss;
+    ss << "\ntotalSymbolBucketsMem: " << symbolBucketsMem
+       << "\ntotalSymbolBucketsCount: " << SymbolBucket::count
+       << "\nfillSymbolBucketsMem: " << fillBucketsMem
+       << "\nfillSymbolBucketsCount: " << FillBucket::count
+       << "\nsymbolRenderLayersCount: " << context.renderingStats().symbolRenderLayersCount
+       << "\nlineRenderLayersCount: " << context.renderingStats().lineRenderLayersCount
+       << "\nfillRenderLayersCount: " << context.renderingStats().fillRenderLayersCount
+       << "\nzoom: " << parameters.state.getZoom();
+    Log::Debug(Event::General, ss.str());
+
+    context.renderingStats().symbolRenderLayersCount = 0;
+    context.renderingStats().lineRenderLayersCount = 0;
+    context.renderingStats().fillRenderLayersCount = 0;
 }
 
 void Renderer::Impl::reduceMemoryUse() {

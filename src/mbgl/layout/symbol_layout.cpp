@@ -870,6 +870,7 @@ void SymbolLayout::createBucket(const ImagePositions&,
                                                  allowVerticalPlacement,
                                                  std::move(placementModes),
                                                  iconsInText);
+    SymbolBucket::list.emplace_back(bucket.get());
 
     for (SymbolInstance& symbolInstance : bucket->symbolInstances) {
         if (!symbolInstance.check(SYM_GUARD_LOC)) {

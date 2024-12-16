@@ -61,6 +61,10 @@ struct RenderingStats {
 
     int stencilClears = 0;
     int stencilUpdates = 0;
+    
+    int symbolRenderLayersCount = 0;
+    int lineRenderLayersCount = 0;
+    int fillRenderLayersCount = 0;
 
     RenderingStats& operator+=(const RenderingStats&);
 

@@ -84,6 +84,7 @@ public:
 
     void upload(gfx::UploadPass&) override;
     bool hasData() const override;
+    size_t getMemSize() const override;
     std::pair<uint32_t, bool> registerAtCrossTileIndex(CrossTileSymbolLayerIndex&, const RenderTile&) override;
     void place(Placement&, const BucketPlacementData&, std::set<uint32_t>&) override;
     void updateVertices(
@@ -266,6 +267,9 @@ public:
     mutable std::optional<bool> hasFormatSectionOverrides_;
 
     FeatureSortOrder featureSortOrder;
+    
+    static size_t count;
+    static std::vector<const SymbolBucket*> list;
 };
 
 } // namespace mbgl

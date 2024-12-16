@@ -305,6 +305,8 @@ void RenderFillLayer::update(gfx::ShaderRegistry& shaders,
         removeAllDrawables();
         return;
     }
+    
+    context.renderingStats().fillRenderLayersCount ++;
 
     // Set up a layer group for fill
     if (!layerGroup) {

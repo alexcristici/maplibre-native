@@ -267,7 +267,8 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     // Keep track of current map state and debug preferences,
     // saving and restoring when the application's state changes.
     self.currentState =  [MBXStateManager sharedManager].currentState;
-
+    [self.mapView setTileCacheEnabled:false];
+    
     if (!self.currentState) {
         // Create a new state with the below default values
         self.currentState = [[MBXState alloc] init];
@@ -352,7 +353,10 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
 
 - (IBAction)showSettings:(__unused id)sender
 {
-    self.randomWalk = NO;
+    
+    [self addAnnotationWithCustomCallout];
+    
+    /*self.randomWalk = NO;
 
     UITableViewController *settingsViewController = [[UITableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     settingsViewController.tableView.delegate = self;
@@ -361,7 +365,7 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     settingsViewController.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(dismissSettings:)];
     UINavigationController *wrapper = [[UINavigationController alloc] initWithRootViewController:settingsViewController];
     wrapper.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
-    [self.navigationController presentViewController:wrapper animated:YES completion:nil];
+    [self.navigationController presentViewController:wrapper animated:YES completion:nil];*/
 }
 
 - (void)dismissSettings:(__unused id)sender
@@ -1025,24 +1029,25 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     [self.mapView removeAnnotations:self.mapView.annotations];
 
     MBXCustomCalloutAnnotation *firstAnnotation = [[MBXCustomCalloutAnnotation alloc] init];
-    firstAnnotation.coordinate = CLLocationCoordinate2DMake(48.8533940, 2.3775439);
+    firstAnnotation.coordinate = CLLocationCoordinate2DMake(51.50982, -0.1337);
     firstAnnotation.title = @"Open anchored to annotation";
     firstAnnotation.anchoredToAnnotation = YES;
     firstAnnotation.dismissesAutomatically = NO;
 
     MBXCustomCalloutAnnotation *secondAnnotation = [[MBXCustomCalloutAnnotation alloc] init];
-    secondAnnotation.coordinate = CLLocationCoordinate2DMake(48.8543940, 2.3775439);
+    secondAnnotation.coordinate = CLLocationCoordinate2DMake(51.50985, -0.1337);
     secondAnnotation.title = @"Open not anchored to annotation";
     secondAnnotation.anchoredToAnnotation = NO;
     secondAnnotation.dismissesAutomatically = NO;
 
     MBXCustomCalloutAnnotation *thirdAnnotation = [[MBXCustomCalloutAnnotation alloc] init];
-    thirdAnnotation.coordinate = CLLocationCoordinate2DMake(48.8553940, 2.3775439);
+    thirdAnnotation.coordinate = CLLocationCoordinate2DMake(51.50988, -0.1337);
     thirdAnnotation.title = @"Dismisses automatically";
     thirdAnnotation.anchoredToAnnotation = YES;
     thirdAnnotation.dismissesAutomatically = YES;
 
     NSArray *annotations = @[firstAnnotation, secondAnnotation, thirdAnnotation];
+    
     [self.mapView addAnnotations:annotations];
 
     [self.mapView showAnnotations:annotations animated:YES];
@@ -2150,7 +2155,7 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     
     /// Style that does not require an `apiKey` nor any further configuration
     [self.styleNames addObject:@"MapLibre Basic"];
-    [self.styleURLs addObject:[NSURL URLWithString:@"https://demotiles.maplibre.org/style.json"]];
+    [self.styleURLs addObject:[NSURL URLWithString:@"https://americanamap.org/style.json"]];
 
     /// Add MapLibre Styles if an `apiKey` exists
     NSString* apiKey = [MLNSettings apiKey];
