@@ -22,6 +22,7 @@ GlyphsUploadResult uploadGlyphs(const GlyphMap& glyphs) {
                 const Glyph& glyph = **entry.second;
                 int32_t uniqueId = static_cast<int32_t>(sqrt(fontStack) / 2 + glyph.id);
                 auto glyphHandle = dynamicTextureAlpha->addImage(glyph.bitmap, uniqueId);
+                assert(glyphHandle);
                 if (glyphHandle) {
                     positions.emplace(glyph.id, GlyphPosition{*glyphHandle, glyph.metrics});
                     if (glyphHandle->isImageUploadDeferred()) {
