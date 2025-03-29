@@ -24,7 +24,7 @@ const Texture2DPtr& DynamicTexture::getTextureAtlas() {
     return textureAtlas;
 }
 
-std::optional<TextureHandle> DynamicTexture::addImage(const void* pixelData, const Size& imageSize, int32_t id) {
+std::optional<TextureHandle> DynamicTexture::addImage([[maybe_unused]] const void* pixelData, const Size& imageSize, int32_t id) {
     mutex.lock();
     mapbox::Bin* bin = shelfPack.packOne(id, imageSize.width + 2, imageSize.height + 2);
     if (!bin) {
