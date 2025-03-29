@@ -46,14 +46,14 @@ std::optional<TextureHandle> DynamicTexture::addImage([[maybe_unused]] const voi
 void DynamicTexture::removeTexture(const TextureHandle& texHandle) {
     mutex.lock();
     auto refcount = shelfPack.unref(*texHandle.getBin());
-/*#if !defined(NDEBUG)
+#if !defined(NDEBUG)
     if (refcount == 0) {
         Size size = Size(texHandle.getBin()->w, texHandle.getBin()->h);
         std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(size.area() * textureAtlas->numChannels());
         memset(data.get(), 0, size.area() * textureAtlas->numChannels());
         textureAtlas->uploadSubRegion(data.get(), size, texHandle.getBin()->x, texHandle.getBin()->y);
     }
-#endif*/
+#endif
     mutex.unlock();
 }
 
