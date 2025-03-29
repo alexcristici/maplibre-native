@@ -58,7 +58,7 @@ ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& ver
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
         auto iconHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
-        assert(iconHandle);
+        assert(iconHandle.has_value());
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
         if (iconHandle) {
@@ -86,7 +86,7 @@ ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMa
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
         auto patternHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
-        assert(patternHandle);
+        assert(patternHandle.has_value());
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
         if (patternHandle) {
