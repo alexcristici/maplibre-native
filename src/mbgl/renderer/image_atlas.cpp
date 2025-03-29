@@ -61,7 +61,7 @@ ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& ver
         assert(iconHandle.has_value());
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
-        if (iconHandle) {
+        if (iconHandle.has_value()) {
             iconsUploadResult.imagePositions.emplace(image.id, ImagePosition{*iconHandle->getBin(), image, version, iconHandle});
             if (iconHandle->isImageUploadDeferred()) {
                 iconsUploadResult.imagesToUpload.emplace_back(std::make_pair(entry.second, *iconHandle));
@@ -89,7 +89,7 @@ ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMa
         assert(patternHandle.has_value());
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
-        if (patternHandle) {
+        if (patternHandle.has_value()) {
             patternsUploadResult.imagePositions.emplace(image.id, ImagePosition{*patternHandle->getBin(), image, version, patternHandle});
             if (patternHandle->isImageUploadDeferred()) {
                 patternsUploadResult.imagesToUpload.emplace_back(std::make_pair(entry.second, *patternHandle));
