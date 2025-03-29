@@ -2,6 +2,7 @@
 
 #include <mbgl/style/image_impl.hpp>
 #include <mbgl/util/rect.hpp>
+#include <mbgl/gfx/dynamic_texture.hpp>
 
 #include <mapbox/shelf-pack.hpp>
 
@@ -19,9 +20,13 @@ class ImageManager;
 
 class ImagePosition {
 public:
-    ImagePosition(const mapbox::Bin&, const style::Image::Impl&, uint32_t version = 0);
+    ImagePosition(const mapbox::Bin&,
+                  const style::Image::Impl&,
+                  uint32_t version = 0,
+                  std::optional<gfx::TextureHandle> handle = std::nullopt);
 
     static constexpr const uint16_t padding = 1u;
+    std::optional<gfx::TextureHandle> handle;
     float pixelRatio;
     Rect<uint16_t> paddedRect;
     uint32_t version;
@@ -55,6 +60,7 @@ public:
 };
 
 using ImagePositions = mbgl::unordered_map<std::string, ImagePosition>;
+using ImageTexturePairs = std::vector<std::pair<Immutable<style::Image::Impl>, gfx::TextureHandle>>;
 
 class ImagePatch {
 public:
@@ -66,15 +72,16 @@ public:
     Rect<uint16_t> paddedRect;
 };
 
-class ImageAtlas {
+class ImagesUploadResult {
 public:
-    PremultipliedImage image;
-    ImagePositions iconPositions;
-    ImagePositions patternPositions;
-
-    std::vector<ImagePatch> getImagePatchesAndUpdateVersions(const ImageManager&);
+    ImagePositions imagePositions;
+    ImageTexturePairs imagesToUpload;
 };
 
-ImageAtlas makeImageAtlas(const ImageMap&, const ImageMap&, const ImageVersionMap& versionMap);
+void populateImagePatches(ImagePositions& imagePositions,
+                          const ImageManager& imageManager,
+                          std::vector<ImagePatch>& /*out*/ patches);
+ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap);
+ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap);
 
 } // namespace mbgl
