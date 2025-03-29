@@ -17,14 +17,17 @@ using Texture2DPtr = std::shared_ptr<gfx::Texture2D>;
 
 class TextureHandle {
 public:
-    TextureHandle(mapbox::Bin* bin_)
-        : bin(bin_) {};
+    TextureHandle(mapbox::Bin* bin_, bool imageUploadDeferred_)
+        : bin(bin_),
+        imageUploadDeferred(imageUploadDeferred_) {};
     ~TextureHandle() = default;
 
     mapbox::Bin* getBin() const { return bin; }
+    bool isImageUploadDeferred() const { return imageUploadDeferred; }
 
 private:
     mapbox::Bin* bin;
+    bool imageUploadDeferred = false;
 };
 
 class DynamicTexture {
@@ -46,6 +49,8 @@ private:
     Texture2DPtr textureAtlas;
     mapbox::ShelfPack shelfPack;
 };
+
+#define MLN_DEFER_UPLOAD_ON_RENDER_THREAD (MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN)
 
 } // namespace gfx
 } // namespace mbgl

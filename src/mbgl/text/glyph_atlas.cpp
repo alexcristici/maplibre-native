@@ -5,12 +5,12 @@
 
 namespace mbgl {
 
-GlyphPositions uploadGlyphs(const GlyphMap& glyphs) {
-    GlyphPositions glyphPositions;
+GlyphsUploadResult uploadGlyphs(const GlyphMap& glyphs) {
+    GlyphsUploadResult glyphsUploadResult;
 
     for (const auto& glyphMapEntry : glyphs) {
         FontStackHash fontStack = glyphMapEntry.first;
-        GlyphPositionMap& positions = glyphPositions[fontStack];
+        GlyphPositionMap& positions = glyphsUploadResult.glyphPositions[fontStack];
 
         for (const auto& entry : glyphMapEntry.second) {
             if (entry.second && (*entry.second)->bitmap.valid()) {
@@ -18,14 +18,16 @@ GlyphPositions uploadGlyphs(const GlyphMap& glyphs) {
 
                 int32_t uniqueId = static_cast<int32_t>(sqrt(fontStack) / 2 + glyph.id);
                 auto glyphHandle = gfx::Context::getDynamicTextureAlpha()->addImage(glyph.bitmap, uniqueId);
-
                 if (glyphHandle) {
                     positions.emplace(glyph.id, GlyphPosition{*glyphHandle, glyph.metrics});
+                    if (glyphHandle->isImageUploadDeferred()) {
+                        glyphsUploadResult.glyphsToUpload.emplace_back(std::make_pair(*entry.second, *glyphHandle));
+                    }
                 }
             }
         }
     }
-    return glyphPositions;
+    return glyphsUploadResult;
 }
 
 } // namespace mbgl

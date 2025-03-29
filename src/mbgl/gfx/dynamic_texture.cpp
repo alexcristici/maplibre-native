@@ -31,11 +31,16 @@ std::optional<TextureHandle> DynamicTexture::addImage(const void* pixelData, con
         mutex.unlock();
         return std::nullopt;
     }
+    bool imageUploadDeferred = false;
     if (bin->refcount() == 1) {
+#if MLN_DEFER_UPLOAD_ON_RENDER_THREAD
+        imageUploadDeferred = true;
+#else
         textureAtlas->uploadSubRegion(pixelData, imageSize, bin->x + 1, bin->y + 1);
+#endif
     }
     mutex.unlock();
-    return TextureHandle(bin);
+    return TextureHandle(bin, imageUploadDeferred);
 }
 
 void DynamicTexture::removeTexture(const TextureHandle& texHandle) {

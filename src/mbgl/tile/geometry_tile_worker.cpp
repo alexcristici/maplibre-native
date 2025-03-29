@@ -496,26 +496,25 @@ void GeometryTileWorker::finalizeLayout() {
     }
 
     MBGL_TIMING_START(watch);
-    ImagePositions iconPositions = uploadIcons(imageMap, versionMap);
-    ImagePositions patternPositions = uploadPatterns(patternMap, versionMap);
-    GlyphPositions glyphPositions;
+    ImagesUploadResult iconsUploadResult = uploadIcons(imageMap, versionMap);
+    ImagesUploadResult patternsUploadResult = uploadPatterns(patternMap, versionMap);
+    GlyphsUploadResult glyphsUploadResult;
     if (!layouts.empty()) {
-        glyphPositions = uploadGlyphs(glyphMap);
+        glyphsUploadResult = uploadGlyphs(glyphMap);
 
         for (auto& layout : layouts) {
             if (obsolete) {
                 return;
             }
 
-            layout->prepareSymbols(glyphMap, glyphPositions, imageMap, iconPositions);
+            layout->prepareSymbols(glyphMap, glyphsUploadResult.glyphPositions, imageMap, iconsUploadResult.imagePositions);
 
             if (!layout->hasSymbolInstances()) {
                 continue;
             }
 
             // layout adds the bucket to buckets
-            layout->createBucket(
-                patternPositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
+            layout->createBucket(patternsUploadResult.imagePositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
         }
     }
 
@@ -532,9 +531,9 @@ void GeometryTileWorker::finalizeLayout() {
     parent.invoke(&GeometryTile::onLayout,
                   std::make_shared<GeometryTile::LayoutResult>(std::move(renderData),
                                                                std::move(featureIndex),
-                                                               std::move(glyphPositions),
-                                                               std::move(iconPositions),
-                                                               std::move(patternPositions)),
+                                                               std::move(glyphsUploadResult),
+                                                               std::move(iconsUploadResult),
+                                                               std::move(patternsUploadResult)),
                   correlationID);
 }
 

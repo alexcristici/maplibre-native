@@ -44,9 +44,9 @@ void populateImagePatches(ImagePositions& imagePositions,
     }
 }
 
-ImagePositions uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap) {
-    ImagePositions iconPositions;
-    iconPositions.reserve(icons.size());
+ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap) {
+    ImagesUploadResult iconsUploadResult;
+    iconsUploadResult.imagePositions.reserve(icons.size());
 
     for (const auto& entry : icons) {
         const style::Image::Impl& image = *entry.second;
@@ -56,16 +56,19 @@ ImagePositions uploadIcons(const ImageMap& icons, const ImageVersionMap& version
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
         if (iconHandle) {
-            iconPositions.emplace(image.id, ImagePosition{*iconHandle->getBin(), image, version, iconHandle});
+            iconsUploadResult.imagePositions.emplace(image.id, ImagePosition{*iconHandle->getBin(), image, version, iconHandle});
+            if (iconHandle->isImageUploadDeferred()) {
+                iconsUploadResult.imagesToUpload.emplace_back(std::make_pair(entry.second, *iconHandle));
+            }
         }
     }
 
-    return iconPositions;
+    return iconsUploadResult;
 }
 
-ImagePositions uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap) {
-    ImagePositions patternPositions;
-    patternPositions.reserve(patterns.size());
+ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap) {
+    ImagesUploadResult patternsUploadResult;
+    patternsUploadResult.imagePositions.reserve(patterns.size());
 
     for (const auto& entry : patterns) {
         const style::Image::Impl& image = *entry.second;
@@ -75,11 +78,14 @@ ImagePositions uploadPatterns(const ImageMap& patterns, const ImageVersionMap& v
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
         if (patternHandle) {
-            patternPositions.emplace(image.id, ImagePosition{*patternHandle->getBin(), image, version, patternHandle});
+            patternsUploadResult.imagePositions.emplace(image.id, ImagePosition{*patternHandle->getBin(), image, version, patternHandle});
+            if (patternHandle->isImageUploadDeferred()) {
+                patternsUploadResult.imagesToUpload.emplace_back(std::make_pair(entry.second, *patternHandle));
+            }
         }
     }
 
-    return patternPositions;
+    return patternsUploadResult;
 }
 
 } // namespace mbgl
