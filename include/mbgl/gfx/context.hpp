@@ -184,6 +184,11 @@ public:
         dynamicTextureAlpha = std::make_unique<gfx::DynamicTexture>(context, Size{4096, 4096}, TexturePixelType::Alpha);
         dynamicTextureRGBA = std::make_unique<gfx::DynamicTexture>(context, Size{4096, 4096}, TexturePixelType::RGBA);
     }
+    
+    static void destroyDynamicTexture() {
+        dynamicTextureAlpha = nullptr;
+        dynamicTextureRGBA = nullptr;
+    }
 
     static std::unique_ptr<gfx::DynamicTexture>& getDynamicTextureAlpha() { return dynamicTextureAlpha; }
     static std::unique_ptr<gfx::DynamicTexture>& getDynamicTextureRGBA() { return dynamicTextureRGBA; }

@@ -46,13 +46,18 @@ void populateImagePatches(ImagePositions& imagePositions,
 
 ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap) {
     ImagesUploadResult iconsUploadResult;
-    iconsUploadResult.imagePositions.reserve(icons.size());
 
+    auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA();
+    if (!dynamicTextureRGBA) {
+        return iconsUploadResult;
+    }
+    
+    iconsUploadResult.imagePositions.reserve(icons.size());
     for (const auto& entry : icons) {
         const style::Image::Impl& image = *entry.second;
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
-        auto iconHandle = gfx::Context::getDynamicTextureRGBA()->addImage(image.image, uniqueId);
+        auto iconHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
         if (iconHandle) {
@@ -68,13 +73,18 @@ ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& ver
 
 ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap) {
     ImagesUploadResult patternsUploadResult;
-    patternsUploadResult.imagePositions.reserve(patterns.size());
 
+    auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA();
+    if (!dynamicTextureRGBA) {
+        return patternsUploadResult;
+    }
+    
+    patternsUploadResult.imagePositions.reserve(patterns.size());
     for (const auto& entry : patterns) {
         const style::Image::Impl& image = *entry.second;
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
-        auto patternHandle = gfx::Context::getDynamicTextureRGBA()->addImage(image.image, uniqueId);
+        auto patternHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
         const auto it = versionMap.find(entry.first);
         const auto version = it != versionMap.end() ? it->second : 0;
         if (patternHandle) {

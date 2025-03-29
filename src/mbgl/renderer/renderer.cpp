@@ -12,11 +12,15 @@
 
 namespace mbgl {
 
+std::unique_ptr<gfx::DynamicTexture> gfx::Context::dynamicTextureAlpha = nullptr;
+std::unique_ptr<gfx::DynamicTexture> gfx::Context::dynamicTextureRGBA = nullptr;
+
 Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const std::optional<std::string>& localFontFamily_)
     : impl(std::make_unique<Impl>(backend, pixelRatio_, localFontFamily_)) {}
 
 Renderer::~Renderer() {
     gfx::BackendScope guard{impl->backend};
+    gfx::Context::destroyDynamicTexture();
     impl.reset();
 }
 
@@ -32,6 +36,9 @@ void Renderer::setObserver(RendererObserver* observer) {
 void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters) {
     MLN_TRACE_FUNC();
     assert(updateParameters);
+    if (!gfx::Context::getDynamicTextureAlpha() || !gfx::Context::getDynamicTextureRGBA()) {
+        gfx::Context::createDynamicTexture(impl->backend.getContext());
+    }
     if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters)) {
         renderTree->prepare();
         impl->render(*renderTree, updateParameters);

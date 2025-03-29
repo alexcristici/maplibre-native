@@ -95,28 +95,37 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
 
     assert(atlasTextures);
 
-    for (auto& pair : layoutResult->iconsUploadResult.imagesToUpload) {
-        assert(pair.second.isImageUploadDeferred());
-        gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
-            pair.first->image,
-            pair.second.getBin()->x + ImagePosition::padding,
-            pair.second.getBin()->y + ImagePosition::padding);
+    if (!layoutResult->iconsUploadResult.imagesToUpload.empty()) {
+        for (auto& pair : layoutResult->iconsUploadResult.imagesToUpload) {
+            assert(pair.second.isImageUploadDeferred());
+            gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
+                pair.first->image,
+                pair.second.getBin()->x + ImagePosition::padding,
+                pair.second.getBin()->y + ImagePosition::padding);
+        }
+        layoutResult->iconsUploadResult.imagesToUpload.clear();
+    }
+        
+    if (!layoutResult->patternsUploadResult.imagesToUpload.empty()) {
+        for (auto& pair : layoutResult->patternsUploadResult.imagesToUpload) {
+            assert(pair.second.isImageUploadDeferred());
+            gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
+                pair.first->image,
+                pair.second.getBin()->x + ImagePosition::padding,
+                pair.second.getBin()->y + ImagePosition::padding);
+        }
+        layoutResult->patternsUploadResult.imagesToUpload.clear();
     }
     
-    for (auto& pair : layoutResult->patternsUploadResult.imagesToUpload) {
-        assert(pair.second.isImageUploadDeferred());
-        gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
-            pair.first->image,
-            pair.second.getBin()->x + ImagePosition::padding,
-            pair.second.getBin()->y + ImagePosition::padding);
-    }
-    
-    for (auto& pair : layoutResult->glyphsUploadResult.glyphsToUpload) {
-        assert(pair.second.isImageUploadDeferred());
-        gfx::Context::getDynamicTextureAlpha()->getTextureAtlas()->uploadSubRegion(
-            pair.first->bitmap,
-            pair.second.getBin()->x + ImagePosition::padding,
-            pair.second.getBin()->y + ImagePosition::padding);
+    if (!layoutResult->glyphsUploadResult.glyphsToUpload.empty()) {
+        for (auto& pair : layoutResult->glyphsUploadResult.glyphsToUpload) {
+            assert(pair.second.isImageUploadDeferred());
+            gfx::Context::getDynamicTextureAlpha()->getTextureAtlas()->uploadSubRegion(
+                pair.first->bitmap,
+                pair.second.getBin()->x + ImagePosition::padding,
+                pair.second.getBin()->y + ImagePosition::padding);
+        }
+        layoutResult->glyphsUploadResult.glyphsToUpload.clear();
     }
     
     if (!imagePatches.empty()) {
@@ -214,22 +223,26 @@ GeometryTile::~GeometryTile() {
 }
 
 GeometryTile::LayoutResult::~LayoutResult() {
-    for (const auto& iconPositionEntry : iconsUploadResult.imagePositions) {
-        const ImagePosition& iconPosition = iconPositionEntry.second;
-        if (iconPosition.handle.has_value()) {
-            gfx::Context::getDynamicTextureRGBA()->removeTexture(*iconPosition.handle);
+    if (auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA()) {
+        for (const auto& iconPositionEntry : iconsUploadResult.imagePositions) {
+            const ImagePosition& iconPosition = iconPositionEntry.second;
+            if (iconPosition.handle.has_value()) {
+                dynamicTextureRGBA->removeTexture(*iconPosition.handle);
+            }
+        }
+        for (const auto& patternPositionEntry : patternsUploadResult.imagePositions) {
+            const ImagePosition& patternPosition = patternPositionEntry.second;
+            if (patternPosition.handle.has_value()) {
+                dynamicTextureRGBA->removeTexture(*patternPosition.handle);
+            }
         }
     }
-    for (const auto& patternPositionEntry : patternsUploadResult.imagePositions) {
-        const ImagePosition& patternPosition = patternPositionEntry.second;
-        if (patternPosition.handle.has_value()) {
-            gfx::Context::getDynamicTextureRGBA()->removeTexture(*patternPosition.handle);
-        }
-    }
-    for (const auto& glyphPositionMapEntry : glyphsUploadResult.glyphPositions) {
-        for (const auto& glyphPositionEntry : glyphPositionMapEntry.second) {
-            const GlyphPosition& glyphPosition = glyphPositionEntry.second;
-            gfx::Context::getDynamicTextureAlpha()->removeTexture(glyphPosition.handle);
+    if (auto& dynamicTextureAlpha = gfx::Context::getDynamicTextureAlpha()) {
+        for (const auto& glyphPositionMapEntry : glyphsUploadResult.glyphPositions) {
+            for (const auto& glyphPositionEntry : glyphPositionMapEntry.second) {
+                const GlyphPosition& glyphPosition = glyphPositionEntry.second;
+                dynamicTextureAlpha->removeTexture(glyphPosition.handle);
+            }
         }
     }
 }
