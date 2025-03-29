@@ -9,7 +9,7 @@
 namespace mbgl {
 namespace gfx {
 
-void DrawableAtlasesTweaker::setupTextures(gfx::Drawable& drawable, const bool linearFilterForIcons) {
+void DrawableAtlasesTweaker::setupTextures(gfx::Drawable& drawable, [[maybe_unused]] const bool linearFilterForIcons) {
     if (const auto& shader = drawable.getShader()) {
         if (glyphTextureId) {
             if (iconTextureId && shader->getSamplerLocation(*iconTextureId)) {
