@@ -3,8 +3,6 @@
 #include <mbgl/text/glyph.hpp>
 #include <mbgl/gfx/dynamic_texture.hpp>
 
-#include <mapbox/shelf-pack.hpp>
-
 namespace mbgl {
 
 struct GlyphPosition {

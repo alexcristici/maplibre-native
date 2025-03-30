@@ -4,17 +4,10 @@
 #include <mbgl/util/rect.hpp>
 #include <mbgl/gfx/dynamic_texture.hpp>
 
-#include <mapbox/shelf-pack.hpp>
-
 #include <array>
 #include <optional>
 
 namespace mbgl {
-
-namespace gfx {
-class UploadPass;
-class Texture;
-} // namespace gfx
 
 class ImageManager;
 
