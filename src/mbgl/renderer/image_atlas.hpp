@@ -73,7 +73,6 @@ public:
 void populateImagePatches(ImagePositions& imagePositions,
                           const ImageManager& imageManager,
                           std::vector<ImagePatch>& /*out*/ patches);
-ImagePositions uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap);
-ImagePositions uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap);
+ImagePositions uploadImages(const ImageMap& images, const ImageVersionMap& versionMap);
 
 } // namespace mbgl

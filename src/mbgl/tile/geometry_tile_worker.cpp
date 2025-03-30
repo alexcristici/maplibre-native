@@ -496,8 +496,8 @@ void GeometryTileWorker::finalizeLayout() {
     }
 
     MBGL_TIMING_START(watch);
-    ImagePositions iconPositions = uploadIcons(imageMap, versionMap);
-    ImagePositions patternPositions = uploadPatterns(patternMap, versionMap);
+    ImagePositions iconPositions = uploadImages(imageMap, versionMap);
+    ImagePositions patternPositions = uploadImages(patternMap, versionMap);
     GlyphPositions glyphPositions;
     if (!layouts.empty()) {
         glyphPositions = uploadGlyphs(glyphMap);

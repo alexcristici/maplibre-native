@@ -44,58 +44,31 @@ void populateImagePatches(ImagePositions& imagePositions,
     }
 }
 
-ImagePositions uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap) {
-    ImagePositions iconPositions;
+ImagePositions uploadImages(const ImageMap& images, const ImageVersionMap& versionMap) {
+    ImagePositions imagePositions;
 
     auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA();
     if (!dynamicTextureRGBA) {
-        return iconPositions;
+        return imagePositions;
     }
     
-    iconPositions.reserve(icons.size());
-    for (const auto& entry : icons) {
+    imagePositions.reserve(images.size());
+    for (const auto& entry : images) {
         const style::Image::Impl& image = *entry.second;
         
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
-        auto iconHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
-        assert(iconHandle.has_value());
+        auto imageHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
+        assert(imageHandle.has_value());
 
-        if (iconHandle.has_value()) {
+        if (imageHandle.has_value()) {
             const auto it = versionMap.find(entry.first);
             const auto version = it != versionMap.end() ? it->second : 0;
-            iconPositions.emplace(image.id, ImagePosition{*iconHandle->getBin(), image, version, iconHandle});
+            imagePositions.emplace(image.id, ImagePosition{*imageHandle->getBin(), image, version, imageHandle});
         }
     }
 
-    return iconPositions;
-}
-
-ImagePositions uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap) {
-    ImagePositions patternPositions;
-
-    auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA();
-    if (!dynamicTextureRGBA) {
-        return patternPositions;
-    }
-    
-    patternPositions.reserve(patterns.size());
-    for (const auto& entry : patterns) {
-        const style::Image::Impl& image = *entry.second;
-        
-        auto imageHash = util::hash(image.id);
-        int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
-        auto patternHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
-        assert(patternHandle.has_value());
-        
-        if (patternHandle.has_value()) {
-            const auto it = versionMap.find(entry.first);
-            const auto version = it != versionMap.end() ? it->second : 0;
-            patternPositions.emplace(image.id, ImagePosition{*patternHandle->getBin(), image, version, patternHandle});
-        }
-    }
-
-    return patternPositions;
+    return imagePositions;
 }
 
 } // namespace mbgl
