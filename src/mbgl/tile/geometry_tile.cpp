@@ -95,12 +95,18 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
 
     assert(atlasTextures);
     
+    if (!layoutResult->iconPositions.empty() || !layoutResult->patternPositions.empty()) {
+        atlasTextures->icon = gfx::Context::getDynamicTextureRGBA()->getTextureAtlas();
+    }
+    if (!layoutResult->glyphPositions.empty()) {
+        atlasTextures->glyph = gfx::Context::getDynamicTextureAlpha()->getTextureAtlas();
+    }
+
     if (!imagePatches.empty()) {
         for (const auto& imagePatch : imagePatches) { // patch updated images.
-            gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
-                imagePatch.image->image,
-                imagePatch.paddedRect.x + ImagePosition::padding,
-                imagePatch.paddedRect.y + ImagePosition::padding);
+            atlasTextures->icon->uploadSubRegion(imagePatch.image->image,
+                                                 imagePatch.paddedRect.x + ImagePosition::padding,
+                                                 imagePatch.paddedRect.y + ImagePosition::padding);
         }
         imagePatches.clear();
     }
