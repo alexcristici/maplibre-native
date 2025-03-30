@@ -520,12 +520,15 @@ void GeometryTileWorker::finalizeLayout() {
     }
 
     layouts.clear();
+    
     firstLoad = false;
+    
     MBGL_TIMING_FINISH(watch,
                        " Action: " << "SymbolLayout,"
                                    << " SourceID: " << sourceID.c_str()
                                    << " Canonical: " << static_cast<int>(id.canonical.z) << "/" << id.canonical.x << "/"
                                    << id.canonical.y << " Time");
+    
     parent.invoke(&GeometryTile::onLayout,
                   std::make_shared<GeometryTile::LayoutResult>(std::move(renderData),
                                                                std::move(featureIndex),
