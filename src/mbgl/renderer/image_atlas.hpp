@@ -13,10 +13,19 @@ class ImageManager;
 
 class ImagePosition {
 public:
-    ImagePosition(const mapbox::Bin&,
-                  const style::Image::Impl&,
-                  uint32_t version = 0,
-                  std::optional<gfx::TextureHandle> handle = std::nullopt);
+    ImagePosition(const mapbox::Bin& bin,
+                  const style::Image::Impl& image,
+                  uint32_t version_ = 0,
+                  std::optional<gfx::TextureHandle> handle_ = std::nullopt)
+    : handle(handle_),
+      pixelRatio(image.pixelRatio),
+      paddedRect(bin.x, bin.y, bin.w, bin.h),
+      version(version_),
+      stretchX(image.stretchX),
+      stretchY(image.stretchY),
+      content(image.content),
+      textFitWidth(image.textFitWidth),
+      textFitHeight(image.textFitHeight) {}
 
     static constexpr const uint16_t padding = 1u;
     std::optional<gfx::TextureHandle> handle;

@@ -3,23 +3,7 @@
 #include <mbgl/gfx/context.hpp>
 #include <mbgl/util/hash.hpp>
 
-#include <mapbox/shelf-pack.hpp>
-
 namespace mbgl {
-
-ImagePosition::ImagePosition(const mapbox::Bin& bin,
-                             const style::Image::Impl& image,
-                             uint32_t version_,
-                             std::optional<gfx::TextureHandle> handle_)
-    : handle(handle_),
-      pixelRatio(image.pixelRatio),
-      paddedRect(bin.x, bin.y, bin.w, bin.h),
-      version(version_),
-      stretchX(image.stretchX),
-      stretchY(image.stretchY),
-      content(image.content),
-      textFitWidth(image.textFitWidth),
-      textFitHeight(image.textFitHeight) {}
 
 void populateImagePatches(ImagePositions& imagePositions,
                           const ImageManager& imageManager,

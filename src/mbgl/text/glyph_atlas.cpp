@@ -1,8 +1,6 @@
 #include <mbgl/text/glyph_atlas.hpp>
 #include <mbgl/gfx/context.hpp>
 
-#include <mapbox/shelf-pack.hpp>
-
 namespace mbgl {
 
 GlyphPositions uploadGlyphs(const GlyphMap& glyphs) {
