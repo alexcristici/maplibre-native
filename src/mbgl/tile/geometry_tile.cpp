@@ -95,7 +95,7 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
 
     assert(atlasTextures);
 
-    if (!layoutResult->iconsUploadResult.imagesToUpload.empty()) {
+    /*if (!layoutResult->iconsUploadResult.imagesToUpload.empty()) {
         for (auto& pair : layoutResult->iconsUploadResult.imagesToUpload) {
             assert(pair.second.isImageUploadDeferred());
             gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
@@ -126,7 +126,10 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
                 pair.second.getBin()->y + ImagePosition::padding);
         }
         layoutResult->glyphsUploadResult.glyphsToUpload.clear();
-    }
+    }*/
+    
+    gfx::Context::getDynamicTextureRGBA()->uploadDeferredImages();
+    gfx::Context::getDynamicTextureAlpha()->uploadDeferredImages();
     
     if (!imagePatches.empty()) {
         for (const auto& imagePatch : imagePatches) { // patch updated images.

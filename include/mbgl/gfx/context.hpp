@@ -181,7 +181,7 @@ public:
     virtual void unbindGlobalUniformBuffers(gfx::RenderPass&) const noexcept = 0;
 
     static void createDynamicTexture(Context& context) {
-        dynamicTextureAlpha = std::make_unique<gfx::DynamicTexture>(context, Size{1024, 1024}, TexturePixelType::Alpha);
+        dynamicTextureAlpha = std::make_unique<gfx::DynamicTexture>(context, Size{2048, 2048}, TexturePixelType::Alpha);
         dynamicTextureRGBA = std::make_unique<gfx::DynamicTexture>(context, Size{1024, 1024}, TexturePixelType::RGBA);
     }
     
