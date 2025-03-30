@@ -496,44 +496,42 @@ void GeometryTileWorker::finalizeLayout() {
     }
 
     MBGL_TIMING_START(watch);
-    ImagesUploadResult iconsUploadResult = uploadIcons(imageMap, versionMap);
-    ImagesUploadResult patternsUploadResult = uploadPatterns(patternMap, versionMap);
-    GlyphsUploadResult glyphsUploadResult;
+    ImagePositions iconPositions = uploadIcons(imageMap, versionMap);
+    ImagePositions patternPositions = uploadPatterns(patternMap, versionMap);
+    GlyphPositions glyphPositions;
     if (!layouts.empty()) {
-        glyphsUploadResult = uploadGlyphs(glyphMap);
+        glyphPositions = uploadGlyphs(glyphMap);
 
         for (auto& layout : layouts) {
             if (obsolete) {
                 return;
             }
 
-            layout->prepareSymbols(glyphMap, glyphsUploadResult.glyphPositions, imageMap, iconsUploadResult.imagePositions);
+            layout->prepareSymbols(glyphMap, glyphPositions, imageMap, iconPositions);
 
             if (!layout->hasSymbolInstances()) {
                 continue;
             }
 
             // layout adds the bucket to buckets
-            layout->createBucket(patternsUploadResult.imagePositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
+            layout->createBucket(
+                patternPositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
         }
     }
 
     layouts.clear();
-
     firstLoad = false;
-
     MBGL_TIMING_FINISH(watch,
                        " Action: " << "SymbolLayout,"
                                    << " SourceID: " << sourceID.c_str()
                                    << " Canonical: " << static_cast<int>(id.canonical.z) << "/" << id.canonical.x << "/"
                                    << id.canonical.y << " Time");
-
     parent.invoke(&GeometryTile::onLayout,
                   std::make_shared<GeometryTile::LayoutResult>(std::move(renderData),
                                                                std::move(featureIndex),
-                                                               std::move(glyphsUploadResult),
-                                                               std::move(iconsUploadResult),
-                                                               std::move(patternsUploadResult)),
+                                                               std::move(glyphPositions),
+                                                               std::move(iconPositions),
+                                                               std::move(patternPositions)),
                   correlationID);
 }
 

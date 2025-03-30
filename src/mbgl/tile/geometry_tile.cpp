@@ -69,7 +69,7 @@ std::optional<ImagePosition> GeometryTileRenderData::getPattern(const std::strin
     MLN_TRACE_FUNC();
 
     if (layoutResult) {
-        const auto& patternPositions = layoutResult->patternsUploadResult.imagePositions;
+        const auto& patternPositions = layoutResult->patternPositions;
         auto it = patternPositions.find(pattern);
         if (it != patternPositions.end()) {
             return it->second;
@@ -94,42 +94,6 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
     }
 
     assert(atlasTextures);
-
-    /*if (!layoutResult->iconsUploadResult.imagesToUpload.empty()) {
-        for (auto& pair : layoutResult->iconsUploadResult.imagesToUpload) {
-            assert(pair.second.isImageUploadDeferred());
-            gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
-                pair.first->image,
-                pair.second.getBin()->x + ImagePosition::padding,
-                pair.second.getBin()->y + ImagePosition::padding);
-        }
-        layoutResult->iconsUploadResult.imagesToUpload.clear();
-    }
-        
-    if (!layoutResult->patternsUploadResult.imagesToUpload.empty()) {
-        for (auto& pair : layoutResult->patternsUploadResult.imagesToUpload) {
-            assert(pair.second.isImageUploadDeferred());
-            gfx::Context::getDynamicTextureRGBA()->getTextureAtlas()->uploadSubRegion(
-                pair.first->image,
-                pair.second.getBin()->x + ImagePosition::padding,
-                pair.second.getBin()->y + ImagePosition::padding);
-        }
-        layoutResult->patternsUploadResult.imagesToUpload.clear();
-    }
-    
-    if (!layoutResult->glyphsUploadResult.glyphsToUpload.empty()) {
-        for (auto& pair : layoutResult->glyphsUploadResult.glyphsToUpload) {
-            assert(pair.second.isImageUploadDeferred());
-            gfx::Context::getDynamicTextureAlpha()->getTextureAtlas()->uploadSubRegion(
-                pair.first->bitmap,
-                pair.second.getBin()->x + ImagePosition::padding,
-                pair.second.getBin()->y + ImagePosition::padding);
-        }
-        layoutResult->glyphsUploadResult.glyphsToUpload.clear();
-    }*/
-    
-    gfx::Context::getDynamicTextureRGBA()->uploadDeferredImages();
-    gfx::Context::getDynamicTextureAlpha()->uploadDeferredImages();
     
     if (!imagePatches.empty()) {
         for (const auto& imagePatch : imagePatches) { // patch updated images.
@@ -154,8 +118,8 @@ void GeometryTileRenderData::prepare(const SourcePrepareParameters& parameters) 
 
     if (!layoutResult) return;
     imagePatches.clear();
-    populateImagePatches(layoutResult->iconsUploadResult.imagePositions, parameters.imageManager, imagePatches);
-    populateImagePatches(layoutResult->patternsUploadResult.imagePositions, parameters.imageManager, imagePatches);
+    populateImagePatches(layoutResult->iconPositions, parameters.imageManager, imagePatches);
+    populateImagePatches(layoutResult->patternPositions, parameters.imageManager, imagePatches);
 }
 
 Bucket* GeometryTileRenderData::getBucket(const Layer::Impl& layer) const {
@@ -227,13 +191,13 @@ GeometryTile::~GeometryTile() {
 
 GeometryTile::LayoutResult::~LayoutResult() {
     if (auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA()) {
-        for (const auto& iconPositionEntry : iconsUploadResult.imagePositions) {
+        for (const auto& iconPositionEntry : iconPositions) {
             const ImagePosition& iconPosition = iconPositionEntry.second;
             if (iconPosition.handle.has_value()) {
                 dynamicTextureRGBA->removeTexture(*iconPosition.handle);
             }
         }
-        for (const auto& patternPositionEntry : patternsUploadResult.imagePositions) {
+        for (const auto& patternPositionEntry : patternPositions) {
             const ImagePosition& patternPosition = patternPositionEntry.second;
             if (patternPosition.handle.has_value()) {
                 dynamicTextureRGBA->removeTexture(*patternPosition.handle);
@@ -241,7 +205,7 @@ GeometryTile::LayoutResult::~LayoutResult() {
         }
     }
     if (auto& dynamicTextureAlpha = gfx::Context::getDynamicTextureAlpha()) {
-        for (const auto& glyphPositionMapEntry : glyphsUploadResult.glyphPositions) {
+        for (const auto& glyphPositionMapEntry : glyphPositions) {
             for (const auto& glyphPositionEntry : glyphPositionMapEntry.second) {
                 const GlyphPosition& glyphPosition = glyphPositionEntry.second;
                 dynamicTextureAlpha->removeTexture(glyphPosition.handle);
@@ -586,7 +550,7 @@ void GeometryTile::setFeatureState(const LayerFeatureStates& states) {
 
             auto bucket = layer.second.bucket;
             if (bucket && bucket->hasData()) {
-                bucket->update(featureStates, *sourceLayer, layerID, layoutResult->patternsUploadResult.imagePositions);
+                bucket->update(featureStates, *sourceLayer, layerID, layoutResult->patternPositions);
             }
         }
     }

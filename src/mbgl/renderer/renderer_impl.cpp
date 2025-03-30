@@ -231,6 +231,8 @@ void Renderer::Impl::render(const RenderTree& renderTree,
         staticData->upload(*uploadPass);
         renderTree.getLineAtlas().upload(*uploadPass);
         renderTree.getPatternAtlas().upload(*uploadPass);
+        gfx::Context::getDynamicTextureRGBA()->uploadDeferredImages();
+        gfx::Context::getDynamicTextureAlpha()->uploadDeferredImages();
     }
 
 #if MLN_DRAWABLE_RENDERER

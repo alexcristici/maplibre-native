@@ -60,28 +60,20 @@ public:
 };
 
 using ImagePositions = mbgl::unordered_map<std::string, ImagePosition>;
-using ImageTexturePairs = std::vector<std::pair<Immutable<style::Image::Impl>, gfx::TextureHandle>>;
 
 class ImagePatch {
 public:
     ImagePatch(Immutable<style::Image::Impl> image_, const Rect<uint16_t>& paddedRect_)
         : image(std::move(image_)),
           paddedRect(paddedRect_) {}
-
     Immutable<style::Image::Impl> image;
     Rect<uint16_t> paddedRect;
-};
-
-class ImagesUploadResult {
-public:
-    ImagePositions imagePositions;
-    ImageTexturePairs imagesToUpload;
 };
 
 void populateImagePatches(ImagePositions& imagePositions,
                           const ImageManager& imageManager,
                           std::vector<ImagePatch>& /*out*/ patches);
-ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap);
-ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap);
+ImagePositions uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap);
+ImagePositions uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap);
 
 } // namespace mbgl

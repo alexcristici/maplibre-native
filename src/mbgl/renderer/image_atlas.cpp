@@ -44,60 +44,58 @@ void populateImagePatches(ImagePositions& imagePositions,
     }
 }
 
-ImagesUploadResult uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap) {
-    ImagesUploadResult iconsUploadResult;
+ImagePositions uploadIcons(const ImageMap& icons, const ImageVersionMap& versionMap) {
+    ImagePositions iconPositions;
 
     auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA();
     if (!dynamicTextureRGBA) {
-        return iconsUploadResult;
+        return iconPositions;
     }
     
-    iconsUploadResult.imagePositions.reserve(icons.size());
+    iconPositions.reserve(icons.size());
     for (const auto& entry : icons) {
         const style::Image::Impl& image = *entry.second;
+        
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
         auto iconHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
         assert(iconHandle.has_value());
-        const auto it = versionMap.find(entry.first);
-        const auto version = it != versionMap.end() ? it->second : 0;
+
         if (iconHandle.has_value()) {
-            iconsUploadResult.imagePositions.emplace(image.id, ImagePosition{*iconHandle->getBin(), image, version, iconHandle});
-            if (iconHandle->isImageUploadDeferred()) {
-                iconsUploadResult.imagesToUpload.emplace_back(std::make_pair(entry.second, *iconHandle));
-            }
+            const auto it = versionMap.find(entry.first);
+            const auto version = it != versionMap.end() ? it->second : 0;
+            iconPositions.emplace(image.id, ImagePosition{*iconHandle->getBin(), image, version, iconHandle});
         }
     }
 
-    return iconsUploadResult;
+    return iconPositions;
 }
 
-ImagesUploadResult uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap) {
-    ImagesUploadResult patternsUploadResult;
+ImagePositions uploadPatterns(const ImageMap& patterns, const ImageVersionMap& versionMap) {
+    ImagePositions patternPositions;
 
     auto& dynamicTextureRGBA = gfx::Context::getDynamicTextureRGBA();
     if (!dynamicTextureRGBA) {
-        return patternsUploadResult;
+        return patternPositions;
     }
     
-    patternsUploadResult.imagePositions.reserve(patterns.size());
+    patternPositions.reserve(patterns.size());
     for (const auto& entry : patterns) {
         const style::Image::Impl& image = *entry.second;
+        
         auto imageHash = util::hash(image.id);
         int32_t uniqueId = static_cast<int32_t>(sqrt(imageHash) / 2);
         auto patternHandle = dynamicTextureRGBA->addImage(image.image, uniqueId);
         assert(patternHandle.has_value());
-        const auto it = versionMap.find(entry.first);
-        const auto version = it != versionMap.end() ? it->second : 0;
+        
         if (patternHandle.has_value()) {
-            patternsUploadResult.imagePositions.emplace(image.id, ImagePosition{*patternHandle->getBin(), image, version, patternHandle});
-            if (patternHandle->isImageUploadDeferred()) {
-                patternsUploadResult.imagesToUpload.emplace_back(std::make_pair(entry.second, *patternHandle));
-            }
+            const auto it = versionMap.find(entry.first);
+            const auto version = it != versionMap.end() ? it->second : 0;
+            patternPositions.emplace(image.id, ImagePosition{*patternHandle->getBin(), image, version, patternHandle});
         }
     }
 
-    return patternsUploadResult;
+    return patternPositions;
 }
 
 } // namespace mbgl
