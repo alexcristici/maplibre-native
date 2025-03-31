@@ -12,8 +12,8 @@
 
 namespace mbgl {
 
-std::unique_ptr<gfx::DynamicTexture> gfx::Context::dynamicTextureAlpha = nullptr;
-std::unique_ptr<gfx::DynamicTexture> gfx::Context::dynamicTextureRGBA = nullptr;
+gfx::DynamicTexturePtr gfx::Context::dynamicTextureAlpha = nullptr;
+gfx::DynamicTexturePtr gfx::Context::dynamicTextureRGBA = nullptr;
 
 Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const std::optional<std::string>& localFontFamily_)
     : impl(std::make_unique<Impl>(backend, pixelRatio_, localFontFamily_)) {}

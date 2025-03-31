@@ -96,10 +96,10 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
     assert(atlasTextures);
     
     if (!layoutResult->iconPositions.empty() || !layoutResult->patternPositions.empty()) {
-        atlasTextures->icon = gfx::Context::getDynamicTextureRGBA()->getTextureAtlas();
+        atlasTextures->icon = gfx::Context::getDynamicTextureRGBA()->getTexture();
     }
-    if (!layoutResult->glyphPositions.empty()) {
-        atlasTextures->glyph = gfx::Context::getDynamicTextureAlpha()->getTextureAtlas();
+    if (const auto& dynamicTexture = layoutResult->glyphTexturePack.handle.getDynamicTexture()) {
+        atlasTextures->glyph = dynamicTexture->getTexture();
     }
 
     if (!imagePatches.empty()) {
@@ -203,12 +203,9 @@ GeometryTile::LayoutResult::~LayoutResult() {
             }
         }
     }
-    if (auto& dynamicTextureAlpha = gfx::Context::getDynamicTextureAlpha()) {
-        for (const auto& glyphPositionMapEntry : glyphPositions) {
-            for (const auto& glyphPositionEntry : glyphPositionMapEntry.second) {
-                const GlyphPosition& glyphPosition = glyphPositionEntry.second;
-                dynamicTextureAlpha->removeTexture(glyphPosition.handle);
-            }
+    if (auto& glyphDynamicTexture = glyphTexturePack.handle.getDynamicTexture()) {
+        for (const auto& bin : glyphTexturePack.handle.getBins()) {
+            glyphDynamicTexture->removeTexture(gfx::TextureHandle(bin));
         }
     }
 }

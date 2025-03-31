@@ -2,6 +2,7 @@
 
 #include <mbgl/gfx/texture2d.hpp>
 #include <mbgl/gfx/types.hpp>
+#include <mbgl/text/glyph.hpp>
 #include <mbgl/util/containers.hpp>
 #include <mbgl/util/image.hpp>
 
@@ -33,7 +34,7 @@ public:
     DynamicTexture(Context& context, Size size, TexturePixelType pixelType);
     ~DynamicTexture() = default;
 
-    const Texture2DPtr& getTextureAtlas();
+    const Texture2DPtr& getTexture();
 
     template <typename Image>
     std::optional<TextureHandle> addImage(const Image& image, int32_t id = -1) {
@@ -44,9 +45,45 @@ public:
     void removeTexture(const TextureHandle& texHandle);
 
 private:
-    Texture2DPtr textureAtlas;
+    Texture2DPtr texture;
     mapbox::ShelfPack shelfPack;
     ImagesToUpload imagesToUpload;
+};
+
+using DynamicTexturePtr = std::shared_ptr<gfx::DynamicTexture>;
+
+class TexturePackHandle {
+public:
+    TexturePackHandle() = default;
+    ~TexturePackHandle() = default;
+
+    const std::vector<mapbox::Bin*>& getBins() const { return bins; }
+    const DynamicTexturePtr& getDynamicTexture() const { return dynamicTexture; }
+        
+private:
+    std::vector<mapbox::Bin*> bins;
+    DynamicTexturePtr dynamicTexture;
+    
+    friend class DynamicTextureAtlas;
+};
+
+class GlyphTexturePack {
+public:
+    GlyphPositions positions;
+    TexturePackHandle handle;
+};
+
+class DynamicTextureAtlas {
+public:
+    DynamicTextureAtlas() = default;
+    ~DynamicTextureAtlas() = default;
+    
+    static DynamicTextureAtlas shared;
+    
+    GlyphTexturePack uploadGlyphs(const GlyphMap&);
+    
+private:
+    std::vector<DynamicTexturePtr> dynamicTextures;
 };
 
 #define MLN_DEFER_UPLOAD_ON_RENDER_THREAD (MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN)

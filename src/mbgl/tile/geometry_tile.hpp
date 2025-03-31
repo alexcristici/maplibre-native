@@ -73,7 +73,7 @@ public:
     public:
         mbgl::unordered_map<std::string, LayerRenderData> layerRenderData;
         std::shared_ptr<FeatureIndex> featureIndex;
-        GlyphPositions glyphPositions;
+        gfx::GlyphTexturePack glyphTexturePack;
         ImagePositions iconPositions;
         ImagePositions patternPositions;
 
@@ -81,12 +81,12 @@ public:
 
         LayoutResult(mbgl::unordered_map<std::string, LayerRenderData> renderData_,
                      std::unique_ptr<FeatureIndex> featureIndex_,
-                     GlyphPositions glyphPositions_,
+                     gfx::GlyphTexturePack glyphTexturePack_,
                      ImagePositions iconPositions_,
                      ImagePositions patternPositions_)
             : layerRenderData(std::move(renderData_)),
               featureIndex(std::move(featureIndex_)),
-              glyphPositions(std::move(glyphPositions_)),
+              glyphTexturePack(std::move(glyphTexturePack_)),
               iconPositions(std::move(iconPositions_)),
               patternPositions(std::move(patternPositions_)) {}
 

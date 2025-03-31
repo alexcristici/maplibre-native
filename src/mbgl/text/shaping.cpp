@@ -467,11 +467,7 @@ void shapeLines(Shaping& shaping,
 
                 auto glyphPosition = glyphPositionMap->second.find(codePoint);
                 if (glyphPosition != glyphPositionMap->second.end()) {
-                    const auto& bin = glyphPosition->second.handle.getBin();
-                    rect = Rect<uint16_t>{static_cast<uint16_t>(bin->x),
-                                          static_cast<uint16_t>(bin->y),
-                                          static_cast<uint16_t>(bin->w),
-                                          static_cast<uint16_t>(bin->h)};
+                    rect = glyphPosition->second.rect;
                     metrics = glyphPosition->second.metrics;
                 } else {
                     auto glyphs = glyphMap.find(section.fontStackHash);

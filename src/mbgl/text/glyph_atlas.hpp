@@ -5,7 +5,7 @@
 
 namespace mbgl {
 
-struct GlyphPosition {
+/*struct GlyphPosition {
     gfx::TextureHandle handle;
     GlyphMetrics metrics;
 };
@@ -13,6 +13,6 @@ struct GlyphPosition {
 using GlyphPositionMap = std::map<GlyphID, GlyphPosition>;
 using GlyphPositions = std::map<FontStackHash, GlyphPositionMap>;
 
-GlyphPositions uploadGlyphs(const GlyphMap&);
+GlyphPositions uploadGlyphs(const GlyphMap&);*/
 
 } // namespace mbgl

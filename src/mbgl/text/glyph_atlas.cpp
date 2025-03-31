@@ -3,7 +3,7 @@
 
 namespace mbgl {
 
-GlyphPositions uploadGlyphs(const GlyphMap& glyphs) {
+/*GlyphPositions uploadGlyphs(const GlyphMap& glyphs) {
     GlyphPositions glyphPositions;
 
     auto& dynamicTextureAlpha = gfx::Context::getDynamicTextureAlpha();
@@ -30,6 +30,6 @@ GlyphPositions uploadGlyphs(const GlyphMap& glyphs) {
         }
     }
     return glyphPositions;
-}
+}*/
 
 } // namespace mbgl
