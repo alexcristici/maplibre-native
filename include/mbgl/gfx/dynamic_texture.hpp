@@ -16,6 +16,10 @@ class Context;
 class Texture2D;
 using Texture2DPtr = std::shared_ptr<gfx::Texture2D>;
 using ImagesToUpload = std::unordered_map<mapbox::Bin*, std::unique_ptr<uint8_t[]>>;
+class DynamicTexture;
+using DynamicTexturePtr = std::shared_ptr<gfx::DynamicTexture>;
+class DynamicTextureAtlas;
+using DynamicTextureAtlasPtr = std::unique_ptr<gfx::DynamicTextureAtlas>;
 
 class TextureHandle {
 public:
@@ -51,8 +55,6 @@ private:
     ImagesToUpload imagesToUpload;
 };
 
-using DynamicTexturePtr = std::shared_ptr<gfx::DynamicTexture>;
-
 class TexturePackHandle {
 public:
     TexturePackHandle() = default;
@@ -76,12 +78,14 @@ public:
 
 class DynamicTextureAtlas {
 public:
-    DynamicTextureAtlas() = default;
+    DynamicTextureAtlas(Context& context_)
+        : context(context_) {}
     ~DynamicTextureAtlas() = default;
     
-    GlyphTexturePack uploadGlyphs(const GlyphMap&, Context&);
+    GlyphTexturePack uploadGlyphs(const GlyphMap&);
     
 private:
+    Context& context;
     std::vector<DynamicTexturePtr> dynamicTextures;
 };
 

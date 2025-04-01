@@ -37,10 +37,13 @@ void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters)
     MLN_TRACE_FUNC();
     assert(updateParameters);
     auto& context = impl->backend.getContext();
+    if (!impl->dynamicTextureAtlas) {
+        impl->dynamicTextureAtlas = std::make_unique<gfx::DynamicTextureAtlas>(context);
+    }
     if (!gfx::Context::getDynamicTextureAlpha() || !gfx::Context::getDynamicTextureRGBA()) {
         gfx::Context::createDynamicTexture(context);
     }
-    if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters, context)) {
+    if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters, impl->dynamicTextureAtlas)) {
         renderTree->prepare();
         impl->render(*renderTree, updateParameters);
     }

@@ -67,7 +67,7 @@ void DynamicTexture::removeTexture(const TextureHandle& texHandle) {
     mutex.unlock();
 }
 
-GlyphTexturePack DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs, Context& context) {
+GlyphTexturePack DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs) {
     GlyphTexturePack glyphTexPack;
 
     mutex2.lock();

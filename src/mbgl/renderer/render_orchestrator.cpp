@@ -157,7 +157,7 @@ void RenderOrchestrator::setObserver(RendererObserver* observer_) {
 }
 
 std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
-    const std::shared_ptr<UpdateParameters>& updateParameters, gfx::Context& context) {
+    const std::shared_ptr<UpdateParameters>& updateParameters, gfx::DynamicTextureAtlasPtr& dynamicTextureAtlas) {
     MLN_TRACE_FUNC();
 
     const auto startTime = util::MonotonicTimer::now().count();
@@ -198,7 +198,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                                         glyphManager,
                                         updateParameters->prefetchZoomDelta,
                                         threadPool,
-                                        context};
+                                        dynamicTextureAtlas};
     
     glyphManager->setURL(updateParameters->glyphURL);
 
