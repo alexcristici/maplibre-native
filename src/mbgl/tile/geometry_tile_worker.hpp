@@ -109,7 +109,7 @@ private:
     GlyphDependencies pendingGlyphDependencies;
     ImageDependencies pendingImageDependencies;
     GlyphMap glyphMap;
-    ImageMap imageMap;
+    ImageMap iconMap;
     ImageMap patternMap;
     ImageVersionMap versionMap;
     std::set<std::string> availableImages;

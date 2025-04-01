@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mbgl/gfx/texture.hpp>
-#include <mbgl/renderer/image_atlas.hpp>
+#include <mbgl/style/image_impl.hpp>
 #include <mbgl/style/layer_impl.hpp>
 
 #include <memory>

@@ -13,7 +13,6 @@
 
 #if MLN_DRAWABLE_RENDERER
 #include <mbgl/gfx/uniform_buffer.hpp>
-#include <mbgl/gfx/dynamic_texture.hpp>
 #endif
 
 #include <memory>
@@ -179,19 +178,6 @@ public:
 
     /// Unbind the global uniform buffers
     virtual void unbindGlobalUniformBuffers(gfx::RenderPass&) const noexcept = 0;
-
-    static void createDynamicTexture(Context& context) {
-        dynamicTextureAlpha = std::make_shared<gfx::DynamicTexture>(context, Size{2048, 2048}, TexturePixelType::Alpha);
-        dynamicTextureRGBA = std::make_shared<gfx::DynamicTexture>(context, Size{1024, 1024}, TexturePixelType::RGBA);
-    }
-    
-    static void destroyDynamicTexture() {
-        dynamicTextureAlpha = nullptr;
-        dynamicTextureRGBA = nullptr;
-    }
-
-    static gfx::DynamicTexturePtr& getDynamicTextureAlpha() { return dynamicTextureAlpha; }
-    static gfx::DynamicTexturePtr& getDynamicTextureRGBA() { return dynamicTextureRGBA; }
 #endif
 
 protected:
@@ -201,8 +187,6 @@ protected:
 
     gfx::RenderingStats stats;
     ContextObserver* observer;
-    static gfx::DynamicTexturePtr dynamicTextureAlpha;
-    static gfx::DynamicTexturePtr dynamicTextureRGBA;
 };
 
 } // namespace gfx

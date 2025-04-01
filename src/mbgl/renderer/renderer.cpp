@@ -2,6 +2,7 @@
 
 #include <mbgl/annotation/annotation_manager.hpp>
 #include <mbgl/gfx/backend_scope.hpp>
+#include <mbgl/gfx/dynamic_texture.hpp>
 #include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/layermanager/layer_manager.hpp>
 #include <mbgl/renderer/renderer_impl.hpp>
@@ -12,15 +13,11 @@
 
 namespace mbgl {
 
-gfx::DynamicTexturePtr gfx::Context::dynamicTextureAlpha = nullptr;
-gfx::DynamicTexturePtr gfx::Context::dynamicTextureRGBA = nullptr;
-
 Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const std::optional<std::string>& localFontFamily_)
     : impl(std::make_unique<Impl>(backend, pixelRatio_, localFontFamily_)) {}
 
 Renderer::~Renderer() {
     gfx::BackendScope guard{impl->backend};
-    gfx::Context::destroyDynamicTexture();
     impl.reset();
 }
 
@@ -36,12 +33,9 @@ void Renderer::setObserver(RendererObserver* observer) {
 void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters) {
     MLN_TRACE_FUNC();
     assert(updateParameters);
-    auto& context = impl->backend.getContext();
     if (!impl->dynamicTextureAtlas) {
+        auto& context = impl->backend.getContext();
         impl->dynamicTextureAtlas = std::make_unique<gfx::DynamicTextureAtlas>(context);
-    }
-    if (!gfx::Context::getDynamicTextureAlpha() || !gfx::Context::getDynamicTextureRGBA()) {
-        gfx::Context::createDynamicTexture(context);
     }
     if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters, impl->dynamicTextureAtlas)) {
         renderTree->prepare();

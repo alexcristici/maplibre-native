@@ -3,6 +3,7 @@
 #include <mbgl/gfx/texture2d.hpp>
 #include <mbgl/gfx/types.hpp>
 #include <mbgl/text/glyph.hpp>
+#include <mbgl/style/image_impl.hpp>
 #include <mbgl/util/containers.hpp>
 #include <mbgl/util/image.hpp>
 
@@ -76,13 +77,22 @@ public:
     TexturePackHandle handle;
 };
 
+class ImageTexturePack {
+public:
+    ImagePositions iconPositions;
+    ImagePositions patternPositions;
+    TexturePackHandle handle;
+};
+
 class DynamicTextureAtlas {
 public:
     DynamicTextureAtlas(Context& context_)
         : context(context_) {}
     ~DynamicTextureAtlas() = default;
     
-    GlyphTexturePack uploadGlyphs(const GlyphMap&);
+    GlyphTexturePack uploadGlyphs(const GlyphMap& glyphs);
+    ImageTexturePack uploadIconsAndPatterns(const ImageMap& icons, const ImageMap& patterns, const ImageVersionMap& versionMap);
+    void uploadDeferredImages();
     
 private:
     Context& context;

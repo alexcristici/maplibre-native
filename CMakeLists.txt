@@ -624,8 +624,6 @@ list(APPEND SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/data_driven_property_evaluator.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/group_by_layout.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/group_by_layout.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/image_atlas.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/image_atlas.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/image_manager.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/image_manager.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/image_manager_observer.hpp
@@ -889,8 +887,6 @@ list(APPEND SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/mbgl/text/get_anchors.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/text/get_anchors.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/text/glyph.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/text/glyph_atlas.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/text/glyph_atlas.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/text/glyph_manager.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/text/glyph_manager.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/text/glyph_manager_observer.hpp

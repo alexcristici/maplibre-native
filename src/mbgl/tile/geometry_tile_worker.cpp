@@ -334,7 +334,7 @@ void GeometryTileWorker::onImagesAvailable(ImageMap newIconMap,
     if (imageCorrelationID != imageCorrelationID_) {
         return; // Ignore outdated image request replies.
     }
-    imageMap = std::move(newIconMap);
+    iconMap = std::move(newIconMap);
     patternMap = std::move(newPatternMap);
     versionMap = std::move(newVersionMap);
     pendingImageDependencies.clear();
@@ -498,8 +498,7 @@ void GeometryTileWorker::finalizeLayout() {
     }
 
     MBGL_TIMING_START(watch);
-    ImagePositions iconPositions = uploadImages(imageMap, versionMap);
-    ImagePositions patternPositions = uploadImages(patternMap, versionMap);
+    gfx::ImageTexturePack imageTexturePack = dynamicTextureAtlas->uploadIconsAndPatterns(iconMap, patternMap, versionMap);
     gfx::GlyphTexturePack glyphTexturePack;
     if (!layouts.empty()) {
         glyphTexturePack = dynamicTextureAtlas->uploadGlyphs(glyphMap);
@@ -509,7 +508,7 @@ void GeometryTileWorker::finalizeLayout() {
                 return;
             }
 
-            layout->prepareSymbols(glyphMap, glyphTexturePack.positions, imageMap, iconPositions);
+            layout->prepareSymbols(glyphMap, glyphTexturePack.positions, iconMap, imageTexturePack.iconPositions);
 
             if (!layout->hasSymbolInstances()) {
                 continue;
@@ -517,7 +516,7 @@ void GeometryTileWorker::finalizeLayout() {
 
             // layout adds the bucket to buckets
             layout->createBucket(
-                patternPositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
+                imageTexturePack.patternPositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
         }
     }
 
@@ -535,8 +534,7 @@ void GeometryTileWorker::finalizeLayout() {
                   std::make_shared<GeometryTile::LayoutResult>(std::move(renderData),
                                                                std::move(featureIndex),
                                                                std::move(glyphTexturePack),
-                                                               std::move(iconPositions),
-                                                               std::move(patternPositions)),
+                                                               std::move(imageTexturePack)),
                   correlationID);
 }
 
