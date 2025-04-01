@@ -20,8 +20,9 @@
 #include <mbgl/util/instrumentation.hpp>
 #include <mbgl/util/logging.hpp>
 #include <mbgl/util/thread_pool.hpp>
-
+#include <mbgl/gfx/dynamic_texture.hpp>
 #include <mbgl/gfx/upload_pass.hpp>
+
 #include <utility>
 
 namespace mbgl {
