@@ -69,7 +69,7 @@ public:
     // TODO: Introduce RenderOrchestratorObserver.
     void setObserver(RendererObserver*);
 
-    std::unique_ptr<RenderTree> createRenderTree(const std::shared_ptr<UpdateParameters>&);
+    std::unique_ptr<RenderTree> createRenderTree(const std::shared_ptr<UpdateParameters>&, gfx::Context&);
 
     std::vector<Feature> queryRenderedFeatures(const ScreenLineString&, const RenderedQueryOptions&) const;
     std::vector<Feature> querySourceFeatures(const std::string& sourceID, const SourceQueryOptions&) const;

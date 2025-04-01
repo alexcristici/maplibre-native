@@ -15,6 +15,10 @@ class AnnotationManager;
 class ImageManager;
 class GlyphManager;
 
+namespace gfx {
+class Context;
+}
+
 class TileParameters {
 public:
     const float pixelRatio;
@@ -27,6 +31,7 @@ public:
     std::shared_ptr<GlyphManager> glyphManager;
     const uint8_t prefetchZoomDelta;
     TaggedScheduler threadPool;
+    gfx::Context& context;
 };
 
 } // namespace mbgl

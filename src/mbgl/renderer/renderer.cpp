@@ -36,10 +36,11 @@ void Renderer::setObserver(RendererObserver* observer) {
 void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters) {
     MLN_TRACE_FUNC();
     assert(updateParameters);
+    auto& context = impl->backend.getContext();
     if (!gfx::Context::getDynamicTextureAlpha() || !gfx::Context::getDynamicTextureRGBA()) {
-        gfx::Context::createDynamicTexture(impl->backend.getContext());
+        gfx::Context::createDynamicTexture(context);
     }
-    if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters)) {
+    if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters, context)) {
         renderTree->prepare();
         impl->render(*renderTree, updateParameters);
     }

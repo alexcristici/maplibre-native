@@ -37,7 +37,8 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
                                        const std::atomic<bool>& obsolete_,
                                        const MapMode mode_,
                                        const float pixelRatio_,
-                                       const bool showCollisionBoxes_)
+                                       const bool showCollisionBoxes_,
+                                       gfx::Context& context_)
     : self(std::move(self_)),
       parent(std::move(parent_)),
       scheduler(scheduler_),
@@ -46,7 +47,8 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
       obsolete(obsolete_),
       mode(mode_),
       pixelRatio(pixelRatio_),
-      showCollisionBoxes(showCollisionBoxes_) {}
+      showCollisionBoxes(showCollisionBoxes_),
+      context(context_) {}
 
 GeometryTileWorker::~GeometryTileWorker() {
     MLN_TRACE_FUNC();
@@ -500,7 +502,7 @@ void GeometryTileWorker::finalizeLayout() {
     ImagePositions patternPositions = uploadImages(patternMap, versionMap);
     gfx::GlyphTexturePack glyphTexturePack;
     if (!layouts.empty()) {
-        glyphTexturePack = gfx::DynamicTextureAtlas::shared.uploadGlyphs(glyphMap);
+        glyphTexturePack = context.getDynamicTextureAtlas().uploadGlyphs(glyphMap, context);
 
         for (auto& layout : layouts) {
             if (obsolete) {

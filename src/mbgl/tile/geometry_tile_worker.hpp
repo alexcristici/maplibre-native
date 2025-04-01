@@ -36,7 +36,8 @@ public:
                        const std::atomic<bool>&,
                        MapMode,
                        float pixelRatio,
-                       bool showCollisionBoxes_);
+                       bool showCollisionBoxes_,
+                       gfx::Context&);
     ~GeometryTileWorker();
 
     void setLayers(std::vector<Immutable<style::LayerProperties>>,
@@ -110,6 +111,7 @@ private:
 
     bool showCollisionBoxes;
     bool firstLoad = true;
+    gfx::Context& context;
 };
 
 } // namespace mbgl

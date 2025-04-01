@@ -192,6 +192,7 @@ public:
 
     static gfx::DynamicTexturePtr& getDynamicTextureAlpha() { return dynamicTextureAlpha; }
     static gfx::DynamicTexturePtr& getDynamicTextureRGBA() { return dynamicTextureRGBA; }
+    gfx::DynamicTextureAtlas& getDynamicTextureAtlas() { return dynamicTextureAtlas; }
 #endif
 
 protected:
@@ -203,6 +204,7 @@ protected:
     ContextObserver* observer;
     static gfx::DynamicTexturePtr dynamicTextureAlpha;
     static gfx::DynamicTexturePtr dynamicTextureRGBA;
+    gfx::DynamicTextureAtlas dynamicTextureAtlas;
 };
 
 } // namespace gfx

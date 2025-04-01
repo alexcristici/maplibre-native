@@ -34,7 +34,8 @@ public:
     DynamicTexture(Context& context, Size size, TexturePixelType pixelType);
     ~DynamicTexture() = default;
 
-    const Texture2DPtr& getTexture();
+    const Texture2DPtr& getTexture() { return texture; }
+    TexturePixelType getPixelFormat() { return texture->getFormat(); }
 
     template <typename Image>
     std::optional<TextureHandle> addImage(const Image& image, int32_t id = -1) {
@@ -78,9 +79,7 @@ public:
     DynamicTextureAtlas() = default;
     ~DynamicTextureAtlas() = default;
     
-    static DynamicTextureAtlas shared;
-    
-    GlyphTexturePack uploadGlyphs(const GlyphMap&);
+    GlyphTexturePack uploadGlyphs(const GlyphMap&, Context&);
     
 private:
     std::vector<DynamicTexturePtr> dynamicTextures;
