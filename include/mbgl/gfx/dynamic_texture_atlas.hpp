@@ -10,7 +10,6 @@ namespace mbgl {
 namespace gfx {
 
 class Context;
-class Texture2D;
 class DynamicTexture;
 using DynamicTexturePtr = std::shared_ptr<gfx::DynamicTexture>;
 class DynamicTextureAtlas;

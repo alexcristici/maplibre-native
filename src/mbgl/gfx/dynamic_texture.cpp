@@ -19,11 +19,13 @@ DynamicTexture::DynamicTexture(Context& context, Size size, TexturePixelType pix
     texture->create();
 }
 
-const Texture2DPtr& DynamicTexture::getTexture() {
+const Texture2DPtr& DynamicTexture::getTexture() const {
+    assert(texture);
     return texture;
 }
 
-TexturePixelType DynamicTexture::getPixelFormat() {
+TexturePixelType DynamicTexture::getPixelFormat() const {
+    assert(texture);
     return texture->getFormat();
 }
 

@@ -31,8 +31,8 @@ public:
     DynamicTexture(Context& context, Size size, TexturePixelType pixelType);
     ~DynamicTexture() = default;
 
-    const Texture2DPtr& getTexture();
-    TexturePixelType getPixelFormat();
+    const Texture2DPtr& getTexture() const;
+    TexturePixelType getPixelFormat() const;
 
     template <typename Image>
     std::optional<TextureHandle> addImage(const Image& image, int32_t id = -1) {
