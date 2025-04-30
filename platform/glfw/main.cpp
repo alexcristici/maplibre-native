@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set access token if present
-    const char* apikeyEnv = getenv("MLN_API_KEY");
+    const char* apikeyEnv = "G4MQXsYbLiUxOu3SV4lh";
     const std::string apikey = apikeyValue ? args::get(apikeyValue) : (apikeyEnv ? apikeyEnv : std::string());
 
     auto mapTilerConfiguration = mbgl::TileServerOptions::MapTilerConfiguration();
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
         }
 
         mbgl::util::DefaultStyle newStyle = orderedStyles[currentStyleIndex];
-        map.getStyle().loadURL(newStyle.getUrl());
+        map.getStyle().loadURL("https://americanamap.org/style.json");
         view->setWindowTitle(newStyle.getName());
 
         mbgl::Log::Info(mbgl::Event::Setup, "Changed style to: " + newStyle.getName());
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    map.getStyle().loadURL(style);
+    map.getStyle().loadURL("https://americanamap.org/style.json");
 
     view->run();
 

@@ -23,7 +23,7 @@
 
 #if !MLN_LEGACY_RENDERER
 // TODO: platform agnostic error checks
-#define MBGL_CHECK_ERROR(cmd) (cmd)
+//#define MBGL_CHECK_ERROR(cmd) (cmd)
 #endif
 #endif
 
