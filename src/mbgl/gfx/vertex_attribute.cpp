@@ -9,6 +9,11 @@
 namespace mbgl {
 namespace gfx {
 
+ int64_t generate2DebugId() noexcept {
+    static std::atomic_int64_t counter(0);
+    return ++counter;
+}
+
 namespace {
 const UniqueVertexAttribute nullref;
 } // namespace

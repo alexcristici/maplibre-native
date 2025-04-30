@@ -52,6 +52,10 @@ constexpr const char* tracyConstMemoryLabel = "Constant Buffer Memory";
 #define MLN_TRACE_ALLOC_CONST_BUFFER(id, size) TracyAllocN(castGpuIdToTracyPtr(id), size, tracyConstMemoryLabel)
 #define MLN_TRACE_FREE_CONST_BUFFER(id) TracyFreeN(castGpuIdToTracyPtr(id), tracyConstMemoryLabel)
 
+constexpr const char* tracyBycketMemoryLabel = "Bucket Buffer Memory";
+#define MLN_TRACE_ALLOC_BUCKET_BUFFER(id, size) TracyAllocN(castGpuIdToTracyPtr(id), size, tracyBycketMemoryLabel)
+#define MLN_TRACE_FREE_BUCKET_BUFFER(id) TracyFreeN(castGpuIdToTracyPtr(id), tracyBycketMemoryLabel)
+
 // Only OpenGL is currently considered for GPU profiling
 // Metal and other APIs need to be handled separately
 #if MLN_RENDER_BACKEND_OPENGL

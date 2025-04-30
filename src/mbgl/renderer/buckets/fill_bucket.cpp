@@ -110,7 +110,7 @@ size_t FillBucket::getMemSize() const {
     
     //memSize += sizeof(this);
     
-    memSize += lineVertices.bytes();
+    //memSize += lineVertices.bytes();
     //memSize += lineIndexes.bytes();
     //memSize += lineSegments.size() * sizeof(LineAttributes);
     

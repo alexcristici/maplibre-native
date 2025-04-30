@@ -2,6 +2,7 @@
 
 #include <mbgl/util/ignore.hpp>
 #include <mbgl/util/monotonic_timer.hpp>
+#include <mbgl/util/instrumentation.hpp>
 
 #include <memory>
 #include <vector>
@@ -60,6 +61,8 @@ protected:
 };
 using VertexVectorBasePtr = std::shared_ptr<VertexVectorBase>;
 
+int64_t generate2DebugId() noexcept;
+
 template <class V>
 class VertexVector final : public VertexVectorBase {
 public:
@@ -68,23 +71,53 @@ public:
     VertexVector() = default;
     VertexVector(const VertexVector<V>& other)
         : VertexVectorBase(other),
-          v(other.v) {}
+          v(other.v) {
+        if (bytes() > 0) {
+            MLN_TRACE_ALLOC_BUCKET_BUFFER(uniqueDebugId, bytes());
+        }
+    }
     VertexVector(VertexVector<V>&& other)
         : VertexVectorBase(static_cast<VertexVectorBase&&>(other)),
-          v(std::move(other.v)) {}
-    ~VertexVector() override = default;
+          v(std::move(other.v)) {
+        if (bytes() > 0) {
+            MLN_TRACE_FREE_BUCKET_BUFFER(other.uniqueDebugId);
+            MLN_TRACE_ALLOC_BUCKET_BUFFER(uniqueDebugId, bytes());
+        }
+    }
+    ~VertexVector() override {
+        if (alloc) {
+            MLN_TRACE_FREE_BUCKET_BUFFER(uniqueDebugId);
+            alloc = false;
+        }
+    };
 
     template <class... Args>
     void emplace_back(Args&&... args) {
         assert(!released);
+        if (alloc) {
+            MLN_TRACE_FREE_BUCKET_BUFFER(uniqueDebugId);
+            alloc = false;
+        }
         util::ignore({(v.emplace_back(std::forward<Args>(args)), 0)...});
         dirty = true;
+
+        assert(!alloc);
+        MLN_TRACE_ALLOC_BUCKET_BUFFER(uniqueDebugId, bytes());
+        alloc = true;
     }
 
     void extend(std::size_t n, const Vertex& val) {
         assert(!released);
+        if (alloc) {
+            MLN_TRACE_FREE_BUCKET_BUFFER(uniqueDebugId);
+            alloc = false;
+        }
         v.resize(v.size() + n, val);
         dirty = true;
+
+        assert(!alloc);
+        MLN_TRACE_ALLOC_BUCKET_BUFFER(uniqueDebugId, bytes());
+        alloc = true;
     }
 
     Vertex& at(std::size_t n) {
@@ -105,17 +138,35 @@ public:
     bool empty() const { return v.empty(); }
 
     void clear() {
+        if (alloc) {
+            MLN_TRACE_FREE_BUCKET_BUFFER(uniqueDebugId);
+            alloc = false;
+        }
         dirty = true;
         v.clear();
     }
 
-    void reserve(std::size_t count) { v.reserve(count); }
+    void reserve(std::size_t count) { 
+        if (alloc) {
+            MLN_TRACE_FREE_BUCKET_BUFFER(uniqueDebugId);
+            alloc = false;
+        }
+        v.reserve(count);
+
+        assert(!alloc);
+        MLN_TRACE_ALLOC_BUCKET_BUFFER(uniqueDebugId, bytes());
+        alloc = true;
+    }
 
     /// Indicate that this shared vertex vector instance will no longer be updated.
     void release() {
 #if MLN_DRAWABLE_RENDERER
         // If we've already created a buffer, we don't need the raw data any more.
         if (buffer) {
+            if (alloc) {
+                MLN_TRACE_FREE_BUCKET_BUFFER(uniqueDebugId);
+                alloc = false;
+            }
             v.clear();
         }
 #endif // MLN_DRAWABLE_RENDERER
@@ -132,6 +183,8 @@ public:
 
 private:
     std::vector<Vertex> v;
+    int64_t uniqueDebugId = generate2DebugId();
+    bool alloc = false;
 };
 
 template <typename T>

@@ -210,7 +210,7 @@ private:
     const bool backgroundLayerAsColor;
     bool contextLost = false;
     bool placedSymbolDataCollected = false;
-    bool tileCacheEnabled = true;
+    bool tileCacheEnabled = false;
 
     // Vectors with reserved capacity of layerImpls->size() to avoid
     // reallocation on each frame.
