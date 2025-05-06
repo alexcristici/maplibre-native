@@ -39,19 +39,23 @@ bool DynamicTexture::isEmpty() const {
 }
 
 std::optional<TextureHandle> DynamicTexture::reserveSize(const Size& size, int32_t uniqueId) {
+    mutex.lock();
     mapbox::Bin* bin = shelfPack.packOne(uniqueId, size.width, size.height);
     if (!bin) {
+        mutex.unlock();
         return std::nullopt;
     }
     if (bin->refcount() == 1) {
         numTextures++;
     }
+    mutex.unlock();
     return TextureHandle(*bin);
 }
 
 void DynamicTexture::uploadImage(const uint8_t* pixelData,
                                  TextureHandle& texHandle,
                                  const vk::UniqueCommandBuffer& commandBuffer) {
+    mutex.lock();
     const auto& rect = texHandle.getRectangle();
     const auto imageSize = Size(rect.w, rect.h);
 
@@ -64,6 +68,7 @@ void DynamicTexture::uploadImage(const uint8_t* pixelData,
     static_cast<vulkan::Texture2D*>(texture.get())->uploadSubRegion(pixelData, imageSize, rect.x, rect.y, commandBuffer);
 #endif
     texHandle.needsUpload = false;
+    mutex.unlock();
 }
 
 std::optional<TextureHandle> DynamicTexture::addImage(const uint8_t* pixelData,
@@ -78,6 +83,7 @@ std::optional<TextureHandle> DynamicTexture::addImage(const uint8_t* pixelData,
 }
 
 void DynamicTexture::uploadDeferredImages() {
+    mutex.lock();
     if (deferredCreation) {
         texture->create();
         deferredCreation = false;
@@ -87,11 +93,14 @@ void DynamicTexture::uploadDeferredImages() {
         texture->uploadSubRegion(pair.second.get(), Size(rect.w, rect.h), rect.x, rect.y);
     }
     imagesToUpload.clear();
+    mutex.unlock();
 }
 
 void DynamicTexture::removeTexture(const TextureHandle& texHandle) {
+    mutex.lock();
     auto* bin = shelfPack.getBin(texHandle.getId());
     if (!bin) {
+        mutex.unlock();
         return;
     }
     auto refcount = shelfPack.unref(*bin);
@@ -99,6 +108,7 @@ void DynamicTexture::removeTexture(const TextureHandle& texHandle) {
         numTextures--;
         imagesToUpload.erase(texHandle);
     }
+    mutex.unlock();
 }
 
 } // namespace gfx
