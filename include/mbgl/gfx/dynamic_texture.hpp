@@ -60,7 +60,7 @@ public:
     std::optional<TextureHandle> addImage(const Image& image,
                                           const vk::UniqueCommandBuffer& commandBuffer,
                                           int32_t uniqueId = -1) {
-        return addImage(image.data ? image.data.get() : nullptr, image.size, uniqueId);
+        return addImage(image.data ? image.data.get() : nullptr, image.size, commandBuffer, uniqueId);
     }
     std::optional<TextureHandle> addImage(const uint8_t* pixelData,
                                           const Size& imageSize,
