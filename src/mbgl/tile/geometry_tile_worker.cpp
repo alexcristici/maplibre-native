@@ -22,6 +22,8 @@
 #include <mbgl/util/stopwatch.hpp>
 #include <mbgl/util/thread_pool.hpp>
 
+#include <mbgl/vulkan/context.hpp>
+
 #include <unordered_set>
 #include <utility>
 
@@ -501,13 +503,14 @@ void GeometryTileWorker::finalizeLayout() {
     gfx::ImageAtlas imageAtlas;
     gfx::GlyphAtlas glyphAtlas;
     if (dynamicTextureAtlas) {
-        imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns(iconMap, patternMap, versionMap);
+        const auto& contextVK = static_cast<vulkan::Context&>(dynamicTextureAtlas->context);
+        contextVK.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
+            imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns( iconMap, patternMap, versionMap, commandBuffer);
+            glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap, commandBuffer);
+        });
     }
-    if (!layouts.empty()) {
-        if (dynamicTextureAtlas) {
-            glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap);
-        }
 
+    if (!layouts.empty()) {
         for (auto& layout : layouts) {
             if (obsolete) {
                 dynamicTextureAtlas->removeTextures(glyphAtlas.textureHandles, glyphAtlas.dynamicTexture);
@@ -522,8 +525,12 @@ void GeometryTileWorker::finalizeLayout() {
             }
 
             // layout adds the bucket to buckets
-            layout->createBucket(
-                imageAtlas.patternPositions, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
+            layout->createBucket(imageAtlas.patternPositions,
+                                    featureIndex,
+                                    renderData,
+                                    firstLoad,
+                                    showCollisionBoxes,
+                                    id.canonical);
         }
     }
 

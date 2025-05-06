@@ -155,7 +155,7 @@ void Texture2D::uploadSubRegion(const void* pixelData,
                                 const Size& size_,
                                 uint16_t xOffset,
                                 uint16_t yOffset,
-                                const vk::UniqueCommandBuffer& commandBuffer) noexcept {
+                                [[maybe_unused]] const vk::UniqueCommandBuffer& commandBuffer) noexcept {
     if (!pixelData || size_.width == 0 || size_.height == 0) return;
 
     create();
@@ -204,7 +204,9 @@ void Texture2D::uploadSubRegion(const void* pixelData,
         }
     };
 
-    enqueueCommands(commandBuffer);
+    //context.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) { 
+        enqueueCommands(commandBuffer); 
+    //});
 
     context.enqueueDeletion([buffAlloc = std::move(bufferAllocation)](auto&) mutable { buffAlloc.reset(); });
 

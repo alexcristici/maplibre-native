@@ -4,6 +4,8 @@
 #include <mbgl/util/image.hpp>
 #include <mbgl/util/rect.hpp>
 
+#include <mbgl/vulkan/texture2d.hpp>
+
 #include <mapbox/shelf-pack.hpp>
 
 #include <optional>
@@ -52,13 +54,18 @@ public:
     bool isEmpty() const;
 
     std::optional<TextureHandle> reserveSize(const Size& size, int32_t uniqueId);
-    void uploadImage(const uint8_t* pixelData, TextureHandle& texHandle);
+    void uploadImage(const uint8_t* pixelData, TextureHandle& texHandle, const vk::UniqueCommandBuffer& commandBuffer);
 
     template <typename Image>
-    std::optional<TextureHandle> addImage(const Image& image, int32_t uniqueId = -1) {
+    std::optional<TextureHandle> addImage(const Image& image,
+                                          const vk::UniqueCommandBuffer& commandBuffer,
+                                          int32_t uniqueId = -1) {
         return addImage(image.data ? image.data.get() : nullptr, image.size, uniqueId);
     }
-    std::optional<TextureHandle> addImage(const uint8_t* pixelData, const Size& imageSize, int32_t uniqueId = -1);
+    std::optional<TextureHandle> addImage(const uint8_t* pixelData,
+                                          const Size& imageSize,
+                                          const vk::UniqueCommandBuffer& commandBuffer,
+                                          int32_t uniqueId = -1);
 
     void uploadDeferredImages();
     void removeTexture(const TextureHandle& texHandle);
@@ -73,7 +80,7 @@ private:
     ImagesToUpload imagesToUpload;
 };
 
-#define MLN_DEFER_UPLOAD_ON_RENDER_THREAD (MLN_RENDER_BACKEND_OPENGL || MLN_RENDER_BACKEND_VULKAN)
+#define MLN_DEFER_UPLOAD_ON_RENDER_THREAD (MLN_RENDER_BACKEND_OPENGL)
 
 } // namespace gfx
 } // namespace mbgl
