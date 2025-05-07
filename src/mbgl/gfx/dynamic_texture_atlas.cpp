@@ -11,7 +11,7 @@ constexpr const Size startSize = {512, 512};
 
 GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs, const vk::UniqueCommandBuffer& commandBuffer) {
     using GlyphsToUpload = std::vector<std::tuple<TextureHandle, Immutable<Glyph>, FontStackHash>>;
-    mutex.lock();
+    std::lock_guard<std::mutex> lock(mutex);
 
     GlyphAtlas glyphAtlas;
     if (!glyphs.size()) {
@@ -21,7 +21,6 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs, const vk::U
                 context, Size(1, 1), TexturePixelType::Alpha);
             dummyDynamicTexture[TexturePixelType::Alpha] = glyphAtlas.dynamicTexture;
         }
-        mutex.unlock();
         return glyphAtlas;
     }
 
@@ -64,8 +63,7 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs, const vk::U
                 }
             }
             if (!hasSpace) {
-                for (const auto& tuple : glyphsToUpload) {
-                    const auto& texHandle = std::get<0>(tuple);
+                for (const auto& [texHandle, glyph, fontStack] : glyphsToUpload) {
                     glyphAtlas.dynamicTexture->removeTexture(texHandle);
                 }
                 glyphsToUpload.clear();
@@ -78,10 +76,7 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs, const vk::U
         dynamicTextures.emplace_back(glyphAtlas.dynamicTexture);
     }
 
-    for (const auto& tuple : glyphsToUpload) {
-        auto texHandle = std::get<0>(tuple);
-        const auto& glyph = std::get<1>(tuple);
-        const auto fontStack = std::get<2>(tuple);
+    for (auto& [texHandle, glyph, fontStack] : glyphsToUpload) {
         const auto& rect = texHandle.getRectangle();
 
         if (texHandle.isUploadNeeded()) {
@@ -94,7 +89,6 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs, const vk::U
         glyphAtlas.textureHandles.emplace_back(texHandle);
         glyphAtlas.glyphPositions[fontStack].emplace(glyph->id, GlyphPosition{rect, glyph->metrics});
     }
-    mutex.unlock();
     return glyphAtlas;
 }
 
@@ -103,7 +97,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
                                                        const ImageVersionMap& versionMap,
                                                        const vk::UniqueCommandBuffer& commandBuffer) {
     using ImagesToUpload = std::vector<std::pair<TextureHandle, Immutable<style::Image::Impl>>>;
-    mutex.lock();
+    std::lock_guard<std::mutex> lock(mutex);
 
     ImageAtlas imageAtlas;
     if (!icons.size() && !patterns.size()) {
@@ -113,7 +107,6 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
                 context, Size(1, 1), TexturePixelType::RGBA);
             dummyDynamicTexture[TexturePixelType::RGBA] = imageAtlas.dynamicTexture;
         }
-        mutex.unlock();
         return imageAtlas;
     }
 
@@ -122,6 +115,8 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
     ImagesToUpload iconsToUpload;
     ImagesToUpload patternsToUpload;
 
+    iconsToUpload.reserve(icons.size());
+    patternsToUpload.reserve(patterns.size());
     while (!imageAtlas.dynamicTexture) {
         if (dynTexIndex < dynamicTextures.size()) {
             imageAtlas.dynamicTexture = dynamicTextures[dynTexIndex++];
@@ -168,13 +163,11 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
             }
         }
         if (!hasSpace) {
-            for (const auto& pair : iconsToUpload) {
-                const auto& texHandle = pair.first;
+            for (const auto& [texHandle, icon] : iconsToUpload) {
                 imageAtlas.dynamicTexture->removeTexture(texHandle);
             }
             iconsToUpload.clear();
-            for (const auto& pair : patternsToUpload) {
-                const auto& texHandle = pair.first;
+            for (const auto& [texHandle, pattern] : patternsToUpload) {
                 imageAtlas.dynamicTexture->removeTexture(texHandle);
             }
             patternsToUpload.clear();
@@ -187,9 +180,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
     }
 
     imageAtlas.iconPositions.reserve(icons.size());
-    for (const auto& pair : iconsToUpload) {
-        auto texHandle = pair.first;
-        const auto& icon = pair.second;
+    for (auto& [texHandle, icon] : iconsToUpload) {
         const auto& rect = texHandle.getRectangle();
 
         if (texHandle.isUploadNeeded()) {
@@ -206,9 +197,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
     }
 
     imageAtlas.patternPositions.reserve(patterns.size());
-    for (const auto& pair : patternsToUpload) {
-        auto texHandle = pair.first;
-        const auto& pattern = pair.second;
+    for (auto& [texHandle, pattern] : patternsToUpload) {
         const auto& rect = texHandle.getRectangle();
 
         if (texHandle.isUploadNeeded()) {
@@ -235,16 +224,16 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
         imageAtlas.patternPositions.emplace(pattern->id, ImagePosition{rect, *pattern, version});
     }
 
-    mutex.unlock();
     return imageAtlas;
 }
 
 void DynamicTextureAtlas::removeTextures(const std::vector<TextureHandle>& textureHandles,
                                          const DynamicTexturePtr& dynamicTexture) {
+    std::lock_guard<std::mutex> lock(mutex);
     if (!dynamicTexture) {
         return;
     }
-    mutex.lock();
+
     for (const auto& texHandle : textureHandles) {
         dynamicTexture->removeTexture(texHandle);
     }
@@ -254,7 +243,6 @@ void DynamicTextureAtlas::removeTextures(const std::vector<TextureHandle>& textu
             dynamicTextures.erase(iterator);
         }
     }
-    mutex.unlock();
 }
 
 } // namespace gfx
