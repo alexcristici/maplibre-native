@@ -155,8 +155,15 @@ void Context::submitOneTimeCommand(vk::UniqueCommandPool* commandPool,
                                    const std::function<void(const vk::UniqueCommandBuffer&)>& function) const {
     MLN_TRACE_FUNC();
 
+    vk::UniqueCommandPool commandPoolLocal;
+    if (commandPool) {
+        const vk::CommandPoolCreateInfo createInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                   backend.getGraphicsQueueIndex());
+        commandPoolLocal = backend.getDevice()->createCommandPoolUnique(createInfo);
+    }
+
     const vk::CommandBufferAllocateInfo allocateInfo(
-        commandPool ? commandPool->get() : backend.getCommandPool().get(), vk::CommandBufferLevel::ePrimary, 1);
+        commandPool ? commandPoolLocal.get() : backend.getCommandPool().get(), vk::CommandBufferLevel::ePrimary, 1);
 
     const auto& device = backend.getDevice();
     const auto& commandBuffers = device->allocateCommandBuffersUnique(allocateInfo);
