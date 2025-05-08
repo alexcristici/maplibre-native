@@ -151,9 +151,11 @@ void Context::enqueueDeletion(std::function<void(Context&)>&& function) {
     frameResources[frameResourceIndex].deletionQueue.push_back(std::move(function));
 }
 
+std::mutex mutex;
 void Context::submitOneTimeCommand(vk::UniqueCommandPool* commandPool,
                                    const std::function<void(const vk::UniqueCommandBuffer&)>& function) const {
     MLN_TRACE_FUNC();
+    std::lock_guard<std::mutex> lock(mutex);
 
     vk::UniqueCommandPool commandPoolLocal;
     if (commandPool) {
