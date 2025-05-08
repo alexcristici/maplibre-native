@@ -503,11 +503,14 @@ void GeometryTileWorker::finalizeLayout() {
     gfx::ImageAtlas imageAtlas;
     gfx::GlyphAtlas glyphAtlas;
     if (dynamicTextureAtlas) {
+        std::vector<std::function<void(gfx::Context&)>> deletionQueue;
         const auto& contextVK = static_cast<vulkan::Context&>(dynamicTextureAtlas->context);
         contextVK.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
-            imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns( iconMap, patternMap, versionMap, commandBuffer);
-            glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap, commandBuffer);
+            imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns(iconMap, patternMap, versionMap, deletionQueue, commandBuffer);
+            glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap, deletionQueue, commandBuffer);
         });
+        for (const auto& function : deletionQueue) function(dynamicTextureAtlas->context);
+        deletionQueue.clear();
     }
 
     if (!layouts.empty()) {

@@ -52,6 +52,7 @@ std::optional<TextureHandle> DynamicTexture::reserveSize(const Size& size, int32
 
 void DynamicTexture::uploadImage(const uint8_t* pixelData,
                                  TextureHandle& texHandle,
+                                 std::vector<std::function<void(Context&)>>& deletionQueue,
                                  const vk::UniqueCommandBuffer& commandBuffer) {
     std::lock_guard<std::mutex> lock(mutex);
     const auto& rect = texHandle.getRectangle();
@@ -63,18 +64,19 @@ void DynamicTexture::uploadImage(const uint8_t* pixelData,
     std::copy(pixelData, pixelData + size, imageData.get());
     imagesToUpload.emplace(texHandle, std::move(imageData));
 #else
-    static_cast<vulkan::Texture2D*>(texture.get())->uploadSubRegion(pixelData, imageSize, rect.x, rect.y, commandBuffer);
+    static_cast<vulkan::Texture2D*>(texture.get())->uploadSubRegion(pixelData, imageSize, rect.x, rect.y, &deletionQueue, commandBuffer);
 #endif
     texHandle.needsUpload = false;
 }
 
 std::optional<TextureHandle> DynamicTexture::addImage(const uint8_t* pixelData,
                                                       const Size& imageSize,
+                                                      std::vector<std::function<void(Context&)>>& deletionQueue,
                                                       const vk::UniqueCommandBuffer& commandBuffer,
                                                       int32_t uniqueId) {
     auto texHandle = reserveSize(imageSize, uniqueId);
     if (texHandle && texHandle->isUploadNeeded()) {
-        uploadImage(pixelData, *texHandle, commandBuffer);
+        uploadImage(pixelData, *texHandle, deletionQueue, commandBuffer);
     }
     return texHandle;
 }

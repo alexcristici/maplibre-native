@@ -148,13 +148,14 @@ void Texture2D::uploadSubRegion(const void* pixelData, const Size& size_, uint16
     const auto& encoder = context.createCommandEncoder();
     const auto& encoderImpl = static_cast<const CommandEncoder&>(*encoder);
 
-    uploadSubRegion(pixelData, size_, xOffset, yOffset, encoderImpl.getCommandBuffer());
+    uploadSubRegion(pixelData, size_, xOffset, yOffset, nullptr, encoderImpl.getCommandBuffer());
 }
 
 void Texture2D::uploadSubRegion(const void* pixelData,
                                 const Size& size_,
                                 uint16_t xOffset,
                                 uint16_t yOffset,
+                                std::vector<std::function<void(gfx::Context&)>>* deletionQueue,
                                 [[maybe_unused]] const vk::UniqueCommandBuffer& commandBuffer) noexcept {
     if (!pixelData || size_.width == 0 || size_.height == 0) return;
 
@@ -208,7 +209,15 @@ void Texture2D::uploadSubRegion(const void* pixelData,
         enqueueCommands(commandBuffer); 
     //});
 
-    context.enqueueDeletion([buffAlloc = std::move(bufferAllocation)](auto&) mutable { buffAlloc.reset(); });
+    const auto function = [buffAlloc = std::move(bufferAllocation)](auto&) mutable {
+        buffAlloc.reset();
+    };
+
+    if (deletionQueue) {
+        deletionQueue->push_back(std::move(function));
+    } else {
+        context.enqueueDeletion(std::move(function));
+    }
 
     context.renderingStats().numTextureUpdates++;
 }

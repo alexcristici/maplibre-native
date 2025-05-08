@@ -588,7 +588,7 @@ const std::unique_ptr<Texture2D>& Context::getDummyTexture() {
         dummyTexture2D->setSize(size);
 
         submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
-            dummyTexture2D->uploadSubRegion(data.data(), size, 0, 0, commandBuffer);
+            dummyTexture2D->uploadSubRegion(data.data(), size, 0, 0, nullptr, commandBuffer);
         });
     }
 
