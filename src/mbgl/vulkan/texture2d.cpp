@@ -494,7 +494,7 @@ void Texture2D::copyImage(vk::Image image) {
 
     create();
 
-    context.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
+    context.submitOneTimeCommand(nullptr, [&](const vk::UniqueCommandBuffer& commandBuffer) {
         const auto copyInfo = vk::ImageCopy()
                                   .setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1})
                                   .setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1})

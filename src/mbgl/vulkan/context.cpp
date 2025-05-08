@@ -151,11 +151,12 @@ void Context::enqueueDeletion(std::function<void(Context&)>&& function) {
     frameResources[frameResourceIndex].deletionQueue.push_back(std::move(function));
 }
 
-void Context::submitOneTimeCommand(const std::function<void(const vk::UniqueCommandBuffer&)>& function) const {
+void Context::submitOneTimeCommand(vk::UniqueCommandPool* commandPool,
+                                   const std::function<void(const vk::UniqueCommandBuffer&)>& function) const {
     MLN_TRACE_FUNC();
 
     const vk::CommandBufferAllocateInfo allocateInfo(
-        backend.getCommandPool().get(), vk::CommandBufferLevel::ePrimary, 1);
+        commandPool ? commandPool->get() : backend.getCommandPool().get(), vk::CommandBufferLevel::ePrimary, 1);
 
     const auto& device = backend.getDevice();
     const auto& commandBuffers = device->allocateCommandBuffersUnique(allocateInfo);
@@ -587,7 +588,7 @@ const std::unique_ptr<Texture2D>& Context::getDummyTexture() {
         dummyTexture2D->setFormat(gfx::TexturePixelType::RGBA, gfx::TextureChannelDataType::UnsignedByte);
         dummyTexture2D->setSize(size);
 
-        submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
+        submitOneTimeCommand(nullptr, [&](const vk::UniqueCommandBuffer& commandBuffer) {
             dummyTexture2D->uploadSubRegion(data.data(), size, 0, 0, nullptr, commandBuffer);
         });
     }

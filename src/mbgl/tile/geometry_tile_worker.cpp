@@ -50,11 +50,17 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
       mode(mode_),
       pixelRatio(pixelRatio_),
       showCollisionBoxes(showCollisionBoxes_),
-      dynamicTextureAtlas(dynamicTextureAtlas_) {}
+      dynamicTextureAtlas(dynamicTextureAtlas_) {
+    const auto& contextVK = static_cast<vulkan::Context&>(dynamicTextureAtlas->context);
+    const vk::CommandPoolCreateInfo createInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                               contextVK.getBackend().getGraphicsQueueIndex());
+    commandPool = contextVK.getBackend().getDevice()->createCommandPoolUnique(createInfo);
+}
 
 GeometryTileWorker::~GeometryTileWorker() {
     MLN_TRACE_FUNC();
 
+    commandPool.reset();
     scheduler.runOnRenderThread([renderData_{std::move(renderData)}]() {});
 }
 
@@ -505,7 +511,7 @@ void GeometryTileWorker::finalizeLayout() {
     if (dynamicTextureAtlas) {
         std::vector<std::function<void(gfx::Context&)>> deletionQueue;
         const auto& contextVK = static_cast<vulkan::Context&>(dynamicTextureAtlas->context);
-        contextVK.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
+        contextVK.submitOneTimeCommand(&commandPool, [&](const vk::UniqueCommandBuffer& commandBuffer) {
             imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns(iconMap, patternMap, versionMap, deletionQueue, commandBuffer);
             glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap, deletionQueue, commandBuffer);
         });
