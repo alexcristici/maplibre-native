@@ -9,7 +9,9 @@ namespace gfx {
 constexpr const uint16_t padding = ImagePosition::padding;
 constexpr const Size startSize = {512, 512};
 
-GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs) {
+GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs,
+                                             std::vector<std::function<void(Context&)>>& deletionQueue,
+                                             const vk::UniqueCommandBuffer& commandBuffer) {
     using GlyphsToUpload = std::vector<std::tuple<TextureHandle, Immutable<Glyph>, FontStackHash>>;
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -84,7 +86,7 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs) {
             paddedImage.fill(0);
             AlphaImage::copy(glyph->bitmap, paddedImage, {0, 0}, {padding, padding}, glyph->bitmap.size);
 
-            glyphAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle);
+            glyphAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
         }
         glyphAtlas.textureHandles.emplace_back(texHandle);
         glyphAtlas.glyphPositions[fontStack].emplace(glyph->id, GlyphPosition{rect, glyph->metrics});
@@ -94,7 +96,9 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs) {
 
 ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
                                                        const ImageMap& patterns,
-                                                       const ImageVersionMap& versionMap) {
+                                                       const ImageVersionMap& versionMap,
+                                                       std::vector<std::function<void(Context&)>>& deletionQueue,
+                                                       const vk::UniqueCommandBuffer& commandBuffer) {
     using ImagesToUpload = std::vector<std::pair<TextureHandle, Immutable<style::Image::Impl>>>;
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -187,7 +191,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
             paddedImage.fill(0);
             PremultipliedImage::copy(icon->image, paddedImage, {0, 0}, {padding, padding}, icon->image.size);
 
-            imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle);
+            imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
         }
         imageAtlas.textureHandles.emplace_back(texHandle);
         const auto it = versionMap.find(icon->id);
@@ -215,7 +219,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
             PremultipliedImage::copy(pattern->image, paddedImage, {w - 1, 0}, {x - 1, y}, {1, h}); // L
             PremultipliedImage::copy(pattern->image, paddedImage, {0, 0}, {x + w, y}, {1, h});     // R
 
-            imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle);
+            imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
         }
         imageAtlas.textureHandles.emplace_back(texHandle);
         const auto it = versionMap.find(pattern->id);
