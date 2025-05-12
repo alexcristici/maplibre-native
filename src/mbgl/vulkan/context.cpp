@@ -300,6 +300,8 @@ void Context::endFrame() {
 
 void Context::submitFrame() {
     MLN_TRACE_FUNC();
+    std::lock_guard<std::mutex> lock(mutex);
+
     const auto& frame = frameResources[frameResourceIndex];
     frame.commandBuffer->end();
 
