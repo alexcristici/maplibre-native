@@ -10,13 +10,17 @@
 namespace mbgl {
 namespace mtl {
 
-Texture2D::Texture2D(Context& context_)
-    : context(context_) {}
+Texture2D::Texture2D(Context& context_, bool atlas_)
+    : context(context_),
+      atlas(atlas_) {}
 
 Texture2D::~Texture2D() {
     if (metalTexture) {
         context.renderingStats().numActiveTextures--;
         context.renderingStats().memTextures -= getDataSize();
+    }
+    if (atlas) {
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= getDataSize();
     }
 }
 

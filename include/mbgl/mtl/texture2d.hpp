@@ -18,7 +18,7 @@ class RenderPass;
 
 class Texture2D : public gfx::Texture2D {
 public:
-    Texture2D(Context& context_);
+    Texture2D(Context& context_, bool atlas);
     ~Texture2D() override;
 
     gfx::Texture2D& setSamplerConfiguration(const SamplerState&) noexcept override;
@@ -78,6 +78,7 @@ private:
     std::shared_ptr<PremultipliedImage> image{nullptr};
     bool textureDirty{true};
     bool samplerStateDirty{true};
+    const bool atlas;
 };
 
 } // namespace mtl
