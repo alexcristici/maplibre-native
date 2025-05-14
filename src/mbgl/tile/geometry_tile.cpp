@@ -101,12 +101,16 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
                                                        .wrapU = gfx::TextureWrapType::Clamp,
                                                        .wrapV = gfx::TextureWrapType::Clamp});
         atlasTextures->glyph->upload(*layoutResult->glyphAtlasImage);
+        gfx::RenderingStats::numGlyphAndIconsUploads += 1;
+        gfx::RenderingStats::memGlyphAndIconsUploads += layoutResult->glyphAtlasImage->size.area() * atlasTextures->glyph->getPixelStride();
         layoutResult->glyphAtlasImage = {};
     }
 
     if (layoutResult->iconAtlas.image.valid()) {
         atlasTextures->icon = uploadPass.getContext().createTexture2D();
         atlasTextures->icon->upload(layoutResult->iconAtlas.image);
+        gfx::RenderingStats::numGlyphAndIconsUploads += 1;
+        gfx::RenderingStats::memGlyphAndIconsUploads += layoutResult->iconAtlas.image.size.area() * atlasTextures->icon->getPixelStride();
         layoutResult->iconAtlas.image = {};
     }
 

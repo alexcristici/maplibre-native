@@ -7,6 +7,9 @@
 namespace mbgl {
 namespace gfx {
 
+double RenderingStats::numGlyphAndIconsUploads = 0;
+double RenderingStats::memGlyphAndIconsUploads = 0;
+
 bool RenderingStats::isZero() const {
     const auto expectedZeros = {numActiveTextures,
                                 numTextureBindings,

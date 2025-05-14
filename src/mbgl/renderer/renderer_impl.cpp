@@ -444,8 +444,10 @@ void Renderer::Impl::render(const RenderTree& renderTree,
         renderTreeParameters.loaded ? RendererObserver::RenderMode::Full : RendererObserver::RenderMode::Partial,
         renderTreeParameters.needsRepaint,
         renderTreeParameters.placementChanged,
-        encodingTime,
-        renderingTime);
+        gfx::RenderingStats::numGlyphAndIconsUploads,
+        gfx::RenderingStats::memGlyphAndIconsUploads);
+        //encodingTime,
+        //renderingTime);
 
     if (!renderTreeParameters.loaded) {
         renderState = RenderState::Partial;
@@ -456,6 +458,11 @@ void Renderer::Impl::render(const RenderTree& renderTree,
 
     frameCount += 1;
     MLN_END_FRAME();
+    
+    std::stringstream ss;
+    ss << "\nBench numGlyphAndIconsUploads: " << gfx::RenderingStats::numGlyphAndIconsUploads
+       << "\nBench memGlyphAndIconsUploads: " << gfx::RenderingStats::memGlyphAndIconsUploads / (1024 * 1024) << " MB";
+    Log::Debug(Event::General, ss.str());
 }
 
 void Renderer::Impl::reduceMemoryUse() {
