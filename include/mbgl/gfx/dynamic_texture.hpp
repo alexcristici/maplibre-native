@@ -66,10 +66,10 @@ public:
 
     using ImagesToUpload = std::unordered_map<TextureHandle, std::unique_ptr<uint8_t[]>, TextureHandle::Hasher>;
 
+    int numTextures = 0;
 private:
     Texture2DPtr texture;
     mapbox::ShelfPack shelfPack;
-    int numTextures = 0;
     bool deferredCreation = false;
     ImagesToUpload imagesToUpload;
     std::mutex mutex;

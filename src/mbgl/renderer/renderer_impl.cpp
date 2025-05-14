@@ -4,6 +4,7 @@
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/gfx/context.hpp>
 #include <mbgl/gfx/cull_face_mode.hpp>
+#include <mbgl/gfx/dynamic_texture_atlas.hpp>
 #include <mbgl/gfx/render_pass.hpp>
 #include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/gfx/renderable.hpp>
@@ -440,12 +441,14 @@ void Renderer::Impl::render(const RenderTree& renderTree,
 
     const auto encodingTime = renderTree.getElapsedTime() - renderingTime;
 
+    dynamicTextureAtlas->computeMemory();
+    
     observer->onDidFinishRenderingFrame(
         renderTreeParameters.loaded ? RendererObserver::RenderMode::Full : RendererObserver::RenderMode::Partial,
         renderTreeParameters.needsRepaint,
         renderTreeParameters.placementChanged,
-        encodingTime,
-        renderingTime);
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures, //encodingTime,
+        gfx::RenderingStats::numGlyphAndIconsAtlasTextures); //renderingTime);
 
     if (!renderTreeParameters.loaded) {
         renderState = RenderState::Partial;
@@ -456,6 +459,11 @@ void Renderer::Impl::render(const RenderTree& renderTree,
 
     frameCount += 1;
     MLN_END_FRAME();
+    
+    std::stringstream ss;
+    ss << "\nBench memGlyphAndIconsAtlasTextures: " << gfx::RenderingStats::memGlyphAndIconsAtlasTextures / (1024 * 1024) << " MB"
+       << "\n numGlyphAndIconsAtlasTextures: " << gfx::RenderingStats::numGlyphAndIconsAtlasTextures;
+    Log::Debug(Event::General, ss.str());
 }
 
 void Renderer::Impl::reduceMemoryUse() {
