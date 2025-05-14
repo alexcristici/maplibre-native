@@ -223,7 +223,11 @@ LayerGroupPtr Context::createLayerGroup(int32_t layerIndex, std::size_t initialC
 }
 
 gfx::Texture2DPtr Context::createTexture2D() {
-    return std::make_shared<Texture2D>(*this);
+    return std::make_shared<Texture2D>(*this, false);
+}
+
+gfx::Texture2DPtr Context::createTextureAtlas2D() {
+    return std::make_shared<Texture2D>(*this, true);
 }
 
 RenderTargetPtr Context::createRenderTarget(const Size size, const gfx::TextureChannelDataType type) {

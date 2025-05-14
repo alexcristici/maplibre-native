@@ -1,6 +1,17 @@
 #include <mbgl/renderer/tile_render_data.hpp>
+#include <mbgl/gfx/rendering_stats.hpp>
+#include <mbgl/gfx/texture2d.hpp>
 
 namespace mbgl {
+
+/*TileAtlasTextures::~TileAtlasTextures() {
+    if (glyph) {
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= glyph->getDataSize();
+    }
+    if (icon) {
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= icon->getDataSize();
+    }
+}*/
 
 TileRenderData::TileRenderData() = default;
 

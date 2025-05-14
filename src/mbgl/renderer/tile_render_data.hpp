@@ -22,6 +22,8 @@ class SourcePrepareParameters;
 
 class TileAtlasTextures {
 public:
+    //~TileAtlasTextures();
+    
     gfx::Texture2DPtr glyph;
     gfx::Texture2DPtr icon;
 };

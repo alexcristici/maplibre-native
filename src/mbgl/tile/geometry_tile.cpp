@@ -28,6 +28,8 @@
 
 namespace mbgl {
 
+//std::unordered_map<gfx::Texture2DPtr, int> atlasTexturesMap;
+
 LayerRenderData* GeometryTile::LayoutResult::getLayerRenderData(const style::Layer::Impl& layerImpl) {
     MLN_TRACE_FUNC();
     MLN_ZONE_STR(layerImpl.id);
@@ -96,19 +98,40 @@ void GeometryTileRenderData::upload(gfx::UploadPass& uploadPass) {
     assert(atlasTextures);
 
     if (layoutResult->glyphAtlasImage && layoutResult->glyphAtlasImage->valid()) {
-        atlasTextures->glyph = uploadPass.getContext().createTexture2D();
+        /*if (atlasTextures->glyph) {
+            //atlasTexturesMap.erase(atlasTextures->glyph);
+            gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= atlasTextures->glyph->getDataSize();
+        }*/
+        
+        atlasTextures->glyph = uploadPass.getContext().createTextureAtlas2D();
         atlasTextures->glyph->setSamplerConfiguration({.filter = gfx::TextureFilterType::Linear,
                                                        .wrapU = gfx::TextureWrapType::Clamp,
                                                        .wrapV = gfx::TextureWrapType::Clamp});
         atlasTextures->glyph->upload(*layoutResult->glyphAtlasImage);
+        
+        //atlasTexturesMap.emplace(atlasTextures->glyph, 1);
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures += atlasTextures->glyph->getDataSize();
         layoutResult->glyphAtlasImage = {};
     }
 
     if (layoutResult->iconAtlas.image.valid()) {
-        atlasTextures->icon = uploadPass.getContext().createTexture2D();
+        /*if (atlasTextures->icon) {
+            //atlasTexturesMap.erase(atlasTextures->icon);
+            gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= atlasTextures->icon->getDataSize();
+        }*/
+        
+        atlasTextures->icon = uploadPass.getContext().createTextureAtlas2D();
         atlasTextures->icon->upload(layoutResult->iconAtlas.image);
+        
+        //atlasTexturesMap.emplace(atlasTextures->icon, 1);
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures += atlasTextures->icon->getDataSize();
         layoutResult->iconAtlas.image = {};
     }
+    
+    /*gfx::RenderingStats::memGlyphAndIconsAtlasTextures = 0;
+    for(auto& pair : atlasTexturesMap) {
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures += pair.first->getDataSize();
+    }*/
 
     if (atlasTextures->icon && !imagePatches.empty()) {
         for (const auto& imagePatch : imagePatches) { // patch updated images.
@@ -190,7 +213,16 @@ GeometryTile::~GeometryTile() {
 
     if (layoutResult) {
         threadPool.runOnRenderThread(
-            [layoutResult_{std::move(layoutResult)}, atlasTextures_{std::move(atlasTextures)}]() {});
+            [layoutResult_{std::move(layoutResult)}, atlasTextures_{std::move(atlasTextures)}]() {
+                /*if (atlasTextures_->glyph) {
+                    atlasTexturesMap.erase(atlasTextures_->glyph);
+                    //gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= atlasTextures->glyph->getDataSize();
+                }
+                if (atlasTextures_->icon) {
+                    atlasTexturesMap.erase(atlasTextures_->icon);
+                    //gfx::RenderingStats::memGlyphAndIconsAtlasTextures -= atlasTextures->icon->getDataSize();
+                }*/
+            });
     }
 }
 

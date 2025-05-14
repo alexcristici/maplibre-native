@@ -7,6 +7,7 @@
 #include "locations.hpp"
 
 #include <chrono>
+#include <algorithm>
 
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/gfx/headless_frontend.hpp>
@@ -183,6 +184,8 @@ double totalFrameRenderingTime = 0;
 std::chrono::steady_clock::time_point started;
 std::vector<std::pair<std::string, std::pair<double, double>> > result;
 
+std::array<std::vector<double>, 16> memoryRecords;
+
 static const int benchmarkDuration = 5; // seconds
 
 namespace  mbgl {
@@ -240,7 +243,35 @@ namespace  mbgl {
         NSLog(@"Benchmark completed.");
 
         NSLog(@"Result:");
-        size_t colWidth = 0;
+        
+        double maxMemory = 0;
+        double minMemory = 1000;
+        double totalMemory = 0;
+        double totalFrames = 0;
+        for (size_t i = 0; i < 16; i++) {
+            const auto& vector = memoryRecords[i];
+            double max = *std::max_element(vector.begin(), vector.end());
+            double min = *std::min_element(vector.begin(), vector.end());
+            double total = std::reduce(vector.begin(), vector.end());
+            double average = total / vector.size();
+            
+            NSLog(@"| %-*s | %.2f MB | %.2f MB | %.2f MB |", 14, mbgl::bench::locations[i].name.c_str(), average, max, min);
+            
+            if (maxMemory < max) {
+                maxMemory = max;
+            }
+            if (minMemory > min) {
+                minMemory = min;
+            }
+            totalMemory += total;
+            totalFrames += vector.size();
+        }
+        
+        NSLog(@"Average memory: %.2f MB", totalMemory / totalFrames);
+        NSLog(@"Max memory: %.2f MB", maxMemory);
+        NSLog(@"Min memory: %.2f MB", minMemory);
+        
+        /*size_t colWidth = 0;
         for (const auto& row : result) {
             colWidth = std::max(row.first.size(), colWidth);
         }
@@ -248,13 +279,13 @@ namespace  mbgl {
         double totalFrameEncodingTime = 0;
         double totalFrameRenderingTime = 0;
         for (const auto& row : result) {
-            NSLog(@"| %-*s | %4.2f ms | %4.2f ms |", int(colWidth), row.first.c_str(), 1e3 * row.second.first, 1e3 * row.second.second);
+            NSLog(@"| %-*s | %0.2f MB | %0.0f |", int(colWidth), row.first.c_str(), row.second.first / (1024 * 1024), row.second.second);
             totalFrameEncodingTime += row.second.first;
             totalFrameRenderingTime += row.second.second;
         }
 
-        NSLog(@"Average frame encoding time: %4.2f ms", totalFrameEncodingTime * 1e3 / result.size());
-        NSLog(@"Average frame rendering time: %4.2f ms", totalFrameRenderingTime * 1e3 / result.size());
+        NSLog(@"Average glyph and icons memory: %.2f MB", (totalFrameEncodingTime / (1024 * 1024)) / result.size());
+        NSLog(@"Average glyph and icons textures: %.0f", totalFrameRenderingTime / result.size());*/
 
         // NSLog(@"Total uploads: %zu", mbgl::uploadCount);
         // NSLog(@"Total uploads with dirty vattr: %zu", mbgl::uploadVertextAttrsDirty);
@@ -294,6 +325,8 @@ namespace  mbgl {
         frames++;
         totalFrameEncodingTime += frameEncodingTime;
         totalFrameRenderingTime += frameRenderingTime;
+        
+        memoryRecords[idx].emplace_back(frameEncodingTime / (1024 * 1024));
 
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
         if (duration >= benchmarkDuration * 1e6)
@@ -301,10 +334,10 @@ namespace  mbgl {
             state = State::None;
 
             // Report FPS
-            const auto frameEncodingTime = static_cast<double>(totalFrameEncodingTime) / frames;
+            /*const auto frameEncodingTime = static_cast<double>(totalFrameEncodingTime) / frames;
             const auto frameRenderingTime = static_cast<double>(totalFrameRenderingTime) / frames;
             result.emplace_back(mbgl::bench::locations[idx].name, std::make_pair(frameEncodingTime, frameRenderingTime));
-            NSLog(@"- Frame encoding time: %.1f ms, Frame rendering time: %.1f ms (%d frames)", frameEncodingTime * 1e3, frameRenderingTime * 1e3, frames);
+            NSLog(@"- Average glyph and icons memory: %.2f MB, Average glyph and icons textures: %.0f (%d frames)", frameEncodingTime / (1024 * 1024), frameRenderingTime, frames);*/
 
             // Start benchmarking the next location.
             idx++;
