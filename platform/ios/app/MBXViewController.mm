@@ -2184,7 +2184,8 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
 
     /// Style that does not require an `apiKey` nor any further configuration
     [self.styleNames addObject:@"MapLibre Basic"];
-    [self.styleURLs addObject:[NSURL URLWithString:@"https://demotiles.maplibre.org/style.json"]];
+    //[self.styleURLs addObject:[NSURL URLWithString:@"https://americanamap.org/style.json"]];
+    [self.styleURLs addObject:[NSURL URLWithString:@"https://external.xx.fbcdn.net/maps/vt/style/canterbury_1_0/?locale=en_US"]];
 
     /// Add MapLibre Styles if an `apiKey` exists
     NSString* apiKey = [MLNSettings apiKey];

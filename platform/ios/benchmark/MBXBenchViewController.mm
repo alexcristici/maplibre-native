@@ -84,6 +84,8 @@ protected:
     NSURL *tileSourceURL = [[NSBundle mainBundle] URLForResource:@"openmaptiles" withExtension:@"json" subdirectory:@"tiles"];
     const std::vector<std::string> styles = {
         "maptiler://maps/streets",
+        //"https://americanamap.org/style.json"
+        //"https://external.xx.fbcdn.net/maps/vt/style/canterbury_1_0/?locale=en_US"
     };
     constexpr auto styleIndex = 0;
     NSURL *url = [NSURL URLWithString:tile ? @"asset://styles/streets.json" : [NSString stringWithCString:styles[styleIndex].c_str() encoding:NSUTF8StringEncoding]];
@@ -178,8 +180,8 @@ NSDate* const currentDate = [NSDate date];
 size_t idx = 0;
 enum class State { None, WaitingForAssets, Benchmarking } state = State::None;
 int frames = 0;
-double totalFrameEncodingTime = 0;
-double totalFrameRenderingTime = 0;
+//double totalFrameEncodingTime = 0;
+//double totalFrameRenderingTime = 0;
 std::chrono::steady_clock::time_point started;
 std::vector<std::pair<std::string, std::pair<double, double>> > result;
 
@@ -248,13 +250,16 @@ namespace  mbgl {
         double totalFrameEncodingTime = 0;
         double totalFrameRenderingTime = 0;
         for (const auto& row : result) {
-            NSLog(@"| %-*s | %4.2f ms | %4.2f ms |", int(colWidth), row.first.c_str(), 1e3 * row.second.first, 1e3 * row.second.second);
-            totalFrameEncodingTime += row.second.first;
-            totalFrameRenderingTime += row.second.second;
+            NSLog(@"| %-*s | %.0f | %.2f MB |", int(colWidth), row.first.c_str(), row.second.first, row.second.second / (1024 * 1024) );
+            totalFrameEncodingTime = row.second.first;
+            totalFrameRenderingTime = row.second.second;
         }
 
-        NSLog(@"Average frame encoding time: %4.2f ms", totalFrameEncodingTime * 1e3 / result.size());
-        NSLog(@"Average frame rendering time: %4.2f ms", totalFrameRenderingTime * 1e3 / result.size());
+        //NSLog(@"Average frame encoding time: %4.2f ms", totalFrameEncodingTime * 1e3 / result.size());
+        //NSLog(@"Average frame rendering time: %4.2f ms", totalFrameRenderingTime * 1e3 / result.size());
+        
+        NSLog(@"Num Glyphs and Icons Uploads: %.0f", totalFrameEncodingTime);
+        NSLog(@"Mem Uploaded by Glyphs and Icons: %.2f MB", totalFrameRenderingTime / (1024 * 1024));
 
         // NSLog(@"Total uploads: %zu", mbgl::uploadCount);
         // NSLog(@"Total uploads with dirty vattr: %zu", mbgl::uploadVertextAttrsDirty);
@@ -292,8 +297,8 @@ namespace  mbgl {
     if (state == State::Benchmarking)
     {
         frames++;
-        totalFrameEncodingTime += frameEncodingTime;
-        totalFrameRenderingTime += frameRenderingTime;
+        //totalFrameEncodingTime += frameEncodingTime;
+        //totalFrameRenderingTime += frameRenderingTime;
 
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
         if (duration >= benchmarkDuration * 1e6)
@@ -301,10 +306,12 @@ namespace  mbgl {
             state = State::None;
 
             // Report FPS
-            const auto frameEncodingTime = static_cast<double>(totalFrameEncodingTime) / frames;
-            const auto frameRenderingTime = static_cast<double>(totalFrameRenderingTime) / frames;
+            //const auto frameEncodingTime = static_cast<double>(totalFrameEncodingTime) / frames;
+            //const auto frameRenderingTime = static_cast<double>(totalFrameRenderingTime) / frames;
             result.emplace_back(mbgl::bench::locations[idx].name, std::make_pair(frameEncodingTime, frameRenderingTime));
-            NSLog(@"- Frame encoding time: %.1f ms, Frame rendering time: %.1f ms (%d frames)", frameEncodingTime * 1e3, frameRenderingTime * 1e3, frames);
+            //NSLog(@"- Frame encoding time: %.1f ms, Frame rendering time: %.1f ms (%d frames)", frameEncodingTime * 1e3, frameRenderingTime * 1e3, frames);
+            
+            NSLog(@"- Num Glyph and Icons Uploads: %.0f, Mem Uploaded by Glyphs and Icons: %.2f MB (%d frames)", frameEncodingTime, frameRenderingTime / (1024 * 1024), frames);
 
             // Start benchmarking the next location.
             idx++;
@@ -322,8 +329,8 @@ namespace  mbgl {
         {
             // Start the benchmarking timer.
             frames = 0;
-            totalFrameEncodingTime = 0;
-            totalFrameRenderingTime = 0;
+            //totalFrameEncodingTime = 0;
+            //totalFrameRenderingTime = 0;
             state = State::Benchmarking;
             started = std::chrono::steady_clock::now();
             NSLog(@"- Benchmarking for %d seconds...", benchmarkDuration);
