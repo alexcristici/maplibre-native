@@ -245,7 +245,6 @@ void DynamicTextureAtlas::computeMemory() {
     }
 }
 
-
 void DynamicTextureAtlas::removeTextures(const std::vector<TextureHandle>& textureHandles,
                                          const DynamicTexturePtr& dynamicTexture) {
     std::lock_guard<std::mutex> lock(mutex);
