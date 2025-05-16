@@ -59,6 +59,8 @@ void DynamicTexture::uploadImage(const uint8_t* pixelData, TextureHandle& texHan
     std::copy(pixelData, pixelData + size, imageData.get());
     imagesToUpload.emplace(texHandle, std::move(imageData));
 #else
+    RenderingStats::numGlyphAndIconsUploads += 1;
+    RenderingStats::memGlyphAndIconsUploads += imageSize.area() * texture->getPixelStride();
     texture->uploadSubRegion(pixelData, imageSize, rect.x, rect.y);
 #endif
     texHandle.needsUpload = false;
@@ -82,6 +84,8 @@ void DynamicTexture::uploadDeferredImages() {
     }
     for (const auto& pair : imagesToUpload) {
         const auto& rect = pair.first.getRectangle();
+        RenderingStats::numGlyphAndIconsUploads += 1;
+        RenderingStats::memGlyphAndIconsUploads += Size(rect.w, rect.h).area() * texture->getPixelStride();
         texture->uploadSubRegion(pair.second.get(), Size(rect.w, rect.h), rect.x, rect.y);
     }
     imagesToUpload.clear();

@@ -62,6 +62,9 @@ struct RenderingStats {
     int stencilClears = 0;
     int stencilUpdates = 0;
 
+    static double numGlyphAndIconsUploads;
+    static double memGlyphAndIconsUploads;
+    
     RenderingStats& operator+=(const RenderingStats&);
 
 #if !defined(NDEBUG)
