@@ -1,5 +1,6 @@
 #include <mbgl/gfx/dynamic_texture_atlas.hpp>
 #include <mbgl/gfx/context.hpp>
+#include <mbgl/mtl/texture2d.hpp>
 
 #include <cmath>
 
@@ -232,6 +233,16 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
     }
 
     return imageAtlas;
+}
+
+void DynamicTextureAtlas::computeMemory() {
+    std::lock_guard<std::mutex> lock(mutex);
+    gfx::RenderingStats::memGlyphAndIconsAtlasTextures = 0;
+    gfx::RenderingStats::numGlyphAndIconsAtlasTextures = 0;
+    for (const auto& dynamicTexture : dynamicTextures) {
+        gfx::RenderingStats::memGlyphAndIconsAtlasTextures += dynamicTexture->getTexture()->getDataSize();
+        gfx::RenderingStats::numGlyphAndIconsAtlasTextures += dynamicTexture->numTextures;
+    }
 }
 
 void DynamicTextureAtlas::removeTextures(const std::vector<TextureHandle>& textureHandles,

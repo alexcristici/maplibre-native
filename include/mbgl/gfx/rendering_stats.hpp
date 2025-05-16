@@ -64,6 +64,9 @@ struct RenderingStats {
 
     RenderingStats& operator+=(const RenderingStats&);
 
+    static double memGlyphAndIconsAtlasTextures;
+    static int numGlyphAndIconsAtlasTextures;
+    
 #if !defined(NDEBUG)
     std::string toString(std::string_view separator) const;
 #endif
