@@ -1,5 +1,6 @@
 #include <mbgl/gfx/dynamic_texture_atlas.hpp>
 #include <mbgl/gfx/context.hpp>
+#include <mbgl/vulkan/context.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -19,9 +20,7 @@ Rect<uint16_t> rectWithoutExtraPadding(const Rect<uint16_t>& rect) {
 }
 } // namespace
 
-GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs,
-                                             std::vector<std::function<void(Context&)>>& deletionQueue,
-                                             const vk::UniqueCommandBuffer& commandBuffer) {
+GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs) {
     using GlyphsToUpload = std::vector<std::tuple<TextureHandle, Immutable<Glyph>, FontStackHash>>;
     std::scoped_lock lock(mutex);
 
@@ -29,11 +28,11 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs,
     if (!glyphs.size()) {
         glyphAtlas.dynamicTexture = dummyDynamicTexture[TexturePixelType::Alpha];
         if (!glyphAtlas.dynamicTexture) {
-            AlphaImage dummyImage(dummySize);
-            dummyImage.fill(0);
+            //AlphaImage dummyImage(dummySize);
+            //dummyImage.fill(0);
             glyphAtlas.dynamicTexture = std::make_shared<gfx::DynamicTexture>(
                 context, dummySize, TexturePixelType::Alpha);
-            glyphAtlas.dynamicTexture->addImage(dummyImage.data.get(), dummySize, deletionQueue, commandBuffer);
+            //glyphAtlas.dynamicTexture->addImage(dummyImage.data.get(), dummySize, deletionQueue, commandBuffer);
             dummyDynamicTexture[TexturePixelType::Alpha] = glyphAtlas.dynamicTexture;
         }
         return glyphAtlas;
@@ -91,28 +90,33 @@ GlyphAtlas DynamicTextureAtlas::uploadGlyphs(const GlyphMap& glyphs,
         dynamicTextures.emplace_back(glyphAtlas.dynamicTexture);
     }
 
-    for (auto& [texHandle, glyph, fontStack] : glyphsToUpload) {
-        const auto& rect = texHandle.getRectangle();
+    std::vector<std::function<void(gfx::Context&)>> deletionQueue;
+    const auto& contextVK = static_cast<vulkan::Context&>(context);
+    contextVK.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
+        for (auto& [texHandle, glyph, fontStack] : glyphsToUpload) {
+            const auto& rect = texHandle.getRectangle();
 
-        if (texHandle.isUploadNeeded()) {
-            AlphaImage paddedImage(Size{rect.w, rect.h});
-            paddedImage.fill(0);
-            AlphaImage::copy(glyph->bitmap, paddedImage, {0, 0}, {padding, padding}, glyph->bitmap.size);
+            if (texHandle.isUploadNeeded()) {
+                AlphaImage paddedImage(Size{rect.w, rect.h});
+                paddedImage.fill(0);
+                AlphaImage::copy(glyph->bitmap, paddedImage, {0, 0}, {padding, padding}, glyph->bitmap.size);
 
-            glyphAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
+                glyphAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
+            }
+            glyphAtlas.textureHandles.emplace_back(texHandle);
+            glyphAtlas.glyphPositions[fontStack].emplace(
+                    glyph->id, GlyphPosition{.rect = rectWithoutExtraPadding(rect), .metrics = glyph->metrics});
         }
-        glyphAtlas.textureHandles.emplace_back(texHandle);
-        glyphAtlas.glyphPositions[fontStack].emplace(
-            glyph->id, GlyphPosition{.rect = rectWithoutExtraPadding(rect), .metrics = glyph->metrics});
-    }
+    }, true);
+    for (const auto& function : deletionQueue) function(context);
+    deletionQueue.clear();
+
     return glyphAtlas;
 }
 
 ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
                                                        const ImageMap& patterns,
-                                                       const ImageVersionMap& versionMap,
-                                                       std::vector<std::function<void(Context&)>>& deletionQueue,
-                                                       const vk::UniqueCommandBuffer& commandBuffer) {
+                                                       const ImageVersionMap& versionMap) {
     using ImagesToUpload = std::vector<std::pair<TextureHandle, Immutable<style::Image::Impl>>>;
     std::scoped_lock lock(mutex);
 
@@ -120,11 +124,11 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
     if (!icons.size() && !patterns.size()) {
         imageAtlas.dynamicTexture = dummyDynamicTexture[TexturePixelType::RGBA];
         if (!imageAtlas.dynamicTexture) {
-            PremultipliedImage dummyImage(dummySize);
-            dummyImage.fill(0);
+            //PremultipliedImage dummyImage(dummySize);
+            //dummyImage.fill(0);
             imageAtlas.dynamicTexture = std::make_shared<gfx::DynamicTexture>(
                 context, dummySize, TexturePixelType::RGBA);
-            imageAtlas.dynamicTexture->addImage(dummyImage.data.get(), dummySize, deletionQueue, commandBuffer);
+            //imageAtlas.dynamicTexture->addImage(dummyImage.data.get(), dummySize, deletionQueue, commandBuffer);
             dummyDynamicTexture[TexturePixelType::RGBA] = imageAtlas.dynamicTexture;
         }
         return imageAtlas;
@@ -208,7 +212,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
             paddedImage.fill(0);
             PremultipliedImage::copy(icon->image, paddedImage, {0, 0}, {padding, padding}, icon->image.size);
 
-            imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
+            //imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
         }
         imageAtlas.textureHandles.emplace_back(texHandle);
         const auto it = versionMap.find(icon->id);
@@ -236,7 +240,7 @@ ImageAtlas DynamicTextureAtlas::uploadIconsAndPatterns(const ImageMap& icons,
             PremultipliedImage::copy(pattern->image, paddedImage, {w - 1, 0}, {x - 1, y}, {1, h}); // L
             PremultipliedImage::copy(pattern->image, paddedImage, {0, 0}, {x + w, y}, {1, h});     // R
 
-            imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
+            //imageAtlas.dynamicTexture->uploadImage(paddedImage.data.get(), texHandle, deletionQueue, commandBuffer);
         }
         imageAtlas.textureHandles.emplace_back(texHandle);
         const auto it = versionMap.find(pattern->id);

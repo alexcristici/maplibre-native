@@ -66,7 +66,7 @@ void DynamicTexture::uploadImage(const uint8_t* pixelData,
     imagesToUpload.emplace(texHandle, std::move(imageData));
 #else
     static_cast<vulkan::Texture2D*>(texture.get())
-        ->uploadSubRegion(pixelData, imageSize, rect.x, rect.y, &deletionQueue, commandBuffer);
+        ->uploadSubRegion(pixelData, imageSize, rect.x, rect.y, commandBuffer, &deletionQueue);
 #endif
     texHandle.needsUpload = false;
 }

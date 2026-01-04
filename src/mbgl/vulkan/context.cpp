@@ -168,20 +168,19 @@ void Context::enqueueDeletion(std::function<void(Context&)>&& function) {
 }
 
 std::mutex mutex;
-void Context::submitOneTimeCommand(vk::UniqueCommandPool* commandPool,
-                                   const std::function<void(const vk::UniqueCommandBuffer&)>& function) const {
+void Context::submitOneTimeCommand(const std::function<void(const vk::UniqueCommandBuffer&)>& function, bool createCommandPool) const {
     MLN_TRACE_FUNC();
     std::lock_guard<std::mutex> lock(mutex);
 
-    vk::UniqueCommandPool commandPoolLocal;
-    if (commandPool) {
+    vk::UniqueCommandPool newCommandPool;
+    if (createCommandPool) {
         const vk::CommandPoolCreateInfo createInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                                    backend.getGraphicsQueueIndex());
-        commandPoolLocal = backend.getDevice()->createCommandPoolUnique(createInfo, nullptr, backend.getDispatcher());
+        newCommandPool = backend.getDevice()->createCommandPoolUnique(createInfo, nullptr, backend.getDispatcher());
     }
 
     const vk::CommandBufferAllocateInfo allocateInfo(
-        commandPool ? commandPoolLocal.get() : backend.getCommandPool().get(), vk::CommandBufferLevel::ePrimary, 1);
+            createCommandPool ? newCommandPool.get() : backend.getCommandPool().get(), vk::CommandBufferLevel::ePrimary, 1);
 
     const auto& device = backend.getDevice();
     const auto& dispatcher = backend.getDispatcher();
@@ -628,8 +627,8 @@ const std::unique_ptr<Texture2D>& Context::getDummyTexture() {
         dummyTexture2D->setFormat(gfx::TexturePixelType::RGBA, gfx::TextureChannelDataType::UnsignedByte);
         dummyTexture2D->setSize(size);
 
-        submitOneTimeCommand(nullptr, [&](const vk::UniqueCommandBuffer& commandBuffer) {
-            dummyTexture2D->uploadSubRegion(data.data(), size, 0, 0, nullptr, commandBuffer);
+        submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
+            dummyTexture2D->uploadSubRegion(data.data(), size, 0, 0, commandBuffer);
         });
     }
 

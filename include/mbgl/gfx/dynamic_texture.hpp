@@ -4,7 +4,7 @@
 #include <mbgl/util/image.hpp>
 #include <mbgl/util/rect.hpp>
 
-#include <mbgl/vulkan/texture2d.hpp>
+#include <mbgl/vulkan/context.hpp>
 
 #include <mapbox/shelf-pack.hpp>
 

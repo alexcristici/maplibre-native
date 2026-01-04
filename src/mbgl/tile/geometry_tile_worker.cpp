@@ -22,8 +22,6 @@
 #include <mbgl/util/stopwatch.hpp>
 #include <mbgl/util/thread_pool.hpp>
 
-#include <mbgl/vulkan/context.hpp>
-
 #include <unordered_set>
 #include <utility>
 
@@ -52,18 +50,11 @@ GeometryTileWorker::GeometryTileWorker(OptionalActorRef<GeometryTileWorker> self
       pixelRatio(pixelRatio_),
       showCollisionBoxes(showCollisionBoxes_),
       dynamicTextureAtlas(dynamicTextureAtlas_),
-      fontFaces(fontFaces_) {
-    const auto& contextVK = static_cast<vulkan::Context&>(dynamicTextureAtlas->context);
-    const vk::CommandPoolCreateInfo createInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                               contextVK.getBackend().getGraphicsQueueIndex());
-    commandPool = contextVK.getBackend().getDevice()->createCommandPoolUnique(
-        createInfo, nullptr, contextVK.getBackend().getDispatcher());
-}
+      fontFaces(fontFaces_) {}
 
 GeometryTileWorker::~GeometryTileWorker() {
     MLN_TRACE_FUNC();
 
-    commandPool.reset();
     scheduler.runOnRenderThread([renderData_{std::move(renderData)}]() {});
 }
 
@@ -555,18 +546,13 @@ void GeometryTileWorker::finalizeLayout() {
     gfx::ImageAtlas imageAtlas;
     gfx::GlyphAtlas glyphAtlas;
     if (dynamicTextureAtlas) {
-        std::vector<std::function<void(gfx::Context&)>> deletionQueue;
-        const auto& contextVK = static_cast<vulkan::Context&>(dynamicTextureAtlas->context);
-        contextVK.submitOneTimeCommand(&commandPool, [&](const vk::UniqueCommandBuffer& commandBuffer) {
-            imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns(
-                iconMap, patternMap, versionMap, deletionQueue, commandBuffer);
-            glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap, deletionQueue, commandBuffer);
-        });
-        for (const auto& function : deletionQueue) function(dynamicTextureAtlas->context);
-        deletionQueue.clear();
+        imageAtlas = dynamicTextureAtlas->uploadIconsAndPatterns(iconMap, patternMap, versionMap);
     }
-
     if (!layouts.empty()) {
+        if (dynamicTextureAtlas) {
+            glyphAtlas = dynamicTextureAtlas->uploadGlyphs(glyphMap);
+        }
+
         for (auto& layout : layouts) {
             if (obsolete) {
                 dynamicTextureAtlas->removeTextures(glyphAtlas.textureHandles, glyphAtlas.dynamicTexture);

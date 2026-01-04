@@ -145,15 +145,15 @@ void Texture2D::uploadSubRegion(const void* pixelData, const Size& size_, uint16
     const auto& encoder = context.createCommandEncoder();
     const auto& encoderImpl = static_cast<const CommandEncoder&>(*encoder);
 
-    uploadSubRegion(pixelData, size_, xOffset, yOffset, nullptr, encoderImpl.getCommandBuffer());
+    uploadSubRegion(pixelData, size_, xOffset, yOffset, encoderImpl.getCommandBuffer());
 }
 
 void Texture2D::uploadSubRegion(const void* pixelData,
                                 const Size& size_,
                                 uint16_t xOffset,
                                 uint16_t yOffset,
-                                std::vector<std::function<void(gfx::Context&)>>* deletionQueue,
-                                [[maybe_unused]] const vk::UniqueCommandBuffer& commandBuffer) noexcept {
+                                const vk::UniqueCommandBuffer& commandBuffer,
+                                std::vector<std::function<void(gfx::Context&)>>* deletionQueue) noexcept {
     if (!pixelData || size_.width == 0 || size_.height == 0) return;
 
     create();
@@ -204,9 +204,7 @@ void Texture2D::uploadSubRegion(const void* pixelData,
         }
     };
 
-    // context.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
     enqueueCommands(commandBuffer);
-    //});
 
     const auto function = [buffAlloc = std::move(bufferAllocation)](auto&) mutable {
         buffAlloc.reset();
@@ -511,7 +509,7 @@ void Texture2D::copyImage(vk::Image image) {
 
     create();
 
-    context.submitOneTimeCommand(nullptr, [&](const vk::UniqueCommandBuffer& commandBuffer) {
+    context.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
         const auto copyInfo = vk::ImageCopy()
                                   .setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1})
                                   .setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1})
@@ -564,7 +562,7 @@ std::shared_ptr<PremultipliedImage> Texture2D::readImage() {
         }
 
         // Copy image to staging buffer
-        context.submitOneTimeCommand(nullptr, [&](const vk::UniqueCommandBuffer& commandBuffer) {
+        context.submitOneTimeCommand([&](const vk::UniqueCommandBuffer& commandBuffer) {
             // Transition image layout for reading
             const auto barrier = vk::ImageMemoryBarrier()
                                      .setImage(imageAllocation->image)
