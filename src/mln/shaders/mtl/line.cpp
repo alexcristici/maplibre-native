@@ -24,6 +24,19 @@ const std::array<AttributeInfo, 8> LineShaderSource::attributes = {
 const std::array<TextureInfo, 0> LineShaderSource::textures = {};
 
 //
+// Line intersection
+
+using LineIntersectionShaderSource = ShaderSource<BuiltIn::LineIntersectionShader, gfx::Backend::Type::Metal>;
+
+const std::array<AttributeInfo, 1> LineIntersectionShaderSource::attributes = {
+    AttributeInfo{0, gfx::AttributeDataType::Short2, lineUBOCount + 0, idLinePosNormalVertexAttribute},
+};
+const std::array<AttributeInfo, 1> LineIntersectionShaderSource::instanceAttributes = {
+    AttributeInfo{1, gfx::AttributeDataType::UInt3, lineUBOCount + 1, idLineTriangleInstanceAttribute},
+};
+const std::array<TextureInfo, 0> LineIntersectionShaderSource::textures = {};
+
+//
 // Line gradient
 
 using LineGradientShaderSource = ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal>;
