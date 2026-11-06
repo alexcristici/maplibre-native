@@ -616,6 +616,7 @@ void RenderLineLayer::update(gfx::ShaderRegistry& shaders,
             }
 
             auto builder = createLineBuilder("line", std::move(shader));
+            builder->setDepthType(gfx::DepthMaskType::ReadWrite);
 
             // vertices, attributes and segments
             addAttributes(*builder, bucket, std::move(vertexAttrs));
@@ -690,6 +691,7 @@ void RenderLineLayer::update(gfx::ShaderRegistry& shaders,
                                        gfx::AttributeDataType::UInt3);
             }
             intersectionBuilder->setInstanceAttributes(std::move(intersectionInstanceAttrs));
+            intersectionBuilder->setSubLayerIndex(1);
             
             intersectionBuilder->setSegments(gfx::Triangles(), bucket.sharedIntersectionTriangles, bucket.intersectionSegments.data(), bucket.intersectionSegments.size());
 

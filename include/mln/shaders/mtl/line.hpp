@@ -369,6 +369,122 @@ struct ShaderSource<BuiltIn::LineIntersectionShader, gfx::Backend::Type::Metal> 
     static constexpr auto prelude = lineShaderPrelude;
     static constexpr auto source = R"(
 
+float sdCircle(float2 p, float r) {
+    return length(p) - r;
+}
+
+float sdPlane(float2 p, float2 n, float h) {
+    // n must be normalized
+    return dot(p, n) + h;
+}
+
+float dot2(float2 v) {
+    return dot(v, v);
+}
+
+float opUnion(float a, float b) {
+    return min(a, b);
+}
+
+float opSmoothUnion(float d1, float d2, float k) {
+    float h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
+    return mix(d2, d1, h) - k * h * (1.0 - h);
+}
+
+float opIntersection(float a, float b) {
+    return max(a, b);
+}
+
+float opSubtraction(float a, float b) {
+    return max(a, -b);
+}
+
+float2 bisector(float2 v0, float2 v1, float2 v2) {
+    float2 v01 = normalize(v1 - v0);
+    float2 v02 = normalize(v2 - v0);
+    return normalize(v01 + v02);
+}
+
+float cotHalf(float cosTheta) {
+    float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
+    return (1.0 + cosTheta) / sinTheta;
+}
+
+void fitCircle(float2 v0, float2 v1, float2 v2, float radius, thread float &angle, thread float &distance) {
+    float cosTheta = dot(normalize(v1 - v0), normalize(v2 - v0));
+    float sinHalf = sqrt((1.0 - cosTheta) * 0.5);
+
+    angle = sinHalf;
+    distance = radius / sinHalf;
+}
+
+float dRoundedTri(float2 p, thread float &dTri, float2 v0, float2 v1, float2 v2, float radius) {
+    // circle distance from vertex
+    float angle;
+    float distance;
+    fitCircle(v0, v1, v2, radius, angle, distance);
+
+    // circle used to round it
+    float2 bisect = bisector(v0, v1, v2);
+    float2 circlePos = v0 + bisect * distance;
+    float dCircle = sdCircle(p - circlePos, radius);
+
+    // plane to isolate the two halfs of the circle (make the circle cutout asymmetrical)
+    float dPlaneIn = sdPlane(p - circlePos, -bisect, -radius * angle);
+
+    // mask based on plane
+    dTri = opIntersection(dTri, dPlaneIn);
+
+    return dCircle;
+}
+
+float cross2(float2 a, float2 b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+float computeRadius(float2 prevPoint, float2 cornerPoint, float2 nextPoint, float desiredCornerDistance) {
+    float maxEdgeLenPercent = 1.0;
+    float sinParallelTreshold = sin(5 * M_PI_F / 180);
+
+    float edge1Len = distance(prevPoint, cornerPoint);
+    float edge2Len = distance(nextPoint, cornerPoint);
+    if (edge1Len == 0.0 || edge2Len == 0.0) {
+        return 0;
+    }
+
+    // Compute the start and end points of the rounded corner
+    float2 edge1Vector = normalize(cornerPoint - prevPoint);
+    float2 edge2Vector = normalize(nextPoint - cornerPoint);
+
+    float edge1MaxCornerDistance = edge1Len * maxEdgeLenPercent;
+    float edge2MaxCornerDistance = edge2Len * maxEdgeLenPercent;
+    float cornerDistance = min3(desiredCornerDistance, edge1MaxCornerDistance, edge2MaxCornerDistance);
+
+    float2 startPoint = cornerPoint - edge1Vector * cornerDistance;
+    float2 endPoint = cornerPoint + edge2Vector * cornerDistance;
+
+    // Perpendicular directions
+    float2 perp1Vector = float2(-edge1Vector.y, edge1Vector.x);
+    float2 perp2Vector = float2(-edge2Vector.y, edge2Vector.x);
+
+    // Ensure perpendiculars point toward same side
+    if (cross2(edge1Vector, edge2Vector) < 0) {
+        perp1Vector *= -1.0;
+        perp2Vector *= -1.0;
+    }
+
+    // Center = intersection of perpendiculars
+    float perpCrossProduct = cross2(perp1Vector, perp2Vector);
+    if (abs(perpCrossProduct) < sinParallelTreshold) {
+        return 0;
+    }
+    float t = cross2(endPoint - startPoint, perp2Vector) / perpCrossProduct;
+    float2 centerPoint = startPoint + perp1Vector * t;
+
+    float radius = distance(startPoint, centerPoint);
+    return radius;
+}
+
 struct VertexStage {
     uint3 triangle_instance [[attribute(1)]];
 
@@ -397,6 +513,13 @@ struct VertexStage {
 
 struct FragmentStage {
     float4 position [[position, invariant]];
+
+    float2 triangle_pos;
+
+    float2 triangle_corner_pos [[flat]];
+    float2 triangle_corner_prev [[flat]];
+    float2 triangle_corner_next [[flat]];
+    float triangle_corner_radius [[flat]];
 
 /*    float2 width2;
     float2 normal;
@@ -482,14 +605,33 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     const float extrude_length_with_perspective = length(projected_extrude.xy / position.w * paintParams.units_to_pixels);
 */
 
-    const int16_t posX = int16_t(vertx.triangle_instance[vertexID] >> 16);
-    const int16_t posY = int16_t(vertx.triangle_instance[vertexID] & 0xFFFF);
-    const float4 position = drawable.matrix * float4(posX, posY, 0.0, 1.0);
+    int16_t pos_x = int16_t(vertx.triangle_instance[vertexID] >> 16);
+    int16_t pos_y = int16_t(vertx.triangle_instance[vertexID] & 0xFFFF);
+    float2 position = float2(pos_x, pos_y);
+
+    float2 triangle_vertex_pos[3];
+    float triangle_corner_radius;
+
+    for (int i = 0; i < 3; i++) {
+        pos_x = int16_t(vertx.triangle_instance[i] >> 16);
+        pos_y = int16_t(vertx.triangle_instance[i] & 0xFFFF);
+        triangle_vertex_pos[i] = float2(pos_x, pos_y);
+    }
+
+    triangle_corner_radius = computeRadius(triangle_vertex_pos[0], triangle_vertex_pos[1], triangle_vertex_pos[2], 100);
 
     return {
-        .position    = position,
+        .position = drawable.matrix * float4(position, 0.0f, 1.0f),
+        
+        .triangle_pos = position,
 
-/*        .width2      = float2(outset, inset),
+        .triangle_corner_prev = triangle_vertex_pos[0],
+        .triangle_corner_pos = triangle_vertex_pos[1],
+        .triangle_corner_next = triangle_vertex_pos[2],
+        .triangle_corner_radius = triangle_corner_radius,
+
+/*        .position    = position,
+        .width2      = float2(outset, inset),
         .normal      = v_normal,
         .gamma_scale = half(extrude_length_without_perspective / extrude_length_with_perspective),
 
@@ -544,6 +686,17 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     const float alpha = clamp(min(dist - (in.width2.y - blur2), in.width2.x - dist) / blur2, 0.0, 1.0);
 
     return half4(color * (alpha * opacity));*/
+
+    float dTri = -1.0;
+
+    if (in.triangle_corner_radius > 0.0) {
+        float d0 = dRoundedTri(in.triangle_pos, dTri, in.triangle_corner_pos, in.triangle_corner_prev, in.triangle_corner_next, in.triangle_corner_radius);
+        dTri = opUnion(dTri, d0);
+    }
+
+    if (dTri < 0.0) {
+        return half4(0.0);
+    }
 
     return half4(1.0, 0.0, 0.0, 1.0);
 }
