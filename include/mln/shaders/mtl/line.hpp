@@ -7,7 +7,7 @@
 namespace mln {
 namespace shaders {
 
-constexpr auto lineShadePrelude = R"(
+constexpr auto lineShaderPrelude = R"(
 
 enum {
     idLineDrawableUBO = idDrawableReservedVertexOnlyUBO,
@@ -186,7 +186,7 @@ struct ShaderSource<BuiltIn::LineShader, gfx::Backend::Type::Metal> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 0> textures;
 
-    static constexpr auto prelude = lineShadePrelude;
+    static constexpr auto prelude = lineShaderPrelude;
     static constexpr auto source = R"(
 
 struct VertexStage {
@@ -357,6 +357,353 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
 };
 
 template <>
+struct ShaderSource<BuiltIn::LineIntersectionShader, gfx::Backend::Type::Metal> {
+    static constexpr auto name = "LineIntersectionShader";
+    static constexpr auto vertexMainFunction = "vertexMain";
+    static constexpr auto fragmentMainFunction = "fragmentMain";
+
+    static const std::array<AttributeInfo, 1> attributes;
+    static const std::array<AttributeInfo, 1> instanceAttributes;
+    static const std::array<TextureInfo, 0> textures;
+
+    static constexpr auto prelude = lineShaderPrelude;
+    static constexpr auto source = R"(
+
+float sdCircle(float2 p, float r) {
+    return length(p) - r;
+}
+
+float sdPlane(float2 p, float2 n, float h) {
+    // n must be normalized
+    return dot(p, n) + h;
+}
+
+float dot2(float2 v) {
+    return dot(v, v);
+}
+
+float opUnion(float a, float b) {
+    return min(a, b);
+}
+
+float opSmoothUnion(float d1, float d2, float k) {
+    float h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
+    return mix(d2, d1, h) - k * h * (1.0 - h);
+}
+
+float opIntersection(float a, float b) {
+    return max(a, b);
+}
+
+float opSubtraction(float a, float b) {
+    return max(a, -b);
+}
+
+float2 bisector(float2 v0, float2 v1, float2 v2) {
+    float2 v01 = normalize(v1 - v0);
+    float2 v02 = normalize(v2 - v0);
+    return normalize(v01 + v02);
+}
+
+float cotHalf(float cosTheta) {
+    float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
+    return (1.0 + cosTheta) / sinTheta;
+}
+
+void fitCircle(float2 v0, float2 v1, float2 v2, float radius, thread float &angle, thread float &distance) {
+    float cosTheta = dot(normalize(v1 - v0), normalize(v2 - v0));
+    float sinHalf = sqrt((1.0 - cosTheta) * 0.5);
+
+    angle = sinHalf;
+    distance = radius / sinHalf;
+}
+
+float dRoundedTri(float2 p, thread float &dTri, float2 v0, float2 v1, float2 v2, float radius) {
+    // circle distance from vertex
+    float angle;
+    float distance;
+    fitCircle(v0, v1, v2, radius, angle, distance);
+
+    // circle used to round it
+    float2 bisect = bisector(v0, v1, v2);
+    float2 circlePos = v0 + bisect * distance;
+    float dCircle = sdCircle(p - circlePos, radius);
+
+    // plane to isolate the two halfs of the circle (make the circle cutout asymmetrical)
+    float dPlaneIn = sdPlane(p - circlePos, -bisect, -radius * angle);
+
+    // mask based on plane
+    dTri = opIntersection(dTri, dPlaneIn);
+
+    return dCircle;
+}
+
+float cross2(float2 a, float2 b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+float computeRadius(float2 prevPoint, float2 cornerPoint, float2 nextPoint, float desiredCornerDistance) {
+    float maxEdgeLenPercent = 1.0;
+    float sinParallelTreshold = sin(5 * M_PI_F / 180);
+
+    float edge1Len = distance(prevPoint, cornerPoint);
+    float edge2Len = distance(nextPoint, cornerPoint);
+    if (edge1Len == 0.0 || edge2Len == 0.0) {
+        return 0;
+    }
+
+    // Compute the start and end points of the rounded corner
+    float2 edge1Vector = normalize(cornerPoint - prevPoint);
+    float2 edge2Vector = normalize(nextPoint - cornerPoint);
+
+    float edge1MaxCornerDistance = edge1Len * maxEdgeLenPercent;
+    float edge2MaxCornerDistance = edge2Len * maxEdgeLenPercent;
+    float cornerDistance = min3(desiredCornerDistance, edge1MaxCornerDistance, edge2MaxCornerDistance);
+
+    float2 startPoint = cornerPoint - edge1Vector * cornerDistance;
+    float2 endPoint = cornerPoint + edge2Vector * cornerDistance;
+
+    // Perpendicular directions
+    float2 perp1Vector = float2(-edge1Vector.y, edge1Vector.x);
+    float2 perp2Vector = float2(-edge2Vector.y, edge2Vector.x);
+
+    // Ensure perpendiculars point toward same side
+    if (cross2(edge1Vector, edge2Vector) < 0) {
+        perp1Vector *= -1.0;
+        perp2Vector *= -1.0;
+    }
+
+    // Center = intersection of perpendiculars
+    float perpCrossProduct = cross2(perp1Vector, perp2Vector);
+    if (abs(perpCrossProduct) < sinParallelTreshold) {
+        return 0;
+    }
+    float t = cross2(endPoint - startPoint, perp2Vector) / perpCrossProduct;
+    float2 centerPoint = startPoint + perp1Vector * t;
+
+    float radius = distance(startPoint, centerPoint);
+    return radius;
+}
+
+struct VertexStage {
+    uint3 triangle_instance [[attribute(1)]];
+
+/*    short2 pos_normal [[attribute(0)]];
+    uchar4 data [[attribute(1)]];
+
+#if !defined(HAS_UNIFORM_u_color)
+    float4 color [[attribute(2)]];
+#endif
+#if !defined(HAS_UNIFORM_u_blur)
+    float2 blur [[attribute(3)]];
+#endif
+#if !defined(HAS_UNIFORM_u_opacity)
+    float2 opacity [[attribute(4)]];
+#endif
+#if !defined(HAS_UNIFORM_u_gapwidth)
+    float2 gapwidth [[attribute(5)]];
+#endif
+#if !defined(HAS_UNIFORM_u_offset)
+    float2 offset [[attribute(6)]];
+#endif
+#if !defined(HAS_UNIFORM_u_width)
+    float2 width [[attribute(7)]];
+#endif */
+};
+
+struct FragmentStage {
+    float4 position [[position, invariant]];
+
+    float2 triangle_pos;
+
+    float2 triangle_corner_pos [[flat]];
+    float2 triangle_corner_prev [[flat]];
+    float2 triangle_corner_next [[flat]];
+    float triangle_corner_radius [[flat]];
+
+/*    float2 width2;
+    float2 normal;
+    half gamma_scale;
+
+#if !defined(HAS_UNIFORM_u_color)
+    float4 color;
+#endif
+#if !defined(HAS_UNIFORM_u_blur)
+    float blur;
+#endif
+#if !defined(HAS_UNIFORM_u_opacity)
+    float opacity;
+#endif*/
+};
+
+FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
+                                device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
+                                device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
+                                device const LineDrawableUnionUBO* drawableVector [[buffer(idLineDrawableUBO)]],
+                                device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
+                                device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]],
+                                uint vertexID [[vertex_id]]) {
+
+    device const LineDrawableUBO& drawable = drawableVector[uboIndex].lineDrawableUBO;
+
+/*
+#if defined(HAS_UNIFORM_u_gapwidth)
+    const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
+    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.map_zoom) : props.gapwidth) / 2;
+#else
+    const auto gapwidth = unpack_mix_float(vertx.gapwidth, drawable.gapwidth_t) / 2;
+#endif
+
+#if defined(HAS_UNIFORM_u_offset)
+    const auto exprOffset = (props.expressionMask & LineExpressionMask::Offset);
+    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.map_zoom) : props.offset) * -1;
+#else
+    const auto offset   = unpack_mix_float(vertx.offset, drawable.offset_t) * -1;
+#endif
+
+#if defined(HAS_UNIFORM_u_width)
+    const auto exprWidth = (props.expressionMask & LineExpressionMask::Width);
+    const auto width    = exprWidth ? expr.width.eval(paintParams.map_zoom) : props.width;
+#else
+    const auto width    = unpack_mix_float(vertx.width, drawable.width_t);
+#endif
+
+    // the distance over which the line edge fades out.
+    // Retina devices need a smaller distance to avoid aliasing.
+    const float ANTIALIASING = 1.0 / DEVICE_PIXEL_RATIO / 2.0;
+
+    const float2 a_extrude = float2(vertx.data.xy) - 128.0;
+    const float a_direction = glMod(float(vertx.data.z), 4.0) - 1.0;
+    const float2 pos = floor(float2(vertx.pos_normal) * 0.5);
+
+    // x is 1 if it's a round cap, 0 otherwise
+    // y is 1 if the normal points up, and -1 if it points down
+    // We store these in the least significant bit of a_pos_normal
+    const float2 normal = float2(vertx.pos_normal) - 2.0 * pos;
+    const float2 v_normal = float2(normal.x, normal.y * 2.0 - 1.0);
+
+    const float halfwidth = width / 2.0;
+    const float inset = gapwidth + (gapwidth > 0.0 ? ANTIALIASING : 0.0);
+    const float outset = gapwidth + halfwidth * (gapwidth > 0.0 ? 2.0 : 1.0) + (halfwidth == 0.0 ? 0.0 : ANTIALIASING);
+
+    // Scale the extrusion vector down to a normal and then up by the line width of this vertex.
+    const float2 dist = outset * a_extrude * LINE_NORMAL_SCALE;
+
+    // Calculate the offset when drawing a line that is to the side of the actual line.
+    // We do this by creating a vector that points towards the extrude, but rotate
+    // it when we're drawing round end points (a_direction = -1 or 1) since their
+    // extrude vector points in another direction.
+    const float u = 0.5 * a_direction;
+    const float t = 1.0 - abs(u);
+    const float2 offset2 = offset * a_extrude * LINE_NORMAL_SCALE * v_normal.y * float2x2(t, -u, u, t);
+
+    const float4 projected_extrude = drawable.matrix * float4(dist / drawable.ratio, 0.0, 0.0);
+    const float4 position = drawable.matrix * float4(pos + offset2 / drawable.ratio, 0.0, 1.0) + projected_extrude;
+
+    // calculate how much the perspective view squishes or stretches the extrude
+    const float extrude_length_without_perspective = length(dist);
+    const float extrude_length_with_perspective = length(projected_extrude.xy / position.w * paintParams.units_to_pixels);
+*/
+
+    int16_t pos_x = int16_t(vertx.triangle_instance[vertexID] >> 16);
+    int16_t pos_y = int16_t(vertx.triangle_instance[vertexID] & 0xFFFF);
+    float2 position = float2(pos_x, pos_y);
+
+    float2 triangle_vertex_pos[3];
+    float triangle_corner_radius;
+
+    for (int i = 0; i < 3; i++) {
+        pos_x = int16_t(vertx.triangle_instance[i] >> 16);
+        pos_y = int16_t(vertx.triangle_instance[i] & 0xFFFF);
+        triangle_vertex_pos[i] = float2(pos_x, pos_y);
+    }
+
+    triangle_corner_radius = computeRadius(triangle_vertex_pos[0], triangle_vertex_pos[1], triangle_vertex_pos[2], 100);
+
+    return {
+        .position = drawable.matrix * float4(position, 0.0f, 1.0f),
+        
+        .triangle_pos = position,
+
+        .triangle_corner_prev = triangle_vertex_pos[0],
+        .triangle_corner_pos = triangle_vertex_pos[1],
+        .triangle_corner_next = triangle_vertex_pos[2],
+        .triangle_corner_radius = triangle_corner_radius,
+
+/*        .position    = position,
+        .width2      = float2(outset, inset),
+        .normal      = v_normal,
+        .gamma_scale = half(extrude_length_without_perspective / extrude_length_with_perspective),
+
+#if !defined(HAS_UNIFORM_u_color)
+        .color       = unpack_mix_color(vertx.color,   drawable.color_t),
+#endif
+#if !defined(HAS_UNIFORM_u_blur)
+        .blur        = unpack_mix_float(vertx.blur,    drawable.blur_t),
+#endif
+#if !defined(HAS_UNIFORM_u_opacity)
+        .opacity     = unpack_mix_float(vertx.opacity, drawable.opacity_t),
+#endif */
+    };
+}
+
+half4 fragment fragmentMain(FragmentStage in [[stage_in]],
+                            device const GlobalPaintParamsUBO& paintParams [[buffer(idGlobalPaintParamsUBO)]],
+                            device const LineEvaluatedPropsUBO& props [[buffer(idLineEvaluatedPropsUBO)]],
+                            device const LineExpressionUBO& expr [[buffer(idLineExpressionUBO)]]) {
+#if defined(OVERDRAW_INSPECTOR)
+    return half4(1.0);
+#endif
+
+/*
+#if defined(HAS_UNIFORM_u_color)
+    const auto exprColor = (props.expressionMask & LineExpressionMask::Color);
+    const auto color     = exprColor ? expr.color.evalColor(paintParams.map_zoom) : props.color;
+#else
+    const float4 color = in.color;
+#endif
+
+#if defined(HAS_UNIFORM_u_blur)
+    const auto exprBlur = (props.expressionMask & LineExpressionMask::Blur);
+    const float blur = exprBlur ? expr.blur.eval(paintParams.map_zoom) : props.blur;
+#else
+    const float blur = in.blur;
+#endif
+
+#if defined(HAS_UNIFORM_u_opacity)
+    const auto exprOpacity = (props.expressionMask & LineExpressionMask::Opacity);
+    const float opacity = exprOpacity ? expr.opacity.eval(paintParams.map_zoom) : props.opacity;
+#else
+    const float opacity = in.opacity;
+#endif
+
+    // Calculate the distance of the pixel from the line in pixels.
+    const float dist = length(in.normal) * in.width2.x;
+
+    // Calculate the antialiasing fade factor. This is either when fading in the
+    // line in case of an offset line (v_width2.y) or when fading out (v_width2.x)
+    const float blur2 = (blur + 1.0 / DEVICE_PIXEL_RATIO) * in.gamma_scale;
+    const float alpha = clamp(min(dist - (in.width2.y - blur2), in.width2.x - dist) / blur2, 0.0, 1.0);
+
+    return half4(color * (alpha * opacity));*/
+
+    float dTri = -1.0;
+
+    if (in.triangle_corner_radius > 0.0) {
+        float d0 = dRoundedTri(in.triangle_pos, dTri, in.triangle_corner_pos, in.triangle_corner_prev, in.triangle_corner_next, in.triangle_corner_radius);
+        dTri = opUnion(dTri, d0);
+    }
+
+    if (dTri < 0.0) {
+        return half4(0.0);
+    }
+
+    return half4(1.0, 0.0, 0.0, 1.0);
+}
+)";
+};
+
+template <>
 struct ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal> {
     static constexpr auto name = "LineGradientShader";
     static constexpr auto vertexMainFunction = "vertexMain";
@@ -366,7 +713,7 @@ struct ShaderSource<BuiltIn::LineGradientShader, gfx::Backend::Type::Metal> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto prelude = lineShadePrelude;
+    static constexpr auto prelude = lineShaderPrelude;
     static constexpr auto source = R"(
 
 struct VertexStage {
@@ -533,7 +880,7 @@ struct ShaderSource<BuiltIn::LinePatternShader, gfx::Backend::Type::Metal> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto prelude = lineShadePrelude;
+    static constexpr auto prelude = lineShaderPrelude;
     static constexpr auto source = R"(
 
 struct VertexStage {
@@ -781,7 +1128,7 @@ struct ShaderSource<BuiltIn::LineSDFShader, gfx::Backend::Type::Metal> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
-    static constexpr auto prelude = lineShadePrelude;
+    static constexpr auto prelude = lineShaderPrelude;
     static constexpr auto source = R"(
 
 struct VertexStage {
@@ -1002,7 +1349,7 @@ struct ShaderSource<BuiltIn::LineGradientSDFShader, gfx::Backend::Type::Metal> {
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 2> textures;
 
-    static constexpr auto prelude = lineShadePrelude;
+    static constexpr auto prelude = lineShaderPrelude;
     static constexpr auto source = R"(
 
 struct VertexStage {
