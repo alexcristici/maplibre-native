@@ -241,21 +241,21 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 
 #if defined(HAS_UNIFORM_u_gapwidth)
     const auto exprGapWidth = (props.expressionMask & LineExpressionMask::GapWidth);
-    const auto gapwidth = (exprGapWidth ? expr.gapwidth.eval(paintParams.map_zoom) : props.gapwidth) / 2;
+    const auto gapwidth = 0; //(exprGapWidth ? expr.gapwidth.eval(paintParams.map_zoom) : props.gapwidth) / 2;
 #else
-    const auto gapwidth = unpack_mix_float(vertx.gapwidth, drawable.gapwidth_t) / 2;
+    const auto gapwidth = 0; //unpack_mix_float(vertx.gapwidth, drawable.gapwidth_t) / 2;
 #endif
 
 #if defined(HAS_UNIFORM_u_offset)
     const auto exprOffset = (props.expressionMask & LineExpressionMask::Offset);
-    const auto offset   = (exprOffset ? expr.offset.eval(paintParams.map_zoom) : props.offset) * -1;
+    const auto offset   = 0; //(exprOffset ? expr.offset.eval(paintParams.map_zoom) : props.offset) * -1;
 #else
-    const auto offset   = unpack_mix_float(vertx.offset, drawable.offset_t) * -1;
+    const auto offset   = 0; //unpack_mix_float(vertx.offset, drawable.offset_t) * -1;
 #endif
 
 #if defined(HAS_UNIFORM_u_width)
     const auto exprWidth = (props.expressionMask & LineExpressionMask::Width);
-    const auto width    = exprWidth ? expr.width.eval(paintParams.map_zoom) : props.width;
+    const auto width    = exprWidth ? expr.width.eval(paintParams.map_zoom) : props.width * 10;
 #else
     const auto width    = unpack_mix_float(vertx.width, drawable.width_t);
 #endif
@@ -443,7 +443,7 @@ float cross2(float2 a, float2 b) {
 }
 
 float computeRadius(float2 prevPoint, float2 cornerPoint, float2 nextPoint, float desiredCornerDistance) {
-    float maxEdgeLenPercent = 1.0;
+    float maxEdgeLenPercent = 0.5;
     float sinParallelTreshold = sin(5 * M_PI_F / 180);
 
     float edge1Len = distance(prevPoint, cornerPoint);
@@ -605,20 +605,27 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     const float extrude_length_with_perspective = length(projected_extrude.xy / position.w * paintParams.units_to_pixels);
 */
 
-    int16_t pos_x = int16_t(vertx.triangle_instance[vertexID] >> 16);
-    int16_t pos_y = int16_t(vertx.triangle_instance[vertexID] & 0xFFFF);
-    float2 position = float2(pos_x, pos_y);
-
     float2 triangle_vertex_pos[3];
     float triangle_corner_radius;
 
     for (int i = 0; i < 3; i++) {
-        pos_x = int16_t(vertx.triangle_instance[i] >> 16);
-        pos_y = int16_t(vertx.triangle_instance[i] & 0xFFFF);
+        int16_t pos_x = int16_t(vertx.triangle_instance[i] >> 16);
+        int16_t pos_y = int16_t(vertx.triangle_instance[i] & 0xFFFF);
         triangle_vertex_pos[i] = float2(pos_x, pos_y);
+
+        if (i == 0) {
+            continue;
+        }
+
+        float2 edgeVector = normalize(triangle_vertex_pos[i] - triangle_vertex_pos[i - 1]);
+        float2 perpVector = float2(-edgeVector.y, edgeVector.x);
+        triangle_vertex_pos[i] = triangle_vertex_pos[i] + perpVector * props.width * 5 / drawable.ratio;
+        triangle_vertex_pos[i - 1] = triangle_vertex_pos[i - 1] + perpVector * props.width * 5 / drawable.ratio;
     }
 
-    triangle_corner_radius = computeRadius(triangle_vertex_pos[0], triangle_vertex_pos[1], triangle_vertex_pos[2], 100);
+    triangle_corner_radius = computeRadius(triangle_vertex_pos[0], triangle_vertex_pos[1], triangle_vertex_pos[2], 20 / drawable.ratio);
+
+    float2 position = triangle_vertex_pos[vertexID];
 
     return {
         .position = drawable.matrix * float4(position, 0.0f, 1.0f),

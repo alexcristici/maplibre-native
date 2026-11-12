@@ -610,13 +610,16 @@ void RenderLineLayer::update(gfx::ShaderRegistry& shaders,
                 }
             }
 
+            propertiesAsUniforms.first.emplace("width");
+            propertiesAsUniforms.second.emplace(idLineWidthVertexAttribute);
+            
             auto shader = lineShaderGroup->getOrCreateShader(context, propertiesAsUniforms, posNormalAttribName);
             if (!shader) {
                 continue;
             }
 
             auto builder = createLineBuilder("line", std::move(shader));
-            builder->setDepthType(gfx::DepthMaskType::ReadWrite);
+            //builder->setDepthType(gfx::DepthMaskType::ReadWrite);
 
             // vertices, attributes and segments
             addAttributes(*builder, bucket, std::move(vertexAttrs));
