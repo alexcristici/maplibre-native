@@ -28,6 +28,7 @@ LineBucket::LineBucket(LineBucket::PossiblyEvaluatedLayoutProperties layout_,
 
 LineBucket::~LineBucket() {
     sharedVertices->release();
+    sharedTriangleInstances->release();
 }
 
 void LineBucket::addFeature(const GeometryTileFeature& feature,
@@ -40,8 +41,46 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
 
     for (auto& line : geometryCollection) {
         addGeometry(line, feature, canonical);
+        
+        for(uint i = 1; i < line.size(); i++) {
+            auto& point = line[i];
+            auto& prev = line[i - 1];
+            if (point == prev) {
+                continue;
+            }
+            neighborsMap[point].emplace_back(prev);
+            neighborsMap[prev].emplace_back(point);
+        }
     }
 
+    triangleInstances.clear();
+    intersectionTriangles.clear();
+    intersectionTriangles.emplace_back(0, 1, 2);
+    intersectionSegments.clear();
+    intersectionSegments.emplace_back(0, 0, 3, 3, 0, 0);
+    for (auto& pair : neighborsMap) {
+        auto& neighbors = pair.second;
+        if (neighbors.size() <= 2) {
+            continue;
+        }
+        auto& cornerPoint = pair.first;
+        std::sort(neighbors.begin(), neighbors.end(),
+            [cornerPoint](const GeometryCoordinate& a, const GeometryCoordinate& b) {
+                return util::angle_to(cornerPoint, a) > util::angle_to<>(cornerPoint, b);
+        });
+        for (uint i = 0; i < neighbors.size(); i++) {
+            auto& prevPoint = neighbors[i];
+            auto& nextPoint = neighbors[(i + 1) % neighbors.size()];
+            
+            auto angle = abs(util::rad2deg(util::angle_between(prevPoint - cornerPoint, nextPoint - cornerPoint)));
+            if (angle > 150.0 && angle < 210.0) {
+                continue;
+            }
+            triangleInstances.emplace_back(triangleInstance(prevPoint, cornerPoint, nextPoint));
+            intersectionSegments.back().instanceCount ++;
+        }
+    }
+        
     if (retainFeaturesById) {
         if (const auto vertexCount = vertices.elements() - vertexOffset; vertexCount > 0) {
             retainFeature(feature, vertexOffset, vertexCount);
