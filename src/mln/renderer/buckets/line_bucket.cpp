@@ -28,6 +28,7 @@ LineBucket::LineBucket(LineBucket::PossiblyEvaluatedLayoutProperties layout_,
 
 LineBucket::~LineBucket() {
     sharedVertices->release();
+    sharedTriangleInstances->release();
 }
 
 void LineBucket::addFeature(const GeometryTileFeature& feature,
@@ -40,8 +41,50 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
 
     for (auto& line : geometryCollection) {
         addGeometry(line, feature, canonical);
+        
+        for(uint i = 1; i < line.size(); i++) {
+            auto& point = line[i];
+            auto& prev = line[i - 1];
+            if (point == prev) {
+                continue;
+            }
+            neighborsMap[point].emplace_back(std::make_pair(prev, vertexOffset * 2.0 + 0));
+            neighborsMap[prev].emplace_back(std::make_pair(point, vertexOffset * 2.0 + 1));
+        }
     }
 
+    triangleInstances.clear();
+    intersectionTriangles.clear();
+    intersectionTriangles.emplace_back(0, 1, 2);
+    intersectionSegments.clear();
+    intersectionSegments.emplace_back(0, 0, 3, 3, 0, 0);
+    for (auto& pair : neighborsMap) {
+        auto& neighbors = pair.second;
+        if (neighbors.size() <= 2) {
+            continue;
+        }
+        auto& cornerPoint = pair.first;
+        std::sort(neighbors.begin(), neighbors.end(),
+            [cornerPoint](const std::pair<GeometryCoordinate, int>& a, const std::pair<GeometryCoordinate, int>& b) {
+                return util::angle_to(cornerPoint, std::get<GeometryCoordinate>(a)) > util::angle_to<>(cornerPoint, std::get<GeometryCoordinate>(b));
+        });
+        for (uint i = 0; i < neighbors.size(); i++) {
+            auto nextIndex = (i + 1) % neighbors.size();
+            auto& prevPoint = std::get<GeometryCoordinate>(neighbors[i]);
+            auto& nextPoint = std::get<GeometryCoordinate>(neighbors[nextIndex]);
+            
+            auto angle = abs(util::rad2deg(util::angle_between(prevPoint - cornerPoint, nextPoint - cornerPoint)));
+            if (angle > 150.0 && angle < 210.0) {
+                continue;
+            }
+            auto& prevDataIndex = std::get<uint32_t>(neighbors[i]);
+            auto& nextDataIndex = std::get<uint32_t>(neighbors[nextIndex]);
+            
+            triangleInstances.emplace_back(triangleInstance(prevPoint, cornerPoint, nextPoint, prevDataIndex, nextDataIndex));
+            intersectionSegments.back().instanceCount ++;
+        }
+    }
+        
     if (retainFeaturesById) {
         if (const auto vertexCount = vertices.elements() - vertexOffset; vertexCount > 0) {
             retainFeature(feature, vertexOffset, vertexCount);
